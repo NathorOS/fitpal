@@ -22,7 +22,7 @@ export async function montar(c, params = new URLSearchParams()) {
     momento: momentoPorHora(ahora.getHours()),
     items: [],
     tab: params.get('tab') === 'mias' ? 'mias' : 'recientes',
-    q: '',
+    q: params.get('q') ?? '',
   };
 
   // Editar una comida ya anotada
@@ -408,6 +408,7 @@ export async function montar(c, params = new URLSearchParams()) {
   function anunciar(t) { vivo.textContent = t; }
 
   pintarCuando();
+  if (estado.q) $('#q').value = estado.q;
   await pintarLista();
   pintarCarrito();
   if (params.get('ver')) abrirHoja(await obtenerAlimento(params.get('ver')));

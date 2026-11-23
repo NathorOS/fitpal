@@ -1,5 +1,5 @@
 // Subí este número cada vez que cambies archivos (nathorfit-v5, v6, ...)
-const CACHE = 'nathorfit-v11';
+const CACHE = 'nathorfit-v12';
 
 // "Cascarón" de la app. Las vistas de js/ui/ se cargan con import() dinámico,
 // así que TIENEN que estar acá o la app no abre en modo avión.
@@ -14,6 +14,7 @@ const ARCHIVOS = [
   './js/ui/ayuno.js', './js/ui/resultado.js', './js/ui/racha.js', './js/ui/retos.js',
   './js/entrenamiento.js', './js/datos/ejercicios.js', './js/ui/sesion.js',
   './js/ia.js', './js/codigo.js', './js/ui/ia.js', './js/ui/codigo.js',
+  './js/adaptativo.js', './js/sugerencias.js',
   './js/ui/hoy.js', './js/ui/registrar.js', './js/ui/entrenar.js',
   './js/ui/progreso.js', './js/ui/perfil.js', './js/ui/onboarding.js',
   './icons/icon-192.png', './icons/icon-512.png',

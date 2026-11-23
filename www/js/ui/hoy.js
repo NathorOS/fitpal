@@ -8,6 +8,8 @@ import { MOMENTOS, comidasDelDia, sumar } from '../registro.js';
 import { ayunoEnCurso, progresoAyuno, reloj, metaAyunoPreferida } from '../ayuno.js';
 import { puntajeDelDia, etiquetaPuntaje } from '../puntaje.js';
 import { racha } from '../estadisticas.js';
+import { revisarMeta, aplicarAjuste, posponerAjuste } from '../adaptativo.js';
+import { sugerencias } from '../sugerencias.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const num = (n, d = 0) => Number(n).toLocaleString('es-AR', { maximumFractionDigits: d });
@@ -62,6 +64,11 @@ export async function montar(c, params = new URLSearchParams()) {
   const quedan = objetivo - total.kcal;
   const [curso, metaAyuno, todasComidas] = await Promise.all([ayunoEnCurso(), metaAyunoPreferida(), todos('registro')]);
   const laRacha = racha([...new Set(todasComidas.map(x => x.fecha))]);
+  const ajuste = esHoy ? await revisarMeta() : { listo: false };
+  const ideas = esHoy && objetivo ? sugerencias({
+    quedan: Math.round(objetivo - total.kcal), protFalta: meta ? Math.round(meta.prot - total.prot) : 0,
+    hora: new Date().getHours(), kg, comidasHoy: comidas.length,
+  }) : [];
   const minutosAct = actividades.reduce((a, x) => a + (x.minutos || 0), 0);
   const puntajeDia = meta ? puntajeDelDia({
     kcal: total.kcal, kcalMeta: objetivo, prot: total.prot, protMeta: meta.prot,
@@ -129,6 +136,22 @@ export async function montar(c, params = new URLSearchParams()) {
         </div>` : ''}
         ${quedan < 0 ? '<p class="hoy__nota">Un día por encima no cambia nada: lo que cuenta es el promedio de la semana.</p>' : ''}
       </section>
+
+      ${ajuste.listo ? `<section class="tarjeta tarjeta--ajuste" aria-labelledby="t-ajuste">
+        <h2 class="metrica__titulo" id="t-ajuste">📊 Podemos ajustar tu meta</h2>
+        <p class="ajuste__cifras"><s>${num(ajuste.antes)}</s> → <b>${num(ajuste.despues)} kcal</b> por día</p>
+        <p class="hoy__nota">${esc(ajuste.motivo)} Lo calculé con tus pesos y tus días anotados completos del último mes${ajuste.limitadoPorPiso ? '. Nunca bajamos del mínimo seguro' : ''}.</p>
+        <div class="campos-2">
+          <button class="btn" data-ajuste="aplicar">Aplicar</button>
+          <button class="btn btn--secundario" data-ajuste="despues">Ahora no</button>
+        </div>
+      </section>` : ''}
+
+      ${ideas.length ? `<section class="tarjeta" aria-labelledby="t-ideas">
+        <h2 class="metrica__titulo" id="t-ideas">Ideas para cerrar el día</h2>
+        <ul class="ideas">${ideas.map(i => `<li><span aria-hidden="true">${i.emoji}</span>
+          <p>${esc(i.texto)}${i.accion ? ` <a class="enlace" href="${i.accion.href}">${esc(i.accion.texto)}</a>` : ''}</p></li>`).join('')}</ul>
+      </section>` : ''}
 
       <section class="tarjeta" aria-labelledby="t-comidas">
         <h2 class="metrica__titulo" id="t-comidas">Comidas</h2>
@@ -213,6 +236,14 @@ export async function montar(c, params = new URLSearchParams()) {
       barra.style.width = `${p.pct * 100}%`;
     }, 1000);
   }
+
+  c.querySelectorAll('[data-ajuste]').forEach(b => b.addEventListener('click', async () => {
+    if (b.dataset.ajuste === 'aplicar') {
+      await aplicarAjuste(ajuste);
+      try { sessionStorage.setItem('nathorfit-aviso', `Meta actualizada: ${num(ajuste.despues)} kcal por día.`); } catch { /* nada */ }
+    } else await posponerAjuste();
+    montar(c, params);
+  }));
 
   c.querySelectorAll('[data-agua]').forEach(b => b.addEventListener('click', async () => {
     b.disabled = true;

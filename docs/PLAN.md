@@ -113,7 +113,7 @@ PWA instalable con 5 pestañas, IndexedDB, cálculos, offline y publicación aut
 - Siempre se confirma antes de guardar; resultado como rango de kcal.
 - La clave nunca dentro de la app ni del repo.
 
-### Fase 7 — Meta adaptativa y sugerencias · `/replica-build`
+### ✅ Fase 7 — Meta adaptativa y sugerencias · `/replica-build`
 - Recalcular cada domingo con 28 días; sugerencias de ajuste, nunca cambios automáticos.
 
 ### Fase 8 — Pulido, respaldo y APK · `/replica-brand` (barrido) + `/replica-diff` (final)

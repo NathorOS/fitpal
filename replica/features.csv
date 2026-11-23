@@ -49,7 +49,7 @@ Mascota con nombre y personalidad,mascota,must,yes,yes,gatito propio en SVG; nom
 Escena con la mascota que reacciona,mascota,must,yes,yes,"gatito propio; reacciona a registrar comida agua y ayuno · clon: escena grande; reacciona a comidas, hora, ayuno y puntaje"
 Mascota pierde vida si no registrás,mascota,skip,yes,skip,mecánica de culpa: va contra las reglas de Nathor Fit
 Rutinas de fuerza con series y progresión,entrenamiento,could,no,yes,"extra de Nathor Fit · clon: 62 ejercicios, 4–7 rutinas según equipo y nivel, descanso guiado y progresión"
-Meta adaptativa según peso real,metas,should,no,no,extra de Nathor Fit
+Meta adaptativa según peso real,metas,should,no,yes,"extra de Nathor Fit · clon: propone (no aplica sola), ±150 kcal por ajuste, respeta pisos"
 Respaldo exportar e importar,datos,should,no,no,extra: datos locales
 Hoja Mi comida con hora editable y Ajustar con IA,registro,must,yes,yes,S57 · clon: la IA arma el carrito y se corrige antes de anotar
 Agua con número exacto en ml,agua,should,yes,partial,S62 · clon: vasos de 250 ml y total en ml; sin cargar un número exacto
@@ -62,7 +62,7 @@ Cobro honesto: sin prueba que cobra sola y cancelar en un toque,cobro,must,no,no
 Corregir la IA ingrediente por ingrediente,registro,must,no,yes,R2 mejora 3 y 8 · clon: cada ítem se edita o se saca en el carrito
 Comida casera argentina y marcas locales en la base,registro,must,no,partial,R2 mejora 4: 31 / 4 · clon: 135 platos y productos genéricos; sin marcas
 La actividad suma al presupuesto de calorías del día,actividad,must,no,yes,R2 mejora 6: 35 / 5 · clon: (MET−1)×kg×h; la mitad si el perfil ya es activo
-Sugerencia de actividad para completar las kcal a quemar,actividad,should,no,no,R2 mejora 6: pedido textual en App Store AR
+Sugerencia de actividad para completar las kcal a quemar,actividad,should,no,yes,R2 mejora 6: pedido textual en App Store AR · clon: ideas de comida con lo que queda y caminata opcional si te pasaste
 Iniciar o editar un ayuno hacia atrás,ayuno,should,no,yes,R2 mejora 7 · clon: hasta 24 h
 Escaneos con IA sin límite de 2 por día,registro,should,no,yes,R2 mejora 8; depende del costo de Gemini · clon: el límite es el de la clave gratuita de Gemini del usuario
 Carbohidratos netos (keto),macros,could,no,no,R2: 1 reseña

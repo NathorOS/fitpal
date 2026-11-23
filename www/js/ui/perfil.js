@@ -4,6 +4,7 @@ import { obtener } from '../db.js';
 import { gatoSVG } from '../gato.js';
 import { metaVigente, pesoActual } from '../objetivo.js';
 import { obtenerClave, guardarClave, borrarClave, probarClave } from '../ia.js';
+import { revisarMeta } from '../adaptativo.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const num = (n, d = 0) => Number(n).toLocaleString('es-AR', { maximumFractionDigits: d });
@@ -15,6 +16,7 @@ export async function montar(contenedor) {
   const perfil = await obtener('perfil', 'main');
   const meta = await metaVigente();
   const kg = await pesoActual();
+  const ajuste = await revisarMeta();
 
   async function pintar(mensaje = '') {
     const clave = await obtenerClave();
@@ -38,6 +40,9 @@ export async function montar(contenedor) {
             <li><span>Macros</span><b>${meta ? `P ${meta.prot} · C ${meta.carb} · G ${meta.grasa} g` : '–'}</b></li>
             <li><span>Actividad</span><b>${esc(NIVEL[perfil?.actividad] ?? '–')}</b></li>
           </ul>
+          <p class="hoja__nota" style="text-align:left;margin-top:8px">📊 Meta adaptativa: ${ajuste.listo
+            ? `hay un ajuste para revisar en Hoy (${num(ajuste.antes)} → ${num(ajuste.despues)} kcal).`
+            : esc(ajuste.motivo)}${meta?.adaptativa ? ' Tu meta actual ya fue ajustada con tus datos reales.' : ''}</p>
         </section>
 
         <section class="tarjeta" aria-labelledby="t-ia">

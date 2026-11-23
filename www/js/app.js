@@ -101,4 +101,13 @@ menu.addEventListener('click', async e => {
 window.addEventListener('hashchange', navegar);
 await abrirDB();
 navegar();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+if ('serviceWorker' in navigator) {
+  // Si había una versión anterior y se instala una nueva, recargamos una vez para mostrarla
+  // (si no, la persona ve la versión vieja hasta abrir la app por segunda vez).
+  const habiaVersion = Boolean(navigator.serviceWorker.controller);
+  let recargado = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (habiaVersion && !recargado) { recargado = true; location.reload(); }
+  });
+  navigator.serviceWorker.register('sw.js');
+}
