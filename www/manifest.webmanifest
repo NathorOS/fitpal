@@ -1,6 +1,6 @@
 {
-  "name": "FitPal",
-  "short_name": "FitPal",
+  "name": "Nathor Fit",
+  "short_name": "Nathor Fit",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

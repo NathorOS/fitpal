@@ -1,3 +1,6 @@
 node_modules/
 android/
 .env
+
+# Capturas de BitePal: solo referencia, nunca al repo público
+replica/screens/

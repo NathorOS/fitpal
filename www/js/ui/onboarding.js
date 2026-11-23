@@ -5,10 +5,10 @@ import { guardar } from '../db.js';
 
 export async function montar(c) {
   c.innerHTML = `
-    <h1>Bienvenido a FitPal</h1>
+    <h1>Bienvenido a Nathor Fit</h1>
     <div class="tarjeta">
       <p>El onboarding completo llega en la Fase 1.</p>
-      <p class="suave" style="margin-top:8px">FitPal no reemplaza a un médico ni a un nutricionista.</p>
+      <p class="suave" style="margin-top:8px">Nathor Fit no reemplaza a un médico ni a un nutricionista.</p>
     </div>
     <button class="boton" id="seguir">Empezar</button>`;
   c.querySelector('#seguir').addEventListener('click', async () => {

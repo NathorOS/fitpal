@@ -1,4 +1,4 @@
-const NOMBRE = 'fitpal';
+const NOMBRE = 'nathorfit';
 const VERSION = 1;
 let _db;
 
@@ -67,7 +67,7 @@ export function hoy(d = new Date()) {
 // --- Respaldo ---
 export async function exportarTodo() {
   const db = await abrirDB();
-  const salida = { _app: 'fitpal', _version: VERSION, _fecha: new Date().toISOString() };
+  const salida = { _app: 'nathorfit', _version: VERSION, _fecha: new Date().toISOString() };
   for (const n of db.objectStoreNames) salida[n] = await todos(n);
   return JSON.stringify(salida);
 }
@@ -75,7 +75,7 @@ export async function exportarTodo() {
 // Importa todo en UNA transacción: si algo falla, no queda nada a medias.
 export async function importarTodo(json) {
   const datos = JSON.parse(json);
-  if (datos._app !== 'fitpal') throw new Error('El archivo no es un respaldo de FitPal');
+  if (datos._app !== 'nathorfit') throw new Error('El archivo no es un respaldo de Nathor Fit');
   const db = await abrirDB();
   const stores = Object.keys(datos).filter(k => !k.startsWith('_') && db.objectStoreNames.contains(k));
   const tx = db.transaction(stores, 'readwrite');

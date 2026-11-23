@@ -1,5 +1,5 @@
-// Subí este número cada vez que cambies archivos (fitpal-v2, v3, ...)
-const CACHE = 'fitpal-v1';
+// Subí este número cada vez que cambies archivos (nathorfit-v3, v4, ...)
+const CACHE = 'nathorfit-v2';
 
 // "Cascarón" de la app. Las vistas de js/ui/ se cargan con import() dinámico,
 // así que TIENEN que estar acá o la app no abre en modo avión.
