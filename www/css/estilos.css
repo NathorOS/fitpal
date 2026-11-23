@@ -1,0 +1,24 @@
+:root {
+  --verde: #2f9e6f; --verde-claro: #e3f4ec; --fondo: #f6faf8; --tarjeta: #ffffff;
+  --texto: #1d2b25; --suave: #6b7c74; --alerta: #e8a23a; --radio: 20px;
+}
+* { box-sizing: border-box; margin: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body { font-family: system-ui, sans-serif; background: var(--fondo); color: var(--texto);
+  -webkit-tap-highlight-color: transparent; }
+main { padding: calc(16px + env(safe-area-inset-top)) 16px 90px; max-width: 480px; margin: 0 auto; }
+h1 { font-size: 1.6rem; margin-bottom: 12px; }
+h2 { font-size: 1.15rem; margin-bottom: 8px; }
+p { line-height: 1.45; }
+.suave { color: var(--suave); }
+.tarjeta { background: var(--tarjeta); border-radius: var(--radio); padding: 16px;
+  margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+.boton { background: var(--verde); color: #fff; border: 0; border-radius: 999px;
+  padding: 14px 22px; font-size: 1rem; width: 100%; cursor: pointer; font: inherit; }
+.boton:active { transform: scale(.98); }
+#tabs { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: #fff;
+  border-top: 1px solid #e3ebe7; padding-bottom: env(safe-area-inset-bottom); }
+#tabs[hidden] { display: none; }
+#tabs a { flex: 1; text-align: center; padding: 14px 0; color: var(--suave);
+  text-decoration: none; font-size: .8rem; }
+#tabs a.activa { color: var(--verde); font-weight: 600; }
