@@ -4,3 +4,8 @@ android/
 
 # Capturas de BitePal: solo referencia, nunca al repo público
 replica/screens/
+# Reseñas completas de terceros: solo para investigación local
+replica/reviews.csv
+replica/feedback.md
+# Imágenes derivadas de capturas de terceros: solo locales
+replica/diffs/*.png

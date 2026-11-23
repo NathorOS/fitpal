@@ -1,0 +1,53 @@
+{
+  "_about": "Temas para una app de calorías, en español e inglés. Patrones: regex de Python, sin distinguir mayúsculas.",
+  "request_patterns": [
+    "\\bojal[aá]\\b", "\\bser[ií]a (bueno|genial|[uú]til|ideal|lindo|excelente|mejor)\\b", "\\bme gustar[ií]a\\b",
+    "\\bdeber[ií]an\\b", "\\bagreg(uen|ar)\\b", "\\ba[ñn]adan\\b", "\\bfalta\\b", "\\bno (se )?puede\\b",
+    "\\bno (me )?(permite|deja)\\b", "\\bquisiera\\b", "\\bplease add\\b", "\\bi wish\\b", "\\bwould (be|love)\\b",
+    "\\bneeds? (a|an|the|to|more)\\b", "\\bno way to\\b", "\\b(can'?t|cannot|unable to) (add|edit|change|save|type|log)\\b",
+    "\\b(missing|lacks|lacking)\\b", "\\bif only\\b"
+  ],
+  "themes": [
+    {"id": "precision", "label": "La IA calcula mal las calorías", "kind": "complaint", "patterns": [
+      "\\binexact", "\\bimprecis", "\\bno es precis", "\\baccura", "\\binaccura", "\\boverestimat", "\\bunderestimat",
+      "\\bsobreestim", "\\bsubestim", "\\bway off\\b", "\\bwrong (calor|amount)", "\\bno (reconoce|identifica|detecta)",
+      "\\bcalor[ií]as (mal|incorrect|err[oó]ne)", "\\bnot (very |that )?accurate\\b", "\\bmis(read|identif)"]},
+    {"id": "paywall", "label": "Lo importante está detrás del pago", "kind": "complaint", "patterns": [
+      "\\bpremium\\b", "\\bsuscripci", "\\bsubscri", "\\bpaywall", "\\bversi[oó]n (gratuita|gratis|de pago|paga)",
+      "\\bfree version\\b", "\\bbloquead", "\\blocked\\b", "\\bcaro\\b", "\\bexpensive\\b", "\\bprecio\\b", "\\bprice",
+      "\\bpagar\\b", "\\bpay(ing)? for\\b", "\\bonly (in|with) (the )?(paid|premium)"]},
+    {"id": "cobros", "label": "Cobros, cancelar y reembolsos", "kind": "complaint", "patterns": [
+      "\\bcobr", "\\bcharg", "\\breembols", "\\brefund", "\\bcancel", "\\bestafa", "\\bscam", "\\brenov", "\\brenew",
+      "\\bprueba gratuita\\b", "\\bfree trial\\b"]},
+    {"id": "editar", "label": "No se puede editar o escribir las calorías", "kind": "request", "patterns": [
+      "\\beditar\\b", "\\bedit(ing)?\\b", "\\bmodificar\\b", "\\bcorregir\\b", "\\bcambiar (las )?(calor|cantidad|porci)",
+      "\\bchange (the )?(calor|amount|portion)", "\\btype in\\b", "\\bescribir (las )?calor", "\\bajustar (las )?calor"]},
+    {"id": "base", "label": "Faltan marcas, productos y código de barras", "kind": "complaint", "patterns": [
+      "\\bmarca", "\\bbrand", "\\bbase de datos\\b", "\\bdatabase\\b", "\\bbarcode", "\\bc[oó]digo de barras",
+      "\\betiqueta", "\\bnutrition (facts|label)", "\\bproductos?\\b"]},
+    {"id": "propias", "label": "Guardar comidas y recetas propias", "kind": "request", "patterns": [
+      "\\breceta", "\\brecipe", "\\bmis comidas\\b", "\\bguardar (la |mis |una )?comida", "\\bsave (my |a )?(own )?(meal|food|recipe)",
+      "\\bcustom (meal|food|recipe)", "\\bcomida(s)? personalizad", "\\bcrear (una )?comida", "\\bfavorit"]},
+    {"id": "macros", "label": "Macros y nutrientes", "kind": "request", "patterns": [
+      "\\bmacro", "\\bprote[ií]na", "\\bprotein", "\\bcarbohidrat", "\\bcarbs?\\b", "\\bgrasas?\\b", "\\bfats?\\b", "\\bfibra\\b", "\\bfiber\\b"]},
+    {"id": "actividad", "label": "Ejercicio, pasos y sincronización", "kind": "request", "patterns": [
+      "\\bejercicio", "\\bexercis", "\\bactividad f[ií]sica", "\\bactivity\\b", "\\bpasos\\b", "\\bsteps\\b", "\\bentrenamiento",
+      "\\bworkout", "\\bquemad", "\\bburn", "\\bapple health\\b", "\\bhealth connect\\b", "\\bgoogle fit\\b",
+      "\\bsincroniz", "\\bsync", "\\breloj\\b", "\\bwatch\\b"]},
+    {"id": "culpa", "label": "La mascota genera culpa o presión", "kind": "complaint", "patterns": [
+      "\\bculpa", "\\bguilt", "\\bpresi[oó]n\\b", "\\bpressure\\b", "\\bansiedad\\b", "\\banxi", "\\bhambre\\b",
+      "\\bstarv", "\\bse muere\\b", "\\bdies?\\b", "\\bcorazones\\b", "\\bhearts?\\b", "\\bhealth points\\b", "\\bpierde vida"]},
+    {"id": "fallas", "label": "Errores y fallas", "kind": "complaint", "patterns": [
+      "\\berror", "\\bbug", "\\bcrash", "\\bse cierra\\b", "\\bse traba", "\\bse tilda", "\\blento\\b", "\\bfreez", "\\bglitch",
+      "\\bno carga\\b", "\\bno funciona\\b", "\\bdoesn'?t work\\b", "\\bnot working\\b", "\\bse borr", "\\bdisappear"]},
+    {"id": "tarde", "label": "Registrar comidas de otro momento", "kind": "request", "patterns": [
+      "\\bbacklog", "\\blog (later|earlier|past|previous)", "\\botra hora\\b", "\\bayer\\b", "\\byesterday\\b",
+      "\\bd[ií]a anterior\\b", "\\bprevious day", "\\bcambiar (la )?(hora|fecha)\\b", "\\bchange (the )?(time|date)\\b"]},
+    {"id": "idioma", "label": "Idioma y traducción", "kind": "complaint", "patterns": [
+      "\\bidioma\\b", "\\btraduc", "\\btranslat", "\\blanguage\\b", "\\ben ingl[eé]s\\b"]},
+    {"id": "local", "label": "Comida local y casera", "kind": "request", "patterns": [
+      "\\bargentin", "\\blatin", "\\bcomida casera\\b", "\\bhomemade\\b", "\\bcomida t[ií]pica", "\\bmexican", "\\bespañol"]},
+    {"id": "salud", "label": "Trastornos alimentarios y salud mental", "kind": "complaint", "patterns": [
+      "\\btrastorno", "\\beating disorder", "\\b(ed|tca)\\b", "\\banorex", "\\bbulimi", "\\batrac[oó]n", "\\bbinge", "\\brecovery\\b"]}
+  ]
+}

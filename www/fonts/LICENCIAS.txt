@@ -1,0 +1,4 @@
+Fredoka (c) The Fredoka Project Authors — SIL Open Font License 1.1
+Nunito Sans (c) The Nunito Sans Project Authors — SIL Open Font License 1.1
+Archivos: subconjunto "latin" de Google Fonts (incluye á é í ó ú ñ ü ¿ ¡).
+Licencia completa: https://openfontlicense.org

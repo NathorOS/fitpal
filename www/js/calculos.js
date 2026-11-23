@@ -2,11 +2,10 @@ export const FACTORES = { sedentario: 1.2, ligero: 1.375, moderado: 1.55, alto: 
 export const KCAL_POR_KG = 7700;
 export const MINIMO_KCAL = { m: 1500, f: 1200 };
 
-export function edadDesde(fechaNac) {
+export function edadDesde(fechaNac, h = new Date()) {
   // fechaNac 'YYYY-MM-DD': se parsea como fecha local (new Date('YYYY-MM-DD') es UTC
   // y en Argentina corre el cumpleaños un día para atrás).
   const [a, m, d] = fechaNac.split('-').map(Number);
-  const h = new Date();
   let e = h.getFullYear() - a;
   const dm = h.getMonth() + 1 - m;
   if (dm < 0 || (dm === 0 && h.getDate() < d)) e--;

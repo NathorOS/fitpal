@@ -1,0 +1,7 @@
+{
+  "_about": "Lo que no puede aparecer en Nathor Fit. Lo usa sweep.py (replica-brand) y después listing.py y replica-deploy.",
+  "name": "Nathor Fit",
+  "avoid": ["BitePal", "Bite Pal", "Pookies", "BiteCoins", "BiteCoin", "Bitey"],
+  "domains": ["bitepal.app", "bitepal.ai", "com.pookies.food.ai"],
+  "colors": ["#48b25a", "#4ca85d", "#47b159", "#ebf7ed"]
+}

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Paletas Nathor Fit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@700;800;900&family=Nunito+Sans:opsz,wght@6..12,500;6..12,700;6..12,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/componentes.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    body { font-family: var(--font-sans); background: #e9e8ee; color: var(--text); padding: 20px 16px 40px; }
+    body.fredoka, .fredoka { --font-display: 'Fredoka', ui-rounded, system-ui, sans-serif; }
+    header { max-width: 1240px; margin: 0 auto 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: end; justify-content: space-between; }
+    header h1 { font: 700 26px/1.1 var(--font-display); }
+    header p { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+    .columnas { max-width: 1240px; margin: 0 auto; display: grid; gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); }
+    .col > h2 { font: 700 22px/1 var(--font-display); margin-bottom: 4px; }
+    .col > .muestras { display: flex; gap: 6px; margin-bottom: 12px; }
+    .col > .muestras i { width: 28px; height: 28px; border-radius: 8px; border: 1px solid rgba(0,0,0,.08); }
+    .tel { background: var(--bg); border-radius: 32px; overflow: hidden; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+    .pant { padding: 20px var(--gutter) 24px; display: grid; gap: 20px; }
+    .top { display: flex; align-items: center; gap: 12px; }
+    .escena { background: var(--scene); padding: 16px var(--card-margin) 12px; position: relative; }
+    .escena .gato { width: 52%; margin: 0 auto; display: block; }
+    .escena .gato svg { width: 100%; height: auto; display: block; }
+    .hoyfila { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px 12px;
+      font: 700 var(--fs-lg)/1 var(--font-display); color: var(--ink); }
+    .abajo { background: var(--bg-app); padding: 16px var(--card-margin); display: grid; gap: 12px; }
+    [data-paleta="B"] { --ink:#1F1A33; --accent:#7457F2; --accent-text:#5B3FD9; --accent-soft:#F1EDFF; --scene:#D6CCFF; }
+    [data-paleta="C"] { --ink:#102A43; --accent:#1C74D9; --accent-text:#1562BC; --accent-soft:#E7F0FC; --scene:#C4E4F6; }
+    .acento-txt { color: var(--accent-text); }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Nathor Fit: paleta Esmeralda</h1>
+      <p>Verde propio, más profundo y azulado que el de la competencia. Títulos con Fredoka.</p>
+    </div>
+  </header>
+  <div class="columnas" id="columnas"></div>
+
+  <template id="tpl">
+    <div class="col">
+      <h2 data-nombre></h2>
+      <div class="muestras">
+        <i style="background:var(--ink)"></i><i style="background:var(--accent)"></i>
+        <i style="background:var(--accent-soft)"></i><i style="background:var(--scene)"></i>
+      </div>
+
+      <!-- Pantalla 1: pregunta del onboarding -->
+      <div class="tel"><div class="pant">
+        <div class="top">
+          <button class="icono-btn" aria-label="Atrás">‹</button>
+          <div class="tramos"><span><i style="width:100%"></i></span><span><i style="width:40%"></i></span><span><i style="width:0"></i></span></div>
+        </div>
+        <div class="pregunta"><div data-gato="saluda"></div><div class="burbuja">¿Qué querés lograr?</div></div>
+        <div class="opciones" role="radiogroup">
+          <button class="opcion" role="radio" aria-checked="true"><span class="emoji">📉</span>Bajar de peso</button>
+          <button class="opcion" role="radio" aria-checked="false"><span class="emoji">⚖️</span><span>Mantenerme<small>y comer mejor</small></span></button>
+        </div>
+        <button class="btn">Seguir</button>
+      </div></div>
+
+      <!-- Pantalla 2: Inicio -->
+      <div class="tel">
+        <div class="escena"><div class="gato" data-gato="feliz"></div>
+          <div class="hoyfila"><span>📅 Hoy</span><span>🔥 3</span></div>
+        </div>
+        <div class="abajo">
+          <div class="tarjeta">
+            <div class="metrica__fila">
+              <div><div class="metrica__titulo">Calorías del día</div><div class="metrica__numero">1.140</div></div>
+              <div class="anillo"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="29" fill="none" stroke="var(--surface-2)" stroke-width="5"/>
+                <circle cx="32" cy="32" r="29" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" stroke-dasharray="182" stroke-dashoffset="80"/></svg>
+                <button class="icono-btn" aria-label="Registrar comida">+</button></div>
+            </div>
+            <div class="macros">
+              <div><div class="macro__nombre">Carbos</div><div class="macro__pista"><i style="width:55%;background:var(--macro-carb)"></i></div><div class="macro__valor">62 / 120 g</div></div>
+              <div><div class="macro__nombre">Grasas</div><div class="macro__pista"><i style="width:40%;background:var(--macro-grasa)"></i></div><div class="macro__valor">18 / 45 g</div></div>
+              <div><div class="macro__nombre">Proteínas</div><div class="macro__pista"><i style="width:70%;background:var(--macro-prot)"></i></div><div class="macro__valor">96 / 140 g</div></div>
+            </div>
+            <div class="metrica__pie"><span>Meta: 1.650 kcal · te quedan <b class="acento-txt">510</b></span><span>•••</span></div>
+          </div>
+          <div class="barra-inferior">
+            <nav class="nav" aria-label="Secciones"><a href="#" aria-current="page">🏠</a><a href="#">🏅</a><a href="#">📊</a></nav>
+            <button class="fab" aria-label="Agregar" aria-expanded="false">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pantalla 3: menú del + y hoja de alimento -->
+      <div class="tel"><div class="pant" style="background:var(--bg-app)">
+        <div class="menu-mas">
+          <div class="menu-mas__fila"><button><span class="emoji">🏃</span>Actividad</button><button><span class="emoji">⚖️</span>Peso</button><button><span class="emoji">💧</span>Agua</button></div>
+          <div class="menu-mas__fila"><button><span class="emoji">⚡</span>Rápido</button><button><span class="emoji">💬</span>Describir</button><button><span class="emoji">🔎</span>Buscar</button></div>
+          <button style="flex-direction:row;justify-content:center;background:var(--accent);color:var(--on-accent);font-size:19px;font-weight:800"><span class="emoji">📷</span>Sacar foto</button>
+        </div>
+        <div class="hoja" style="border-radius:var(--r-lg)">
+          <div style="text-align:center;font:700 var(--fs-2xl)/1.2 var(--font-display)">Milanesa al horno</div>
+          <div style="display:flex;gap:8px;justify-content:center;margin:10px 0 16px;flex-wrap:wrap">
+            <span class="chip">🔥 310 kcal</span><span class="chip">P 28 g</span><span class="chip">G 14 g</span>
+          </div>
+          <div class="seg" role="group" style="margin-bottom:12px"><button aria-pressed="true">Unidades</button><button aria-pressed="false">Gramos</button></div>
+          <div class="contador"><button class="icono-btn" aria-label="Menos">–</button><output>1 <span>mila</span></output><button class="icono-btn" aria-label="Más">+</button></div>
+          <button class="btn" style="margin-top:16px">Registrar 310 kcal</button>
+        </div>
+      </div></div>
+    </div>
+  </template>
+
+  <script type="module">
+    import { gatoSVG } from '../js/gato.js';
+    const paletas = [['D', 'Esmeralda · Fredoka', false]];
+    const cont = document.getElementById('columnas');
+    const tpl = document.getElementById('tpl');
+    for (const [id, nombre, fredoka] of paletas) {
+      const nodo = tpl.content.cloneNode(true);
+      const col = nodo.querySelector('.col');
+      col.dataset.paleta = id;
+      if (fredoka) col.classList.add('fredoka');
+      col.querySelector('[data-nombre]').textContent = nombre;
+      col.querySelectorAll('[data-gato]').forEach(d => { d.innerHTML = gatoSVG(d.dataset.gato); });
+      cont.append(nodo);
+    }
+    // Interacción mínima para probar estados
+    document.addEventListener('click', e => {
+      const op = e.target.closest('.opcion');
+      if (op) op.parentElement.querySelectorAll('.opcion').forEach(o => o.setAttribute('aria-checked', o === op));
+      const sb = e.target.closest('.seg button');
+      if (sb) {
+        sb.parentElement.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b === sb));
+        if (sb.dataset.fuente) document.body.classList.toggle('fredoka', sb.dataset.fuente === 'fredoka');
+      }
+      const fab = e.target.closest('.fab');
+      if (fab) fab.setAttribute('aria-expanded', fab.getAttribute('aria-expanded') !== 'true');
+    });
+  </script>
+</body>
+</html>

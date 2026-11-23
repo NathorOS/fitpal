@@ -27,7 +27,14 @@ export function abrirDB() {
       crear('sesiones',   { keyPath: 'id', autoIncrement: true }, ['fecha']);
       crear('metas',      { keyPath: 'fecha' });
     };
-    req.onsuccess = () => { _db = req.result; ok(_db); };
+    req.onsuccess = () => {
+      _db = req.result;
+      // Si el navegador cierra la conexión o otra pestaña actualiza la base,
+      // se olvida la conexión para que la próxima llamada abra una nueva.
+      _db.onclose = () => { _db = null; };
+      _db.onversionchange = () => { _db.close(); _db = null; };
+      ok(_db);
+    };
     req.onerror = () => fallo(req.error);
   });
 }
@@ -65,10 +72,13 @@ export function hoy(d = new Date()) {
 }
 
 // --- Respaldo ---
+export const CLAVES_PRIVADAS = ['gemini_clave'];
 export async function exportarTodo() {
   const db = await abrirDB();
   const salida = { _app: 'nathorfit', _version: VERSION, _fecha: new Date().toISOString() };
   for (const n of db.objectStoreNames) salida[n] = await todos(n);
+  // La clave de la IA es personal: nunca sale del teléfono, ni en un respaldo.
+  salida.config = (salida.config ?? []).filter(c => !CLAVES_PRIVADAS.includes(c.clave));
   return JSON.stringify(salida);
 }
 

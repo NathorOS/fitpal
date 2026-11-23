@@ -20,7 +20,7 @@ Google Play la rechace por imitación y le da a BitePal motivo para pedir que la
 
 | Igual que BitePal (lo copiamos) | Propio de Nathor Fit (no lo copiamos) |
 |---|---|
-| Pantallas, orden de las pestañas, flujos y cantidad de toques | Logo, ícono, ilustraciones y la mascota (ya la reemplazamos por anillo + puntaje) |
+| Pantallas, orden de las pestañas, flujos y cantidad de toques | Logo, ícono, ilustraciones y la mascota: el mapache se reemplaza por **un gatito propio** |
 | Funciones: registro, foto IA, agua, ayuno, pasos, peso, rachas | Colores de marca (mismo *rol*, otro tono) |
 | Tipo de componentes: tarjetas redondeadas, anillos, barra inferior, botón "+" | Todos los textos y mensajes (los escribimos de cero) |
 | Escala de tamaños, espaciado y jerarquía visual | Fuentes pagas (usamos una libre equivalente) |
@@ -62,52 +62,53 @@ Cada fase de construcción termina con: `/replica-test` → checklist en verde �
 ### ✅ Fase 0 — Esqueleto (hecha)
 PWA instalable con 5 pestañas, IndexedDB, cálculos, offline y publicación automática en GitHub Pages.
 
-### Fase R1 — Recon de BitePal · `/replica-recon`
+### ✅ Fase R1 — Recon de BitePal · `/replica-recon`
 - Fuentes: ficha de Google Play y App Store (capturas y descripción), web y ayuda de BitePal, videos públicos.
   **Si tenés BitePal instalada**, lo mejor son tus propias capturas de cada pantalla (vos las sacás, yo no entro a tu cuenta).
 - Resultado: `replica/recon.md` (pantallas S01…, flujos F01…, componentes, datos) y `replica/features.csv`
   (cada función con prioridad: imprescindible / conviene / opcional).
-- La mascota y todo lo que dependa de ella se marca `skip`.
+- El mapache se marca `skip`; sus funciones (nombre, personalidad, reacciones) las cumple **el gatito**.
 - Las capturas van a `replica/screens/` y **no se suben** al repo (es público).
 - **Al terminar, se reajustan las Fases 1 a 7** según lo que tenga BitePal.
 
-### Fase R2 — Qué odian los usuarios de BitePal · `/replica-entrepreneur`
+### ✅ Fase R2 — Qué odian los usuarios de BitePal · `/replica-entrepreneur`
 - 100+ reseñas reales de Google Play, App Store y Reddit, citadas textualmente y con link.
 - Resultado: tres listas (lo que odian, lo que falta, lo que no resuelve), 5 a 8 mejoras para Nathor Fit
   y el "ángulo" de venta. Las mejoras entran a `features.csv`.
 
-### Fase R3 — Diseño y marca · `/replica-design` + `/replica-brand`
+### ✅ Fase R3 — Diseño y marca · `/replica-design` + `/replica-brand`
 - Variables de diseño medidas de las capturas: colores por rol, tipografía, espaciados, radios, sombras.
 - Paleta propia de Nathor Fit (otro tono que BitePal), con contraste AA verificado.
 - Componentes base: botón, tarjeta, anillo, barra inferior, botón "+", hoja inferior, campos.
 - Brief del logo e ícono, y guía de tono (cercano, sin culpa).
-- Se reemplaza `estilos.css` por estas variables.
+- Se reemplaza `estilos.css` por estas variables. *(Queda para el arranque de la Fase 1, junto con guardar Fredoka y Nunito Sans dentro de la app.)*
+- Hecho: paleta Esmeralda, títulos Fredoka, `replica/design/`, `replica/brand.md`, barrido de la app limpio.
 
-### Fase 1 — Onboarding, perfil y meta calórica · `/replica-build`
-- Onboarding con los mismos pasos y orden que BitePal (según el recon), sin el paso de la mascota.
+### ✅ Fase 1 — Onboarding, perfil y meta calórica · `/replica-build`
+- Onboarding con los mismos pasos y orden que BitePal (según el recon), incluido nombrar al gatito y elegir su personalidad.
 - Propuestas pendientes de tu OK: **edad mínima 18** y **sin pedir clave de Gemini** acá (va en Fase 6).
 - Guardar perfil y primera meta; Perfil para editar y recalcular.
 - Checklist: el perfil sobrevive a recargar · nunca baja de 1200 / 1500 kcal · ritmo máx. 1 %/semana · 3 perfiles verificados a mano.
 
-### Fase 2 — Alimentos, registro y pantalla Hoy · `/replica-build`
+### ✅ Fase 2 — Alimentos, registro y pantalla Hoy · `/replica-build`
 - ~150 alimentos argentinos, buscador, cantidades, comidas del día, favoritos y comidas propias.
 - Hoy con la misma distribución que BitePal: anillo principal de calorías, macros, tarjetas por comida.
 - Checklist: el anillo se actualiza al instante · ayer no aparece hoy · comidas propias reutilizables · funciona offline.
 
-### Fase 3 — Agua, peso, pasos y Progreso · `/replica-build` · luego `/replica-diff`
+### ✅ Fase 3 — Agua, peso, pasos y Progreso · `/replica-build` · luego `/replica-diff`
 - Agua (+250/+500), peso con línea real y suavizada, pasos manuales e importación CSV, gráficos semanales.
 - **Control de parecido #1** con `/replica-diff`.
 
-### Fase 4 — Entrenamiento · `/replica-build`
+### ✅ Fase 4 — Entrenamiento · `/replica-build`
 - ~60 ejercicios, plantillas por nivel y equipo, pantalla de sesión con descanso, progresión simple.
 - (Si BitePal no tiene entrenamiento, esta fase es un **extra** de Nathor Fit y se diseña con el mismo estilo.)
 
-### Fase 5 — Ayuno, puntaje y rachas · `/replica-build` · luego `/replica-diff`
+### ✅ Fase 5 — Ayuno, puntaje y rachas · `/replica-build` · luego `/replica-diff`
 - Ventanas 16/8, 14/10 y personalizada; puntaje diario; racha con comodín semanal, sin culpa.
-- Las rachas y recompensas de BitePal se adaptan al anillo + puntaje (sin mascota).
+- Las rachas y los retos de BitePal se adaptan al gatito: festeja la racha y nunca pierde vidas.
 - **Control de parecido #2.**
 
-### Fase 6 — Código de barras, voz y foto con IA · `/replica-build`
+### ✅ Fase 6 — Código de barras, voz y foto con IA · `/replica-build`
 - Open Food Facts, `BarcodeDetector`, voz con fallback a texto, foto → proxy de Apps Script → Gemini.
 - Siempre se confirma antes de guardar; resultado como rango de kcal.
 - La clave nunca dentro de la app ni del repo.
@@ -127,7 +128,14 @@ PWA instalable con 5 pestañas, IndexedDB, cálculos, offline y publicación aut
 
 ---
 
-## 4. Reglas de seguridad (no negociables, sin cambios)
+## 4. La mascota: un gatito (decidido el 2026-11-23)
+- Diseño **100 % propio**, dibujado en SVG con código (`www/js/gato.js`): naranja, panza crema, collar verde
+  de Nathor Fit. Nada de mapache, antifaz ni cola rayada.
+- Estados: normal, contento, saluda, siesta y festeja. Se suman más a medida que haga falta (comiendo, pensando).
+- **Nunca castiga**: no tiene vidas ni pasa hambre. Si no registrás, duerme la siesta. No juzga comidas como "malas".
+- Antes de vender, si se quiere, se reemplaza por ilustraciones profesionales con las mismas poses.
+
+## 5. Reglas de seguridad (no negociables, sin cambios)
 1. Mínimo calórico (1200 mujeres / 1500 hombres) y ritmo máximo 1 %/semana siempre activos.
 2. Sin lenguaje de culpa; lenguaje neutro.
 3. Aviso visible: no reemplaza a un médico ni a un nutricionista.
@@ -135,5 +143,5 @@ PWA instalable con 5 pestañas, IndexedDB, cálculos, offline y publicación aut
 5. No apta para menores ni personas con trastornos alimentarios; recomendar consultar a un profesional.
 6. **Nuevo:** nada de BitePal (logos, imágenes, textos, colores de marca) dentro de la app.
 
-## 5. Orden
-0 ✅ → R1 → R2 → R3 → 1 → 2 → 3 (+diff) → 4 → 5 (+diff) → 6 → 7 → 8 (+brand, +diff) → 9.
+## 6. Orden
+0 ✅ → R1 ✅ → R2 ✅ → R3 ✅ → 1 → 2 → 3 (+diff) → 4 → 5 (+diff) → 6 → 7 → 8 (+brand, +diff) → 9.

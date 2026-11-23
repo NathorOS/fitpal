@@ -1,18 +1,28 @@
-// Subí este número cada vez que cambies archivos (nathorfit-v3, v4, ...)
-const CACHE = 'nathorfit-v2';
+// Subí este número cada vez que cambies archivos (nathorfit-v5, v6, ...)
+const CACHE = 'nathorfit-v11';
 
 // "Cascarón" de la app. Las vistas de js/ui/ se cargan con import() dinámico,
 // así que TIENEN que estar acá o la app no abre en modo avión.
 const ARCHIVOS = [
-  './', './index.html', './manifest.webmanifest', './css/estilos.css',
-  './js/app.js', './js/db.js', './js/calculos.js',
+  './', './index.html', './manifest.webmanifest',
+  './css/tokens.css', './css/componentes.css', './css/estilos.css',
+  './fonts/fredoka-latin.woff2', './fonts/nunito-sans-latin.woff2',
+  './js/app.js', './js/db.js', './js/calculos.js', './js/objetivo.js', './js/gato.js',
+  './js/registro.js', './js/datos/alimentos.js', './js/actividad.js', './js/estadisticas.js',
+  './js/ui/peso.js', './js/ui/actividad.js',
+  './js/ayuno.js', './js/puntaje.js', './js/retos.js',
+  './js/ui/ayuno.js', './js/ui/resultado.js', './js/ui/racha.js', './js/ui/retos.js',
+  './js/entrenamiento.js', './js/datos/ejercicios.js', './js/ui/sesion.js',
+  './js/ia.js', './js/codigo.js', './js/ui/ia.js', './js/ui/codigo.js',
   './js/ui/hoy.js', './js/ui/registrar.js', './js/ui/entrenar.js',
   './js/ui/progreso.js', './js/ui/perfil.js', './js/ui/onboarding.js',
   './icons/icon-192.png', './icons/icon-512.png',
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARCHIVOS)));
+  // cache: 'reload' saltea la caché HTTP del navegador: si no, una versión nueva podría
+  // guardar copias viejas de los archivos y la app quedaría desactualizada.
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARCHIVOS.map(u => new Request(u, { cache: 'reload' })))));
   self.skipWaiting();
 });
 
@@ -31,7 +41,9 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const { request } = e;
   if (request.method !== 'GET') return;
-  if (new URL(request.url).origin !== location.origin) return;
+  const url = new URL(request.url);
+  if (url.origin !== location.origin) return;
+  if (url.pathname.includes('/dev/')) return;   // páginas de prueba: siempre frescas, nunca en caché
   e.respondWith(
     caches.match(request, { ignoreSearch: true }).then(r => r || fetch(request).then(res => {
       if (res.ok) {

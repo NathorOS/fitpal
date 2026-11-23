@@ -1,0 +1,64 @@
+{
+  "mode": "layout",
+  "original": {
+    "width": 1080,
+    "height": 2400
+  },
+  "clone": {
+    "width": 375,
+    "height": 812
+  },
+  "compared_at": {
+    "width": 375,
+    "height": 812
+  },
+  "height_delta_pct": -2.5,
+  "score": 18.3,
+  "verdict": "different",
+  "regions": [
+    {
+      "x": 0,
+      "y": 0,
+      "w": 1071,
+      "h": 1696,
+      "cells": 148,
+      "where": "middle centre"
+    },
+    {
+      "x": 0,
+      "y": 1339,
+      "w": 1071,
+      "h": 1061,
+      "cells": 71,
+      "where": "bottom centre"
+    },
+    {
+      "x": 803,
+      "y": 2142,
+      "w": 267,
+      "h": 258,
+      "cells": 7,
+      "where": "bottom right"
+    },
+    {
+      "x": 714,
+      "y": 1517,
+      "w": 178,
+      "h": 178,
+      "cells": 3,
+      "where": "bottom right"
+    },
+    {
+      "x": 0,
+      "y": 1249,
+      "w": 89,
+      "h": 89,
+      "cells": 1,
+      "where": "middle left"
+    }
+  ],
+  "files": {
+    "original": "replica/diffs/hoy-original.png",
+    "clone": "replica/clone-screens/hoy.png"
+  }
+}

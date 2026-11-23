@@ -1,0 +1,59 @@
+/* Tokens de Nathor Fit. Fuente de verdad: replica/design/tokens.json.
+   Los componentes usan SOLO estas variables, nunca colores sueltos. */
+:root {
+  /* color: base */
+  --bg: #ffffff;
+  --bg-app: #f3f2f7;
+  --surface: #f4f4f6;
+  --surface-2: #ecebf1;
+  --border: #ececef;
+  --border-input: #8a8a93;
+  --text: #232129;
+  --text-muted: #6b6873;
+  /* color: marca (paleta D, Esmeralda, elegida 2026-11-23) */
+  --ink: #12302A;
+  --on-ink: #ffffff;
+  --accent: #0F8F6A;
+  --accent-text: #0B7556;
+  --accent-soft: #E3F6EE;
+  --on-accent: #ffffff;
+  --scene: #BDE9D5;
+  /* color: estado */
+  --danger: #C8372D;
+  --success: #2E8540;
+  --warning: #A65F00;
+  /* color: macros (siempre acompañados de número y nombre) */
+  --macro-carb: #D4950A;
+  --macro-grasa: #1C9BB0;
+  --macro-prot: #E2524A;
+  /* gráficos: puntos de peso (la tendencia usa --accent) */
+  --serie-peso: #D9661A;
+
+  /* tipografía */
+  --font-display: 'Fredoka', ui-rounded, system-ui, sans-serif;
+  --font-sans: 'Nunito Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --fs-xs: 12px;  --lh-xs: 16px;
+  --fs-sm: 14px;  --lh-sm: 20px;
+  --fs-base: 16px; --lh-base: 24px;
+  --fs-lg: 18px;  --lh-lg: 26px;
+  --fs-xl: 22px;  --lh-xl: 28px;
+  --fs-2xl: 28px; --lh-2xl: 34px;
+  --fs-display: 44px; --lh-display: 48px;
+
+  /* espacio (base 4) */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px;
+  --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-12: 48px; --s-16: 64px;
+
+  /* layout */
+  --gutter: 20px; --card-margin: 8px; --card-padding: 20px;
+  --max-width: 480px; --nav-height: 60px; --fab: 64px; --tap-min: 44px;
+
+  /* radio, sombra, movimiento */
+  --r-sm: 10px; --r-md: 18px; --r-lg: 28px; --r-pill: 999px;
+  --sh-card: 0 1px 2px rgba(35,33,41,.04);
+  --sh-float: 0 6px 20px rgba(35,33,41,.14);
+  --sh-sheet: 0 -8px 32px rgba(35,33,41,.18);
+  --t-fast: 120ms; --t-base: 220ms; --t-slow: 400ms;
+  --ease: cubic-bezier(.2,.8,.2,1);
+  --spring: cubic-bezier(.34,1.56,.64,1);
+}

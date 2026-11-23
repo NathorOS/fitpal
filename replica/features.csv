@@ -1,0 +1,68 @@
+feature,area,priority,original,clone,notes
+Onboarding conversacional con barra de progreso y globo de diálogo,onboarding,must,yes,yes,BitePal ~39 pantallas; apuntamos a ~15 · clon: 13 preguntas + plan
+Meta principal (bajar / mantener / subir),onboarding,must,yes,partial,S05 · clon: bajar y mantener; subir no entra (app para bajar de peso)
+Metas adicionales y hábitos a cambiar (multi-selección),onboarding,should,yes,no,S06 S24
+Comidas por día y ventana horaria con ruedas,onboarding,should,yes,no,S13 S14
+Preguntas de ayuno con recomendación,onboarding,should,yes,no,S15-S17
+Tipo de dieta y restricciones con chips,onboarding,should,yes,no,S19 S20
+Aviso médico en hoja inferior,onboarding,must,yes,yes,S23 · clon: pantalla propia con casilla obligatoria
+Datos personales con ruedas (género edad altura peso peso ideal),onboarding,must,yes,partial,"S26-S34 · clon: contador −/+ y campo, sin rueda"
+Resumen personal con barra de IMC,onboarding,must,yes,partial,S33 · clon: IMC actual y meta en el plan; sin barra
+Plan listo con kcal macros ayuno agua pasos y compromiso,onboarding,must,yes,partial,"S36 · clon: kcal, macros, ritmo, semanas e IMC; falta ayuno, agua, pasos y compromiso"
+Pantallas de datos o curva de otras apps,onboarding,could,yes,no,S07 S09 S16 S22; textos propios y fuentes reales
+Pre-permiso de recordatorios con horarios,onboarding,should,yes,no,S10 S11
+Muro de pago y oferta,cobro,could,yes,no,se decide en Fase 9
+Cuenta con Google,cuenta,skip,yes,skip,local-first sin cuenta
+Inicio con tarjeta de calorías consumidas y botón +,hoy,must,yes,yes,S50 · clon: anillo con +
+Barras de macros en Inicio,hoy,must,yes,yes,en BitePal bloqueadas para gratis; en Nathor Fit gratis · clon: gratis
+Miniaturas de las comidas del día,hoy,must,yes,partial,"S50 · clon: emojis de los alimentos, sin fotos"
+Tarjeta de calorías por quemar,hoy,should,yes,partial,S50 · clon: tarjeta Actividad con lo quemado; sin meta a quemar
+Tarjeta de agua con vasos,agua,must,yes,yes,S50
+Tarjeta de ayuno,ayuno,must,yes,yes,S50 · clon: con reloj en vivo
+Puntaje nutricional del día,hoy,must,yes,yes,S50 · clon: anillo 0–100 en Hoy
+Calendario para cambiar de día,hoy,should,yes,partial,"confirmar · clon: flechas día a día, sin calendario"
+Barra inferior flotante (Inicio Retos Estadísticas) + botón + aparte,navegación,must,yes,yes,"clon: Hoy, Progreso y Perfil; Retos todavía no · clon: Hoy, Retos, Progreso y Perfil"
+Menú del + (entrenamiento peso agua ayuno agregar rápido describir buscar escanear),registro,must,yes,yes,S53 · clon: completo
+Búsqueda en biblioteca de alimentos con verificados,registro,must,yes,yes,S42; base argentina propia · clon: 135 alimentos argentinos aproximados
+Recientes y guardados,registro,must,yes,yes,S41
+Detalle con unidad o gramos y cantidad +/-,registro,must,yes,yes,S43
+Carrito y Registrar total,registro,should,yes,yes,S44
+Pantalla de resultado con puntaje 0-100 y comentario,registro,must,yes,yes,S46 · clon: comentario según la personalidad del gatito
+Consejos de nutrición por comida,registro,should,yes,yes,"en BitePal bloqueado · clon: gratis, hasta 2 por comida"
+Editar una comida registrada,registro,must,yes,yes,"en BitePal editar kcal es pago; queja frecuente · clon: gratis: cantidades, alimentos, hora y borrar"
+Escanear comida con foto e IA,registro,must,yes,yes,S55-S59; una sola cámara para comida etiqueta y código; Fase 6 · clon: foto o galería con Gemini (clave propia del usuario)
+Describir comida con texto o voz,registro,must,yes,yes,S67; Fase 6 · clon: texto y dictado por voz del navegador
+Agregar rápido (kcal a mano),registro,must,yes,yes,S66; fácil y sin IA: va en Fase 2
+Registrar en otra hora o día,registro,should,no,yes,mejora: queja en reseñas
+Comidas propias combinando alimentos,registro,should,no,partial,mejora: pedida en reseñas · clon: alimentos propios sí; recetas combinando no
+Código de barras,registro,should,no,yes,BitePal lo lee desde la misma cámara (S54) · clon: Open Food Facts; cámara con BarcodeDetector o número a mano
+Racha con animación y semana,racha,must,yes,yes,S47 S48 · clon: cuenta animada y semana L–D
+Compromiso de racha 7/14/30/50 días,racha,should,yes,no,S49
+Retos diarios y semanales con recompensa,retos,should,yes,partial,S51 · clon: 4 diarios y 7 semanales que se completan solos; sin recompensa
+Monedas,retos,could,yes,no,opcional: accesorios para el gatito más adelante
+Estadísticas (se habilita con 3 días),progreso,must,yes,yes,premium en BitePal; en Nathor Fit gratis y desde el día 1; diseño propio · clon: gratis desde el día 1
+Registro de peso,peso,must,yes,yes,S61: rueda + consejos la primera vez · clon: con consejo para pesarse
+Registro de entrenamiento o kcal quemadas,actividad,should,yes,partial,S60: ~90 actividades; falta captura de duración · clon: 19 actividades + pasos + rutinas guiadas
+Health Connect (pasos y entrenamientos),actividad,could,yes,no,PWA no accede; posible en APK
+Plan de comidas con recetas,planes,could,yes,no,premium en BitePal; contenido grande
+Mascota con nombre y personalidad,mascota,must,yes,yes,gatito propio en SVG; nombre y personalidad en el onboarding · clon: 4 personalidades con frases propias
+Escena con la mascota que reacciona,mascota,must,yes,yes,"gatito propio; reacciona a registrar comida agua y ayuno · clon: escena grande; reacciona a comidas, hora, ayuno y puntaje"
+Mascota pierde vida si no registrás,mascota,skip,yes,skip,mecánica de culpa: va contra las reglas de Nathor Fit
+Rutinas de fuerza con series y progresión,entrenamiento,could,no,yes,"extra de Nathor Fit · clon: 62 ejercicios, 4–7 rutinas según equipo y nivel, descanso guiado y progresión"
+Meta adaptativa según peso real,metas,should,no,no,extra de Nathor Fit
+Respaldo exportar e importar,datos,should,no,no,extra: datos locales
+Hoja Mi comida con hora editable y Ajustar con IA,registro,must,yes,yes,S57 · clon: la IA arma el carrito y se corrige antes de anotar
+Agua con número exacto en ml,agua,should,yes,partial,S62 · clon: vasos de 250 ml y total en ml; sin cargar un número exacto
+Empezar ayuno desde la última comida,ayuno,should,yes,yes,S64
+Ayuno en curso con cronómetro e inicio editable,ayuno,must,yes,yes,S65
+Consejos para pesarse la primera vez,peso,could,yes,yes,S61
+Gatito duerme la siesta si no registrás (sin castigo),mascota,must,no,yes,mejora: reemplaza los corazones que se pierden
+Lo básico gratis siempre (macros editar estadísticas consejos registro manual),cobro,must,no,yes,R2 mejora 1: pago 138 reseñas / 5 fuentes · clon: todo gratis por ahora
+Cobro honesto: sin prueba que cobra sola y cancelar en un toque,cobro,must,no,no,R2 mejora 2: cobros 92 / 5; Fase 9
+Corregir la IA ingrediente por ingrediente,registro,must,no,yes,R2 mejora 3 y 8 · clon: cada ítem se edita o se saca en el carrito
+Comida casera argentina y marcas locales en la base,registro,must,no,partial,R2 mejora 4: 31 / 4 · clon: 135 platos y productos genéricos; sin marcas
+La actividad suma al presupuesto de calorías del día,actividad,must,no,yes,R2 mejora 6: 35 / 5 · clon: (MET−1)×kg×h; la mitad si el perfil ya es activo
+Sugerencia de actividad para completar las kcal a quemar,actividad,should,no,no,R2 mejora 6: pedido textual en App Store AR
+Iniciar o editar un ayuno hacia atrás,ayuno,should,no,yes,R2 mejora 7 · clon: hasta 24 h
+Escaneos con IA sin límite de 2 por día,registro,should,no,yes,R2 mejora 8; depende del costo de Gemini · clon: el límite es el de la clave gratuita de Gemini del usuario
+Carbohidratos netos (keto),macros,could,no,no,R2: 1 reseña
