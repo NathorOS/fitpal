@@ -1,6 +1,6 @@
 // Fase 4 — Entrenar: elegir equipo y nivel, ver las rutinas y el historial.
 import { obtener, guardar } from '../db.js';
-import { gatoSVG } from '../gato.js';
+import { pjHTML } from './pj.js';
 import { GRUPOS } from '../datos/ejercicios.js';
 import {
   NIVELES, rutinasPara, minutosEstimados, ejercicio, sesionesEntreno, nivelPreferido, guardarNivel,
@@ -21,7 +21,7 @@ export async function montar(contenedor) {
     c.innerHTML = `
       <div class="pila">
         <div class="retos__cabecera">
-          <div class="retos__gato">${gatoSVG('saluda', { titulo: perfil?.gato?.nombre })}</div>
+          <div class="retos__gato">${pjHTML('entrenando', { titulo: perfil?.gato?.nombre })}</div>
           <div>
             <h1 tabindex="-1">Entrenar</h1>
             <p>Rutinas guiadas con descanso. Lo que quemás se suma a tu día.</p>
@@ -41,7 +41,7 @@ export async function montar(contenedor) {
           ${rutinas.map(r => {
             const grupos = [...new Set(r.ejercicios.map(x => GRUPOS[ejercicio(x.id).grupo]))].slice(0, 4).join(' · ');
             return `<li class="tarjeta rutina">
-              <span class="rutina__emoji" aria-hidden="true">${r.emoji}</span>
+              ${r.icono ? `<img class="rutina__emoji" src="img/iconos/${r.icono}.webp" alt="" width="48" height="48">` : `<span class="rutina__emoji" aria-hidden="true">${r.emoji}</span>`}
               <div class="rutina__texto">
                 <b>${esc(r.nombre)}</b>
                 <small>${r.ejercicios.length} ejercicios · ~${minutosEstimados(r)} min</small>

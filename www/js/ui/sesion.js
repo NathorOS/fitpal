@@ -1,7 +1,7 @@
 // Fase 4 — Sesión guiada: serie por serie, con descanso en cuenta regresiva y resumen al final.
 // Parámetros: rutina=<id> · equipo · nivel
 import { obtener, hoy as fechaHoy } from '../db.js';
-import { gatoSVG } from '../gato.js';
+import { pjHTML } from './pj.js';
 import { GRUPOS } from '../datos/ejercicios.js';
 import { pesoActual } from '../objetivo.js';
 import { factorActividad } from '../actividad.js';
@@ -147,7 +147,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
     c.innerHTML = `
       <section class="reg sesion sesion--descanso">
         ${cabecera()}
-        <div class="sesion__gato">${gatoSVG('siesta', { titulo: perfil?.gato?.nombre })}</div>
+        <div class="sesion__gato">${pjHTML('entrenando', { titulo: perfil?.gato?.nombre })}</div>
         <h1 tabindex="-1">Descanso</h1>
         <div class="sesion__reloj" role="timer" aria-live="off"><span id="cuenta">${mmss(restan)}</span></div>
         <div class="campos-2">
@@ -184,7 +184,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
     const proximas = hechos.map(r => ({ r, s: sugerir(r.id, r.objetivo, r) })).filter(x => x.s.subio).slice(0, 4);
     c.innerHTML = `
       <section class="reg sesion sesion--fin">
-        <div class="sesion__gato">${gatoSVG(hechos.length ? 'festeja' : 'normal', { titulo: perfil?.gato?.nombre })}</div>
+        <div class="sesion__gato">${pjHTML(hechos.length ? 'festeja' : 'normal', { titulo: perfil?.gato?.nombre })}</div>
         <h1 tabindex="-1">${hechos.length ? '¡Entrenamiento completo!' : 'Lo dejamos para otro día'}</h1>
         ${hechos.length ? `
           <div class="fichas">

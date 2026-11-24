@@ -18,8 +18,9 @@ test('"mantener" saltea peso meta y ritmo', () => {
   assert.equal(pasosVisibles({ objetivo: 'bajar' }).length, PASOS.length);
 });
 
-test('el onboarding es corto: 14 pantallas como máximo antes del plan', () => {
-  assert.ok(PASOS.length <= 14, `hay ${PASOS.length}`);
+test('el onboarding es corto: 15 pantallas como máximo antes del plan', () => {
+  // 15: se sumó "¿De qué cuadro sos?" (decisión del dueño, docs/personaje/ENCARGO-PERSONAJE.md §4)
+  assert.ok(PASOS.length <= 15, `hay ${PASOS.length}`);
 });
 
 test('cada paso con campo tiene pregunta', () => {
@@ -48,4 +49,12 @@ test('datosFinales arma un perfil válido', () => {
 test('la meta inicial sugerida nunca es menor al mínimo saludable', () => {
   const ini = paso('peso_meta').inicial({ altura_cm: 180, peso_kg: 62 });
   assert.ok(ini >= 60, `sugirió ${ini}`);
+});
+
+test('equipo: "al azar" elige uno de verdad y "ninguno" deja la camiseta verde', () => {
+  const base = { nombre: 'Ana', gato_nombre: 'Tito', gato_personalidad: 'directo', objetivo: 'mantener', sexo: 'f', nacimiento: '1990-01-01', altura_cm: 160, peso_kg: 60, actividad: 'ligero', equipo: 'ninguno', acepto_aviso: true };
+  assert.notEqual(datosFinales({ ...base, equipo_futbol: 'azar' }).equipo_futbol, 'azar');
+  assert.equal(datosFinales({ ...base, equipo_futbol: 'verde' }).equipo_futbol, 'verde');
+  assert.equal(datosFinales({ ...base, equipo_futbol: 'boca' }).equipo_futbol, 'boca');
+  assert.equal(datosFinales(base).equipo_futbol, 'verde');
 });

@@ -392,3 +392,30 @@ Funciones puras con tests (`monedasDelDia`, `vidrieraDeLaSemana`, `puedeComprar`
   segundo rectángulo verde en la ventana; al pintar la bandera, limitar la zona a la de la pared.
 - `www/img/personaje/e3-bailando.webp`: festejo que se compra.
 - Todo se ve en `www/dev/galeria.html`.
+
+---
+
+## 13. Estado: lo que ya está programado (rama `personaje-app`)
+
+| Pieza | Dónde | Notas |
+| --- | --- | --- |
+| Etapa por IMC inicial, pose del día, limpieza, archivos, logros, premios, cofre | `www/js/personaje-estado.js` | Funciones puras, tests en `tests/personaje-estado.test.js` |
+| Frases y cuándo decirlas | `www/js/frases.js` + `frases-banco.js` (generado desde `FRASES.md`) | Sin repetir en el día; por debajo del piso de calorías no hay chicana |
+| Leer datos, calcular Hoy, guardar logros | `www/js/juego.js` | La limpieza se recalcula con el historial (no se guarda) |
+| Personaje en cualquier pantalla | `www/js/ui/pj.js` (`pjHTML` + `hidratar`) | `app.js` llena solo cada lugar; cachea la imagen pintada por equipo |
+| Bandera del cuarto con los colores del equipo | `prepararFondo` / `cajaBandera` en `personaje.js` | Solo pinta el verde chillón, no las plantas |
+| Escena de Hoy por capas | `www/js/ui/hoy.js` | Cuarto, premios, objetos, personaje, manchas, moscas, olor, brillos, sudor, confeti, cofre |
+| Pose tomando agua 3 s al sumar un vaso | `hoy.js`, `app.js` | En e1 y e5 se usa la pose normal |
+| "Eso no lo comas" | `www/js/ui/resultado.js` | Al anotar algo pesado, pose empachado y chicana con el nombre de la comida |
+| Logros: aviso en Hoy y pantalla de festejo | `hoy.js` (tarjeta) y `www/js/ui/logro.js` | Se festeja el más grande; los demás quedan en Mis logros |
+| Mis logros | `www/js/ui/retos.js` | Las que faltan se ven apagadas |
+| Equipo en el onboarding y en Datos | `ui/onboarding.js` (paso `equipo_futbol`) y `ui/datos.js` | "Al azar" elige uno y lo guarda |
+| `peso_inicial` y `p_inicial` en el perfil | `objetivo.js` (`guardarPerfil`) | Se fijan una sola vez |
+| Base de datos versión 2 (`logros`) | `db.js` | Entra en el respaldo |
+| Íconos dibujados | barra inferior, menú +, onboarding, Hoy, resultado, rutinas, plan | Faltan: progreso, ayuno (pantalla), registrar por categorías |
+| Gato eliminado | `gato.js` y `dev/gato.html` borrados | Las claves `perfil.gato.*` se dejaron para no migrar datos |
+| Service worker | `sw.js` → `nathorfit-v15` | Precarga los módulos nuevos, los cuartos y las poses base |
+
+| Ícono de la app | `www/icons/` (copiados de `www/img/marca/`) | Se borró `favicon.svg` (era el gato) |
+
+**Falta todavía:** parpadeo, escudo de racha (opcional), íconos en Progreso, Ayuno y Registrar, y la tienda (§12).

@@ -1,5 +1,5 @@
 // Subí este número cada vez que cambies archivos (nathorfit-v5, v6, ...)
-const CACHE = 'nathorfit-v14';
+const CACHE = 'nathorfit-v15';
 
 // "Cascarón" de la app. Las vistas de js/ui/ se cargan con import() dinámico,
 // así que TIENEN que estar acá o la app no abre en modo avión.
@@ -7,7 +7,7 @@ const ARCHIVOS = [
   './', './index.html', './manifest.webmanifest',
   './css/tokens.css', './css/componentes.css', './css/estilos.css',
   './fonts/fredoka-latin.woff2', './fonts/nunito-sans-latin.woff2',
-  './js/app.js', './js/db.js', './js/calculos.js', './js/objetivo.js', './js/gato.js',
+  './js/app.js', './js/db.js', './js/calculos.js', './js/objetivo.js',
   './js/registro.js', './js/datos/alimentos.js', './js/actividad.js', './js/estadisticas.js',
   './js/ui/peso.js', './js/ui/actividad.js',
   './js/ayuno.js', './js/puntaje.js', './js/retos.js',
@@ -19,7 +19,13 @@ const ARCHIVOS = [
   './js/ui/progreso.js', './js/ui/perfil.js', './js/ui/onboarding.js',
   './js/escena.js', './js/marca.js', './js/personaje.js', './js/ui/rueda.js', './js/ui/imc.js', './js/ui/datos.js',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-192.png', './icons/icon-maskable-512.png',
-  './icons/favicon.svg', './icons/favicon-32.png', './icons/apple-touch-icon.png',
+  './js/personaje-estado.js', './js/juego.js', './js/frases.js', './js/frases-banco.js', './js/ui/pj.js', './js/ui/logro.js',
+  // El personaje y el cuarto que se ven al abrir (el resto de las imágenes se guarda la primera vez que se usa)
+  './img/cuarto/cuarto-desastre.webp', './img/cuarto/cuarto-normal.webp', './img/cuarto/cuarto-ordenado.webp',
+  './img/cuarto/cuarto-desastre-noche.webp', './img/cuarto/cuarto-ordenado-noche.webp',
+  ...['e1', 'e3', 'e5'].flatMap(e => ['contento', 'fiaca', 'empachado', 'entrenando', 'festejando'].map(p => `./img/personaje/${e}-${p}.webp`)),
+  './img/marca/icon-192.png',
+  './icons/favicon-32.png', './icons/apple-touch-icon.png',
 ];
 
 self.addEventListener('install', e => {

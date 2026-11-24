@@ -2,7 +2,7 @@
 // El resultado no se guarda solo: pasa al carrito de "Agregar comida" para revisarlo y corregirlo.
 // Parámetros: modo=foto|texto · fecha=YYYY-MM-DD
 import { obtener } from '../db.js';
-import { gatoSVG } from '../gato.js';
+import { pjHTML } from './pj.js';
 import { analizar, obtenerClave, prepararFoto } from '../ia.js';
 import { sumar } from '../registro.js';
 
@@ -15,7 +15,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
   const modo = params.get('modo') === 'texto' ? 'texto' : 'foto';
   const fecha = params.get('fecha');
   const perfil = await obtener('perfil', 'main');
-  const gato = perfil?.gato?.nombre || 'Tu gatito';
+  const gato = perfil?.gato?.nombre || 'Tu personaje';
   const volver = fecha ? `#/hoy?fecha=${fecha}` : '#/hoy';
   const st = { foto: null, texto: '' };
 
@@ -24,7 +24,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
 
   if (!(await obtenerClave())) {
     c.innerHTML = `<section class="reg">${cabecera(modo === 'foto' ? 'Foto con IA' : 'Describir')}
-      <div class="pregunta"><div>${gatoSVG('saluda', { titulo: gato })}</div>
+      <div class="pregunta"><div>${pjHTML('saluda', { titulo: gato })}</div>
         <p class="burbuja">Para usar la IA necesito tu clave de Gemini. Es gratis y se carga una sola vez.</p></div>
       <a class="btn" href="#/perfil">Cargar mi clave en Perfil</a>
       <a class="btn btn--secundario" href="#/registrar${fecha ? `?fecha=${fecha}` : ''}">Mientras tanto, buscar a mano</a>
@@ -38,7 +38,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
       ${cabecera(modo === 'foto' ? 'Foto con IA' : 'Describir tu comida')}
       ${modo === 'foto' ? `
         ${st.foto ? `<img class="ia__foto" src="${st.foto.url}" alt="La foto que elegiste">` : `
-          <div class="pregunta"><div>${gatoSVG('feliz', { titulo: gato })}</div>
+          <div class="pregunta"><div>${pjHTML('feliz', { titulo: gato })}</div>
             <p class="burbuja">Sacale una foto a tu plato y te digo qué tiene.</p></div>`}
         <div class="campos-2">
           <label class="btn ${st.foto ? 'btn--secundario' : ''}">📷 ${st.foto ? 'Otra foto' : 'Sacar foto'}
@@ -48,7 +48,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
         <label class="campo">¿Algo que la foto no muestra? <span class="suave">(opcional)</span>
           <input id="aclaracion" class="campo-texto" maxlength="120" placeholder="Ej.: frito, con 2 cucharadas de aceite" value="${esc(st.texto)}"></label>`
       : `
-        <div class="pregunta"><div>${gatoSVG('feliz', { titulo: gato })}</div>
+        <div class="pregunta"><div>${pjHTML('feliz', { titulo: gato })}</div>
           <p class="burbuja">Contame qué comiste, como se lo dirías a alguien.</p></div>
         <label class="campo">Qué comiste
           <textarea id="aclaracion" class="campo-texto campo-texto--area" maxlength="300" placeholder="Ej.: 2 empanadas de carne, una de humita y una coca chica">${esc(st.texto)}</textarea></label>
@@ -63,7 +63,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
   function pintarAnalizando() {
     c.innerHTML = `<section class="reg ia__cargando" role="status">
       ${st.foto ? `<div class="ia__escaneo"><img src="${st.foto.url}" alt=""><span></span></div>` : ''}
-      <div class="pregunta"><div>${gatoSVG('normal', { titulo: gato })}</div>
+      <div class="pregunta"><div>${pjHTML('normal', { titulo: gato })}</div>
         <p class="burbuja">${modo === 'foto' ? 'Mirando tu comida…' : 'Leyendo lo que comiste…'}</p></div>
       <p class="ayuda" style="text-align:center">Revisando la base de alimentos…</p>
     </section>`;
@@ -79,7 +79,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
     c.innerHTML = `<section class="reg">
       ${cabecera('Esto encontré')}
       ${st.foto ? `<img class="ia__foto ia__foto--chica" src="${st.foto.url}" alt="Tu foto">` : ''}
-      ${res.comentario ? `<div class="pregunta"><div>${gatoSVG('feliz', { titulo: gato })}</div><p class="burbuja">${esc(res.comentario)}</p></div>` : ''}
+      ${res.comentario ? `<div class="pregunta"><div>${pjHTML('feliz', { titulo: gato })}</div><p class="burbuja">${esc(res.comentario)}</p></div>` : ''}
       <ul class="filas">${res.items.map(it => `<li class="fila"><span class="fila__principal" style="cursor:default">
         <span class="fila__emoji" aria-hidden="true">${it.emoji}</span>
         <span class="fila__texto"><b>${esc(it.nombre)}</b>

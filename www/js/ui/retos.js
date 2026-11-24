@@ -1,6 +1,7 @@
 // Fase 5 — Retos diarios y semanales. Se completan solos con lo que anotás.
 import { todos, obtener, hoy as fechaHoy } from '../db.js';
-import { gatoSVG } from '../gato.js';
+import { LOGROS } from './logro.js';
+import { pjHTML } from './pj.js';
 import { calcularRetos, semanaDe } from '../retos.js';
 import { metaAgua, kcalExtraDelDia } from '../actividad.js';
 
@@ -28,6 +29,10 @@ export async function montar(c) {
     comidas, agua, sesiones: sesiones.filter(s => s.tipo === 'actividad' || s.tipo === 'entrenamiento'), pasos, pesos, ayunos,
   });
   const hechosHoy = diarios.filter(r => r.hecho).length;
+  // Mis logros: insignias de retos, rachas, hitos y primeros pasos (las que faltan se ven apagadas)
+  const ganados = new Set((await todos('logros').catch(() => [])).map(l => l.id));
+  const insignias = [...[...diarios, ...semanales].map(r => [`reto-${r.id}`, r.titulo]),
+    ...Object.entries(LOGROS).filter(([id]) => id !== 'cofre').map(([id, [nombre]]) => [id, nombre])];
   const hechosSem = semanales.filter(r => r.hecho).length;
 
   const fila = r => `<li class="reto${r.hecho ? ' reto--hecho' : ''}">
@@ -44,7 +49,7 @@ export async function montar(c) {
   c.innerHTML = `
     <div class="pila">
       <div class="retos__cabecera">
-        <div class="retos__gato">${gatoSVG(hechosHoy === diarios.length ? 'festeja' : 'feliz', { titulo: perfil?.gato?.nombre })}</div>
+        <div class="retos__gato">${pjHTML(hechosHoy === diarios.length ? 'festeja' : 'feliz', { titulo: perfil?.gato?.nombre })}</div>
         <div>
           <h1 tabindex="-1">Retos</h1>
           <p>Se completan solos con lo que anotás. Si uno no sale, vuelve a empezar: sin castigos.</p>
@@ -57,6 +62,12 @@ export async function montar(c) {
       <section class="tarjeta" aria-labelledby="r-sem">
         <div class="metrica__fila"><h2 class="metrica__titulo" id="r-sem">De la semana</h2><span class="chip">${hechosSem} de ${semanales.length}</span></div>
         <ul class="retos">${semanales.map(fila).join('')}</ul>
+      </section>
+      <section class="tarjeta" aria-labelledby="r-logros">
+        <div class="metrica__fila"><h2 class="metrica__titulo" id="r-logros">Mis logros</h2><span class="chip">${ganados.size} de ${insignias.length}</span></div>
+        <ul class="insignias">${insignias.map(([id, nombre]) => `<li class="${ganados.has(id) ? 'ganada' : ''}">
+          <img src="img/insignias/${id}.webp" alt="" width="72" height="72" loading="lazy">
+          <span>${esc(nombre)}</span><span class="visualmente-oculto">${ganados.has(id) ? ': ganada' : ': todavía no'}</span></li>`).join('')}</ul>
       </section>
     </div>`;
   c.querySelector('h1').focus({ preventScroll: true });

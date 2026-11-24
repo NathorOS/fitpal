@@ -15,6 +15,8 @@ test('F01-H1 onboarding completo hasta Hoy', async ({ page }) => {
   await seguir(page);
   await page.getByRole('radio', { name: /Cariñoso/ }).click();
   await seguir(page);
+  await page.getByRole('radio', { name: /River/ }).click();
+  await seguir(page);
   await page.getByLabel(/¿Y vos cómo te llamás\?/).fill('José María');
   await seguir(page);
   await page.getByRole('radio', { name: /Bajar de peso/ }).click();
@@ -68,6 +70,8 @@ test('F01-H1 onboarding completo hasta Hoy', async ({ page }) => {
   const perfil = await page.evaluate(async () => (await import('/js/db.js')).obtener('perfil', 'main'));
   expect(perfil).toMatchObject({ nombre: 'José María', altura_cm: 165, meta_pasos: 7500, objetivo: 'bajar' });
   expect(perfil.gato.nombre).toBe('Ñandú 🐱');
+  expect(perfil.equipo_futbol).toBe('river');
+  expect(perfil.p_inicial).toBeGreaterThanOrEqual(0);
   expect(errores).toEqual([]);
 });
 
@@ -82,7 +86,7 @@ test('F01-E1 nombre vacío no deja seguir', async ({ page }) => {
 test('F01-E2 menor de 18 no puede seguir', async ({ page }) => {
   await page.goto('/index.html');
   await page.evaluate(() => sessionStorage.setItem('nathorfit-onboarding', JSON.stringify({
-    gato_nombre: 'T', gato_personalidad: 'tranqui', nombre: 'A', objetivo: 'bajar', sexo: 'f', _paso: 6 })));
+    gato_nombre: 'T', gato_personalidad: 'tranqui', nombre: 'A', objetivo: 'bajar', sexo: 'f', _paso: 7 })));
   await page.reload();
   const hoy = new Date();
   await page.getByLabel('Fecha de nacimiento').fill(`${hoy.getFullYear() - 15}-01-01`);
@@ -103,7 +107,7 @@ test('F01-E4 meta por debajo de lo saludable muestra el mínimo', async ({ page 
   await page.goto('/index.html');
   await page.evaluate(() => sessionStorage.setItem('nathorfit-onboarding', JSON.stringify({
     gato_nombre: 'T', gato_personalidad: 'tranqui', nombre: 'A', objetivo: 'bajar', sexo: 'f', nacimiento: '1990-01-01',
-    altura_cm: 170, peso_kg: 70, peso_meta: 50, _paso: 9 })));
+    altura_cm: 170, peso_kg: 70, peso_meta: 50, _paso: 10 })));
   await page.reload();
   await seguir(page);
   await expect(page.getByRole('alert')).toHaveText(/mínima es 53,5 kg/);

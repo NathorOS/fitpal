@@ -29,9 +29,9 @@ a.btn { text-decoration: none; }
 .tramos span i { display: block; height: 100%; background: var(--accent); border-radius: inherit;
   transition: width var(--t-slow) var(--ease); }
 
-/* Encabezado de pregunta: gatito + burbuja */
+/* Encabezado de pregunta: personaje + burbuja */
 .pregunta { display: flex; align-items: center; gap: var(--s-3); }
-.pregunta svg { width: 84px; flex: none; }
+.pregunta svg, .pregunta > div:first-child { width: 84px; flex: none; }
 .burbuja { position: relative; background: var(--surface); border-radius: var(--r-lg);
   padding: var(--s-4) var(--s-5); font: 700 var(--fs-xl)/var(--lh-xl) var(--font-display); color: var(--text); }
 .burbuja::before { content: ''; position: absolute; left: -8px; top: 50%; width: 16px; height: 16px;

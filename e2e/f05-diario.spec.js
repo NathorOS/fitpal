@@ -59,7 +59,7 @@ test('F07-H1 ayuno: empezar, ver el reloj y cancelar sin guardar', async ({ page
 test('Hoy-E1 cambiar de día y anotar en un día pasado', async ({ page }) => {
   await conPerfil(page);
   await page.getByRole('link', { name: 'Día anterior' }).click();
-  await expect(page.getByText('📅 Ayer')).toBeVisible();
+  await expect(page.getByText('Ayer', { exact: true })).toBeVisible();
   await page.getByRole('link', { name: 'Anotar comida' }).first().click();
   await page.getByRole('button', { name: /Registro rápido/ }).click();
   await page.getByLabel('Calorías').fill('500');

@@ -1,5 +1,7 @@
 // Fase 8 — Editar tus datos y rehacer el plan. Muestra cómo cambia la meta antes de guardar.
 // El peso no se edita acá (se anota en "Tu peso"): se usa el último registrado.
+import { EQUIPOS, EQUIPOS_AZAR } from '../personaje.js';
+import { fijarPersonaje } from './pj.js';
 import { obtener, hoy as fechaHoy } from '../db.js';
 import {
   validarPerfil, calcularPlan, guardarPerfil, pesoActual, metaVigente, metaPasos, PASOS_POR_NIVEL,
@@ -15,6 +17,7 @@ const ACTIVIDAD = [['sedentario', 'Poco: trabajo sentado, casi sin ejercicio'], 
   ['moderado', 'Bastante: ejercicio 3 a 5 veces por semana'], ['alto', 'Mucho: casi todos los días o trabajo físico']];
 const EQUIPO = [['ninguno', 'Nada, entreno en casa'], ['mancuernas', 'Mancuernas o bandas'], ['gimnasio', 'Voy al gimnasio']];
 const PERSONALIDAD = [['carinoso', 'Cariñoso'], ['directo', 'Directo'], ['divertido', 'Divertido'], ['tranqui', 'Tranqui']];
+const CUADROS = [...EQUIPOS_AZAR.map(id => [id, EQUIPOS[id].nombre]), ['verde', 'Ninguno']];
 
 const opciones = (lista, valor) => lista.map(([v, t]) => `<option value="${v}" ${String(v) === String(valor) ? 'selected' : ''}>${esc(t)}</option>`).join('');
 const seg = (campo, lista, valor) => `<div class="seg" role="group" data-seg="${campo}">${lista.map(([v, t]) =>
@@ -27,7 +30,7 @@ export async function montar(contenedor) {
   const kg = await pesoActual();
   const metaHoy = await metaVigente();
   const d = {
-    nombre: perfil.nombre, gato_nombre: perfil.gato?.nombre, gato_personalidad: perfil.gato?.personalidad,
+    nombre: perfil.nombre, gato_nombre: perfil.gato?.nombre, gato_personalidad: perfil.gato?.personalidad, equipo_futbol: perfil.equipo_futbol ?? 'verde',
     objetivo: perfil.objetivo, sexo: perfil.sexo, nacimiento: perfil.nacimiento, altura_cm: perfil.altura_cm,
     peso_meta: perfil.peso_meta ?? Math.round(kg * 0.95), ritmo_kg_sem: perfil.ritmo_kg_sem || 0.5,
     actividad: perfil.actividad, equipo: perfil.equipo ?? 'ninguno', meta_pasos: perfil.meta_pasos ?? metaPasos(perfil.actividad),
@@ -65,10 +68,12 @@ export async function montar(contenedor) {
           <input class="campo-texto" inputmode="numeric" data-c="meta_pasos" data-num value="${d.meta_pasos}"></label>
       </fieldset>
 
-      <fieldset class="tarjeta tarjeta--plana"><legend class="metrica__titulo">Tu gatito</legend>
+      <fieldset class="tarjeta tarjeta--plana"><legend class="metrica__titulo">Tu personaje</legend>
         <label class="campo">Nombre<input class="campo-texto" data-c="gato_nombre" maxlength="20" value="${esc(d.gato_nombre)}"></label>
         <label class="campo">Cómo te habla
           <select class="campo-texto" data-c="gato_personalidad">${opciones(PERSONALIDAD, d.gato_personalidad)}</select></label>
+        <label class="campo">De qué cuadro es
+          <select class="campo-texto" data-c="equipo_futbol">${opciones(CUADROS, d.equipo_futbol)}</select></label>
       </fieldset>
 
       <div class="tarjeta datos__vista" aria-live="polite" id="vista-plan"></div>
@@ -91,7 +96,7 @@ export async function montar(contenedor) {
     const datos = { ...d, peso_kg: kg };
     const { errores } = validarPerfil(datos, hoy);
     if (!d.nombre) errores.nombre = 'Escribí tu nombre.';
-    if (!d.gato_nombre) errores.gato_nombre = 'Tu gatito necesita un nombre.';
+    if (!d.gato_nombre) errores.gato_nombre = 'Tu personaje necesita un nombre.';
     if (!(d.meta_pasos >= 1000 && d.meta_pasos <= 40000)) errores.meta_pasos = 'La meta de pasos tiene que estar entre 1.000 y 40.000.';
     return errores;
   }
@@ -137,12 +142,13 @@ export async function montar(contenedor) {
     b.disabled = true; b.setAttribute('aria-busy', 'true');
     try {
       const datos = {
-        nombre: d.nombre, gato: { nombre: d.gato_nombre, personalidad: d.gato_personalidad },
+        nombre: d.nombre, gato: { nombre: d.gato_nombre, personalidad: d.gato_personalidad }, equipo_futbol: d.equipo_futbol,
         objetivo: d.objetivo, sexo: d.sexo, nacimiento: d.nacimiento, altura_cm: d.altura_cm, peso_kg: kg,
         actividad: d.actividad, equipo: d.equipo, meta_pasos: Math.round(d.meta_pasos),
         peso_meta: d.peso_meta, ritmo_kg_sem: d.ritmo_kg_sem,
       };
       await guardarPerfil(datos, hoy, { registrarPeso: false });
+      fijarPersonaje({ equipo: d.equipo_futbol });
       aviso('Listo: tus datos y tu plan quedaron actualizados.');
       location.hash = '#/perfil';
     } catch (error) {

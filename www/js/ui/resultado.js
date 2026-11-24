@@ -1,8 +1,9 @@
-// Fase 5 — Resultado de una comida recién anotada: comentario del gatito, cómo va el día,
+// Fase 5 — Resultado de una comida recién anotada: comentario del personaje, cómo va el día,
 // la comida con sus macros (gratis), el puntaje nutricional y consejos. Parámetro: id=<comida>
 import { obtener, hoy as fechaHoy } from '../db.js';
 import { metaVigente, pesoActual } from '../objetivo.js';
-import { gatoSVG } from '../gato.js';
+import { pjHTML } from './pj.js';
+import { elegirFrase, esPesado } from '../frases.js';
 import { obtenerComida, comidasDelDia, sumar, textoCantidad, MOMENTOS } from '../registro.js';
 import { actividadesDelDia, pasosDelDia, kcalExtraDelDia } from '../actividad.js';
 import { puntajeComida, etiquetaPuntaje, consejosComida } from '../puntaje.js';
@@ -12,19 +13,19 @@ const num = (n, d = 0) => Number(n).toLocaleString('es-AR', { maximumFractionDig
 
 const COMENTARIOS = {
   carinoso: {
-    alto: '¡Qué rica y qué completa! Me encanta cómo te cuidás 🧡',
-    medio: '¡Bien ahí! Con un poquito más de proteína o verdura queda redonda.',
-    bajo: 'Anotada, que es lo más importante. La próxima la armamos más completa juntos.',
+    alto: '¡Esto sí que es comer bien! Así me gusta.',
+    medio: 'Bien ahí. Con un poco más de proteína o verdura queda redonda.',
+    bajo: 'Anotada, que es lo más importante. La próxima, más completa.',
   },
   directo: {
-    alto: 'Muy buena comida. Seguí así.',
-    medio: 'Está bien. Le faltó proteína o verdura.',
-    bajo: 'Anotada. La próxima: más proteína y verdura, menos fritura.',
+    alto: 'Muy buena comida. Así se hace.',
+    medio: 'Zafa. Le faltó proteína o verdura.',
+    bajo: 'Anotada. La próxima: más proteína, más verdura, menos fritura.',
   },
   divertido: {
-    alto: 'Esto es nivel chef con estrella de gato ⭐😹',
-    medio: 'Zafa. Le pondría algo verde (y no hablo de mi collar).',
-    bajo: 'Anotada. Ni yo con el atún me porto bien siempre 😹',
+    alto: 'Esto es nivel chef. ¿Quién sos y qué hiciste con vos?',
+    medio: 'Zafa. Le pondría algo verde, y no hablo de la camiseta.',
+    bajo: 'Anotada. Mañana te pido un plato con algo de color, eh.',
   },
   tranqui: {
     alto: 'Muy buena elección.',
@@ -48,7 +49,11 @@ export async function montar(c, params = new URLSearchParams()) {
   const tot = sumar([comida]);
   const puntaje = puntajeComida(tot, meta?.kcal_objetivo ?? 2000);
   const nivel = puntaje >= 60 ? 'alto' : puntaje >= 40 ? 'medio' : 'bajo';
-  const textos = COMENTARIOS[perfil?.gato?.personalidad] ?? COMENTARIOS.carinoso;
+  const personalidad = perfil?.gato?.personalidad ?? 'directo';
+  const textos = COMENTARIOS[personalidad] ?? COMENTARIOS.directo;
+  // Si anotó algo pesado, el personaje se lo dice (FRASES.md: "Cuando anotás algo pesado")
+  const pesado = comida.items.find(it => esPesado({ nombre: it.nombre, kcal: it.kcal })) ?? (tot.kcal > 900 ? comida.items[0] : null);
+  const chicana = pesado ? elegirFrase('pesado', { personalidad, vars: { comida: pesado.nombre.toLowerCase(), n: perfil?.nombre ?? '' } }) : null;
   const consejos = consejosComida(tot, meta?.kcal_objetivo ?? 2000);
   const primeraDelDia = esHoy && delDia.length === 1;
   const siguiente = primeraDelDia ? '#/racha' : (esHoy ? '#/hoy' : `#/hoy?fecha=${fecha}`);
@@ -58,8 +63,8 @@ export async function montar(c, params = new URLSearchParams()) {
   c.innerHTML = `
     <section class="resultado">
       <div class="pregunta resultado__gato">
-        <div>${gatoSVG(nivel === 'alto' ? 'festeja' : 'feliz', { titulo: perfil?.gato?.nombre })}</div>
-        <h1 class="burbuja" tabindex="-1">${esc(textos[nivel])}</h1>
+        <div>${pjHTML(chicana ? 'empachado' : nivel === 'alto' ? 'festejando' : 'contento', { titulo: perfil?.gato?.nombre || 'Tu personaje' })}</div>
+        <h1 class="burbuja" tabindex="-1">${esc(chicana?.texto ?? textos[nivel])}</h1>
       </div>
 
       <div class="tarjeta">
@@ -72,7 +77,7 @@ export async function montar(c, params = new URLSearchParams()) {
 
       <div class="tarjeta">
         <div class="metrica__fila">
-          <h2 class="metrica__titulo">${m.emoji} ${esc(m.nombre)} · ${esc(comida.hora)}</h2>
+          <h2 class="metrica__titulo"><img class="ico" src="img/iconos/${m.icono}.webp" alt=""> ${esc(m.nombre)} · ${esc(comida.hora)}</h2>
           <a class="chip" href="#/registrar?editar=${comida.id}">✏️ Editar</a>
         </div>
         ${typeof comida.foto === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(comida.foto)

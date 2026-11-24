@@ -1,6 +1,6 @@
 // Fase 3 — Anotar el peso. Parámetros: fecha=YYYY-MM-DD · volver=progreso
 import { hoy as fechaHoy, obtener } from '../db.js';
-import { gatoSVG } from '../gato.js';
+import { pjHTML } from './pj.js';
 import { pesos, guardarPeso } from '../actividad.js';
 import { PESO } from '../objetivo.js';
 import { aviso } from './registrar.js';
@@ -23,7 +23,7 @@ export async function montar(c, params = new URLSearchParams()) {
         <h1 tabindex="-1">Tu peso</h1>
       </header>
       <div class="pregunta">
-        <div>${gatoSVG('normal', { titulo: perfil?.gato?.nombre || 'Tu gatito' })}</div>
+        <div>${pjHTML('pesandose', { titulo: perfil?.gato?.nombre || 'Tu personaje' })}</div>
         <p class="burbuja">¿Cuánto pesás hoy?</p>
       </div>
       <div data-rueda></div>

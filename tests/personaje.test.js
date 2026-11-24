@@ -32,3 +32,13 @@ test('camiseta: se pinta con el color del equipo y conserva la sombra', () => {
   assert.ok(h < 15 || h > 345, `quedó rojo (tono ${h})`);
   assert.ok(datos[99 * 4] < datos[0], 'la sombra sigue más oscura');
 });
+
+test('bandera: encuentra el verde chillón y no las plantas', async () => {
+  const { cajaBandera } = await import('../www/js/personaje.js');
+  const w = 60, h = 40, d = new Uint8ClampedArray(w * h * 4);
+  for (let k = 0; k < w * h; k++) d.set([120, 110, 100, 255], k * 4);                   // pared
+  for (let y = 5; y < 20; y++) for (let x = 20; x < 40; x++) d.set([91, 244, 16, 255], (y * w + x) * 4);   // bandera
+  for (let y = 20; y < 28; y++) for (let x = 2; x < 10; x++) d.set([60, 120, 50, 255], (y * w + x) * 4);   // planta
+  const [x0, y0, x1, y1] = cajaBandera(d, w, h);
+  assert.ok(x0 >= 18 && x0 <= 20 && x1 >= 39 && x1 <= 42 && y0 >= 4 && y1 <= 21, `${x0},${y0},${x1},${y1}`);
+});

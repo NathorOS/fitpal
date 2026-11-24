@@ -1,5 +1,5 @@
 const NOMBRE = 'nathorfit';
-const VERSION = 1;
+const VERSION = 2;   // 2: logros del juego (insignias, hitos, premios y cofres)
 let _db;
 
 export function abrirDB() {
@@ -26,6 +26,7 @@ export function abrirDB() {
       crear('plantillas', { keyPath: 'id', autoIncrement: true }, ['nivel']);
       crear('sesiones',   { keyPath: 'id', autoIncrement: true }, ['fecha']);
       crear('metas',      { keyPath: 'fecha' });
+      crear('logros',     { keyPath: 'id' });            // { id: 'hito-5kg' | 'racha-7' | 'cofre-2026-11-23' …, fecha, visto }
     };
     req.onsuccess = () => {
       _db = req.result;

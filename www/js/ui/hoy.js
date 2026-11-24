@@ -1,10 +1,14 @@
-// Fase 2 — Hoy: el gatito, las calorías del día con su anillo, las macros y las comidas anotadas.
+// Fase 2 — Hoy: el personaje en su cuarto, las calorías del día con su anillo, las macros y las comidas anotadas.
 // Parámetro: fecha=YYYY-MM-DD para ver (y editar) otro día.
 import { obtener, todos, hoy as fechaHoy } from '../db.js';
 import { metaVigente, pesoActual } from '../objetivo.js';
 import { aguaDelDia, sumarAgua, quitarAgua, metaAgua, actividadesDelDia, pasosDelDia, kcalExtraDelDia, kcalPasos } from '../actividad.js';
-import { gatoSVG } from '../gato.js';
-import { escenaSVG, momentoDelDia } from '../escena.js';
+import { momentoDelDia } from '../escena.js';
+import { pjHTML, fijarPersonaje, hidratar, urlFondo } from './pj.js';
+import { leerDatos, estadoDeHoy, sincronizarLogros, marcarUso, abrirCofre } from '../juego.js';
+import { archivoCuarto, objetosDelCuarto, nivelLimpieza, insigniaRacha, archivoPersonaje } from '../personaje-estado.js';
+import { elegirFrase } from '../frases.js';
+import { LOGROS } from './logro.js';
 import { MOMENTOS, comidasDelDia, sumar } from '../registro.js';
 import { ayunoEnCurso, progresoAyuno, reloj, metaAyunoPreferida } from '../ayuno.js';
 import { puntajeDelDia, etiquetaPuntaje } from '../puntaje.js';
@@ -14,38 +18,6 @@ import { sugerencias } from '../sugerencias.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const num = (n, d = 0) => Number(n).toLocaleString('es-AR', { maximumFractionDigits: d });
-
-// Frases del gatito según su personalidad y cómo viene el día. Nunca retan.
-const FRASES = {
-  carinoso: {
-    vacio: n => `¡Hola, ${n}! Te estaba esperando. ¿Qué comiste?`,
-    siesta: () => 'Me quedé dormido esperándote… ¿me contás qué comiste hoy?',
-    bien: () => '¡Qué lindo día vamos armando juntos!',
-    cerca: () => '¡Ya casi llegás a tu meta de hoy! 🧡',
-    pasado: () => 'Hoy comiste un poco más. No pasa nada: mañana seguimos.',
-  },
-  directo: {
-    vacio: n => `${n}, arrancamos: anotá lo primero que comiste.`,
-    siesta: () => 'Hoy todavía no anotaste nada. Dale, que suma.',
-    bien: () => 'Vas bien. Seguí anotando todo.',
-    cerca: () => 'Estás cerca de la meta. Elegí bien lo que falta.',
-    pasado: () => 'Te pasaste de la meta. Lo importante es el promedio de la semana.',
-  },
-  divertido: {
-    vacio: n => `${n}, mi panza de gato dice que hoy no anotaste nada 😹`,
-    siesta: () => 'Zzz… me dormí una siesta de 3 horas. ¿Comiste algo rico?',
-    bien: () => 'Vamos como piña. Bueno, como piña con poco azúcar.',
-    cerca: () => 'Casi meta. Como yo cuando casi agarro al puntero láser.',
-    pasado: () => 'Hoy se nos fue la mano. A mí también con el atún. Mañana seguimos.',
-  },
-  tranqui: {
-    vacio: () => 'Cuando quieras, anotá lo que comiste.',
-    siesta: () => 'Todo tranqui. Anotá cuando puedas.',
-    bien: () => 'Vas a tu ritmo. Muy bien.',
-    cerca: () => 'Cerca de la meta de hoy.',
-    pasado: () => 'Un día más alto no cambia nada. Seguimos.',
-  },
-};
 
 export async function montar(c, params = new URLSearchParams()) {
   const hoyStr = fechaHoy();
@@ -77,18 +49,30 @@ export async function montar(c, params = new URLSearchParams()) {
   }) : null;
   const pct = objetivo ? Math.min(1, total.kcal / objetivo) : 0;
 
-  // Estado del gatito y frase
-  const gato = perfil?.gato?.nombre || 'Tu gatito';
-  const frases = FRASES[perfil?.gato?.personalidad] ?? FRASES.carinoso;
-  let situacion = 'bien';
-  if (!comidas.length) situacion = esHoy && new Date().getHours() >= 15 ? 'siesta' : 'vacio';
-  else if (quedan < 0) situacion = 'pasado';
-  else if (pct >= 0.85) situacion = 'cerca';
-  const estadoGato = { vacio: 'saluda', siesta: 'siesta', bien: 'feliz', cerca: 'festeja', pasado: 'normal' }[situacion];
-  const frase = esHoy ? frases[situacion](esc(perfil?.nombre ?? '')) : `Así fue tu ${etiquetaDia(fecha, hoyStr).toLowerCase()}.`;
+  // El personaje: etapa, limpieza, pose y lo que dice (docs/personaje/ENCARGO-PERSONAJE.md y FRASES.md)
+  const datos = await leerDatos();
+  if (esHoy) await sincronizarLogros(datos);
+  const est = estadoDeHoy(datos, esHoy ? new Date() : new Date(fecha + 'T21:00'));
+  if (esHoy) await marcarUso();
+  fijarPersonaje({ etapa: est.etapa, limpieza: est.limpieza, equipo: est.equipo });
+  const nombrePj = perfil?.gato?.nombre || 'Tu personaje';
+  // Pose de un momento (por ejemplo, tomando agua después de sumar un vaso): dura 3 segundos
+  let poseMomento = null;
+  try { poseMomento = sessionStorage.getItem('nathorfit-pose'); sessionStorage.removeItem('nathorfit-pose'); } catch { /* nada */ }
+  const personalidad = perfil?.gato?.personalidad ?? 'directo';
+  const frase = esHoy ? fraseDelDia(est, perfil, personalidad, hoyStr) : `Así fue tu ${etiquetaDia(fecha, hoyStr).toLowerCase()}.`;
 
   // La escena sigue la hora real si es hoy; los días pasados se ven de día.
   const momento = esHoy ? momentoDelDia() : 'manana';
+  const noche = momento === 'noche';
+  const nivel = nivelLimpieza(est.limpieza);
+  const semilla = Number(hoyStr.replaceAll('-', '')) % 97;
+  const objetos = objetosDelCuarto(est.limpieza, semilla);
+  const llama = insigniaRacha(est.racha);
+  // Logro sin ver: se avisa con una tarjeta que lleva a su festejo (no corta lo que estás haciendo).
+  // Si hay varios, el más grande; los demás quedan en Mis logros.
+  const peso = id => (/^hito-llegada/.test(id) ? 1000 : /^hito-(\d+)kg/.test(id) ? 100 + Number(id.match(/\d+/)[0]) : /^racha-/.test(id) ? 50 + Number(id.slice(6)) : /^logro-/.test(id) ? 10 : 0);
+  const sinVer = esHoy ? datos.logros.filter(l => !l.visto && peso(l.id) > 0).sort((a, b) => peso(b.id) - peso(a.id))[0] : null;
 
   // Navegación de días
   const dia = d => { const f = new Date(fecha + 'T12:00'); f.setDate(f.getDate() + d); return fechaHoy(f); };
@@ -103,17 +87,39 @@ export async function montar(c, params = new URLSearchParams()) {
 
   c.innerHTML = `
     <div class="pila hoy">
-      <div class="hoy__escena hoy__escena--${momento}">
-        ${escenaSVG(momento)}
-        <p class="hoy__frase">${frase}</p>
-        <div class="gato-grande">${gatoSVG(estadoGato, { titulo: gato })}</div>
+      <div class="hoy__escena hoy__escena--${momento} hoy__escena--${nivel}">
+        <div class="escena-pj" aria-hidden="true">
+          <img class="escena-pj__cuarto" data-fondo="img/cuarto/${archivoCuarto(est.limpieza, noche)}.webp" alt="">
+          ${est.premios.map(p => `<img class="escena-pj__obj escena-pj__premio" src="img/escena/${p.id}.webp" alt="" style="left:${p.x}%;top:${p.y}%;width:${p.w}%">`).join('')}
+          ${objetos.map((o, i) => `<img class="escena-pj__obj escena-pj__suelto" src="img/escena/${o}.webp" alt="" style="${i % 2 ? 'right' : 'left'}:${6 + (i >> 1) * 13}%">`).join('')}
+          ${nivel === 'desastre' ? '<img class="efecto efecto--moscas" src="img/escena/mugre-moscas.webp" alt="">' : ''}
+          ${est.limpieza < 20 ? '<img class="efecto efecto--olor" src="img/escena/mugre-olor.webp" alt="">' : ''}
+          ${nivel === 'ordenado' ? '<img class="efecto efecto--brillos" src="img/efectos/brillos.webp" alt="">' : ''}
+        </div>
+        <p class="hoy__frase burbuja-pj" aria-live="polite">${esc(frase)}</p>
+        <div class="escena-pj__personaje">
+          ${pjHTML(poseMomento ?? est.pose, { titulo: `${nombrePj}, ${TEXTO_POSE[est.pose] ?? 'contento'}` })}
+          ${est.pose === 'entrenando' ? '<img class="efecto efecto--sudor" src="img/efectos/gotas-sudor.webp" alt="">' : ''}
+          ${nivel === 'desastre' && !['fiaca', 'durmiendo'].includes(est.pose) ? `
+            <img class="mancha" src="img/escena/mugre-salsa.webp" alt="" style="left:36%;top:50%">
+            <img class="mancha" src="img/escena/mugre-grasa.webp" alt="" style="left:52%;top:40%">
+            ${est.limpieza < 20 ? '<img class="mancha" src="img/escena/mugre-cafe.webp" alt="" style="left:44%;top:62%">' : ''}` : ''}
+        </div>
+        ${est.pose === 'festejando' ? '<img class="efecto efecto--confeti" src="img/efectos/confeti.webp" alt="">' : ''}
+        ${esHoy && est.cofre ? '<button class="cofre" data-cofre aria-label="Abrir el cofre de la semana"><img src="img/insignias/cofre-cerrado.webp" alt=""></button>' : ''}
         <nav class="hoy__dias" aria-label="Cambiar de día">
           <a class="icono-btn" href="${hrefDia(dia(-1))}" aria-label="Día anterior">‹</a>
-          <span class="hoy__dia">📅 ${esc(etiquetaDia(fecha, hoyStr))}</span>
-          ${esHoy ? `<a class="chip chip--racha" href="#/racha" aria-label="Racha: ${laRacha} ${laRacha === 1 ? 'día' : 'días'}">🔥 ${laRacha}</a>`
+          <span class="hoy__dia">${esc(etiquetaDia(fecha, hoyStr))}</span>
+          ${esHoy ? `<a class="chip chip--racha" href="#/racha" aria-label="Racha: ${laRacha} ${laRacha === 1 ? 'día' : 'días'}">${llama ? `<img src="img/insignias/racha-${llama}.webp" alt="" width="22" height="22">` : '🔥'} ${laRacha}</a>`
             : `<a class="icono-btn" href="${hrefDia(dia(1))}" aria-label="Día siguiente">›</a>`}
         </nav>
       </div>
+
+      ${sinVer ? `<a class="tarjeta tarjeta--logro" href="#/logro?id=${esc(sinVer.id)}">
+        <img src="img/insignias/${esc(sinVer.id)}.webp" alt="" width="56" height="56">
+        <span><small>¡Logro nuevo!</small><b>${esc(LOGROS[sinVer.id]?.[0] ?? 'Mirá lo que ganaste')}</b></span>
+        <span class="tarjeta--logro__ver" aria-hidden="true">Ver ›</span>
+      </a>` : ''}
 
       <section class="tarjeta" aria-labelledby="t-kcal">
         <div class="metrica__fila">
@@ -159,16 +165,16 @@ export async function montar(c, params = new URLSearchParams()) {
       </section>` : ''}
 
       <section class="tarjeta" aria-labelledby="t-comidas">
-        <h2 class="metrica__titulo" id="t-comidas">Comidas</h2>
+        <h2 class="metrica__titulo" id="t-comidas"><img class="ico" src="img/iconos/anotar-comida.webp" alt=""> Comidas</h2>
         ${comidas.length ? `<ul class="comidas">${comidas.map(htmlComida).join('')}</ul>`
-          : `<p class="hoy__vacio">${esHoy ? 'Todavía no anotaste nada hoy.' : 'Ese día no anotaste nada. Todavía podés hacerlo.'}</p>`}
+          : `<div class="vacio"><img src="img/iconos/vacio-comidas.webp" alt="" width="72" height="72"><p class="hoy__vacio">${esHoy ? 'Todavía no anotaste nada hoy.' : 'Ese día no anotaste nada. Todavía podés hacerlo.'}</p></div>`}
         <a class="btn btn--secundario" href="${sumarHref}">+ Anotar comida</a>
       </section>
 
       <section class="tarjeta" aria-labelledby="t-act">
         <div class="metrica__fila">
           <div>
-            <h2 class="metrica__titulo" id="t-act">Actividad</h2>
+            <h2 class="metrica__titulo" id="t-act"><img class="ico" src="img/iconos/actividad.webp" alt=""> Actividad</h2>
             <p class="hoy__agua">${extra.quemadas ? `<b>${num(extra.quemadas)}</b> kcal quemadas` : 'Todavía nada'}</p>
           </div>
           <a class="icono-btn" href="#/actividad${esHoy ? '' : `?fecha=${fecha}`}" aria-label="Anotar actividad">+</a>
@@ -183,7 +189,7 @@ export async function montar(c, params = new URLSearchParams()) {
       <section class="tarjeta" aria-labelledby="t-agua">
         <div class="metrica__fila">
           <div>
-            <h2 class="metrica__titulo" id="t-agua">Agua</h2>
+            <h2 class="metrica__titulo" id="t-agua"><img class="ico" src="img/iconos/agua.webp" alt=""> Agua</h2>
             <p class="hoy__agua"><b>${num(agua)}</b> / ${num(aguaMeta)} ml</p>
           </div>
           <div class="agua__botones">
@@ -200,7 +206,7 @@ export async function montar(c, params = new URLSearchParams()) {
       <section class="tarjeta" aria-labelledby="t-ayuno">
         <div class="metrica__fila">
           <div>
-            <h2 class="metrica__titulo" id="t-ayuno">Ayuno</h2>
+            <h2 class="metrica__titulo" id="t-ayuno"><img class="ico" src="img/iconos/ayuno.webp" alt=""> Ayuno</h2>
             ${curso ? `<p class="hoy__agua"><b id="reloj-ayuno">${reloj(progresoAyuno(curso).horas)}</b> de ${curso.meta_h} h</p>`
               : `<p class="hoy__agua">Meta: ${metaAyuno} h</p>`}
           </div>
@@ -213,7 +219,7 @@ export async function montar(c, params = new URLSearchParams()) {
       <section class="tarjeta" aria-labelledby="t-puntaje">
         <div class="metrica__fila">
           <div>
-            <h2 class="metrica__titulo" id="t-puntaje">Puntaje del día</h2>
+            <h2 class="metrica__titulo" id="t-puntaje">${puntajeDia != null ? `<img class="ico" src="img/iconos/puntaje-${puntajeDia > 85 ? 'excelente' : puntajeDia > 65 ? 'bueno' : puntajeDia > 40 ? 'regular' : 'malo'}.webp" alt="">` : ''} Puntaje del día</h2>
             <p class="hoy__agua">${puntajeDia != null ? esc(etiquetaPuntaje(puntajeDia)) : 'Anotá una comida para verlo'}</p>
           </div>
           <div class="puntaje-anillo" role="img" aria-label="${puntajeDia != null ? `Puntaje ${puntajeDia} de 100` : 'Sin puntaje todavía'}">
@@ -230,6 +236,21 @@ export async function montar(c, params = new URLSearchParams()) {
     </div>
     <p class="aviso-flotante" role="status" hidden></p>`;
 
+  hidratar(c);
+  if (poseMomento) setTimeout(() => {
+    const lugar = c.querySelector('.escena-pj__personaje .pj');
+    if (!lugar?.isConnected) return;
+    lugar.dataset.pj = archivoPersonaje({ etapa: est.etapa, pose: est.pose, limpieza: est.limpieza });
+    hidratar(c);
+  }, 3000);
+  // El cuarto con la bandera del equipo (mientras se pinta, se ve el original)
+  const cuarto = c.querySelector('[data-fondo]');
+  cuarto.src = cuarto.dataset.fondo;
+  urlFondo(cuarto.dataset.fondo).then(u => { if (cuarto.isConnected) cuarto.src = u; });
+  c.querySelector('[data-cofre]')?.addEventListener('click', async () => {
+    await abrirCofre();
+    location.hash = '#/logro?id=cofre';
+  });
   // Reloj del ayuno en curso
   if (curso) {
     // Se guarda el elemento: si la pantalla se vuelve a pintar, este reloj se apaga solo.
@@ -252,7 +273,10 @@ export async function montar(c, params = new URLSearchParams()) {
 
   c.querySelectorAll('[data-agua]').forEach(b => b.addEventListener('click', async () => {
     b.disabled = true;
-    if (b.dataset.agua === '+') await sumarAgua(fecha, 250); else await quitarAgua(fecha);
+    if (b.dataset.agua === '+') {
+      await sumarAgua(fecha, 250);
+      try { sessionStorage.setItem('nathorfit-pose', 'tomando-agua'); } catch { /* nada */ }
+    } else await quitarAgua(fecha);
     montar(c, params);
   }));
 
@@ -264,6 +288,33 @@ export async function montar(c, params = new URLSearchParams()) {
     p.textContent = texto; p.hidden = false;
     setTimeout(() => { p.hidden = true; }, 3500);
   }
+}
+
+const TEXTO_POSE = {
+  contento: 'contento', fiaca: 'tirado de fiaca', empachado: 'empachado', entrenando: 'entrenando', festejando: 'festejando',
+  durmiendo: 'durmiendo', triste: 'triste',
+};
+
+/** Frase del personaje para hoy: no repite en el día (se recuerdan las dichas en este teléfono). */
+function fraseDelDia(est, perfil, personalidad, hoyStr) {
+  if (!est.situacion) return 'Hoy comiste poco. Comer por debajo del mínimo no ayuda: sumá algo con proteína.';
+  const clave = `nathorfit-frases-${hoyStr}`;
+  let dichas = [];
+  try { dichas = JSON.parse(localStorage.getItem(clave) || '[]'); } catch { /* nada */ }
+  // La misma situación en la misma visita conserva su frase (no cambia en cada repintado)
+  let ult = null;
+  try { ult = JSON.parse(sessionStorage.getItem('nathorfit-frase') || 'null'); } catch { /* nada */ }
+  if (ult?.fecha === hoyStr && ult.situacion === est.situacion) return ult.texto;
+  const r = elegirFrase(est.situacion, {
+    personalidad, yaDichas: dichas,
+    vars: { n: perfil?.nombre ?? '', hora: String(new Date().getHours()), dias: est.racha || est.diasSinEntrar, vasos: Math.floor(est.aguaMl / 250) },
+  });
+  if (!r) return '';
+  try {
+    localStorage.setItem(clave, JSON.stringify([...dichas, r.original]));
+    sessionStorage.setItem('nathorfit-frase', JSON.stringify({ fecha: hoyStr, situacion: est.situacion, texto: r.texto }));
+  } catch { /* nada */ }
+  return r.texto;
 }
 
 // Solo se muestran miniaturas que son imágenes en data URL (un respaldo editado a mano no puede meter otra cosa).

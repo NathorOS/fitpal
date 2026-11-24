@@ -1,7 +1,7 @@
 // Fase 5 — Ayuno: elegir protocolo y empezar (ahora, desde la última comida o a otra hora),
 // o seguir el que está en curso con su cronómetro. El inicio se puede editar hacia atrás.
 import { todos, obtener } from '../db.js';
-import { gatoSVG } from '../gato.js';
+import { pjHTML } from './pj.js';
 import {
   PROTOCOLOS, reloj, progresoAyuno, validarInicio, ultimaComida, ayunoEnCurso, ayunos,
   empezarAyuno, editarAyuno, terminarAyuno, borrarAyuno, metaAyunoPreferida, guardarMetaAyuno,
@@ -23,7 +23,7 @@ export async function montar(contenedor) {
   const c = document.createElement('div');
   contenedor.replaceChildren(c);
   const perfil = await obtener('perfil', 'main');
-  const gato = perfil?.gato?.nombre || 'Tu gatito';
+  const gato = perfil?.gato?.nombre || 'Tu personaje';
   let timer = null;
   const s = { meta: await metaAyunoPreferida(), modo: 'ahora', otra: paraInput(new Date()) };
 
@@ -44,7 +44,7 @@ export async function montar(contenedor) {
           <h1 tabindex="-1">Ayuno</h1>
         </header>
         <div class="pregunta">
-          <div>${gatoSVG('siesta', { titulo: gato })}</div>
+          <div>${pjHTML('durmiendo', { titulo: gato })}</div>
           <p class="burbuja">¿Cuántas horas querés ayunar?</p>
         </div>
         <div class="opciones" role="radiogroup" aria-label="Protocolo">
@@ -132,10 +132,10 @@ export async function montar(contenedor) {
       const p = progresoAyuno(a);
       c.querySelector('#tiempo').textContent = reloj(p.horas);
       c.querySelector('#arco').setAttribute('stroke-dashoffset', String(CIRC * (1 - p.pct)));
-      const estado = p.cumplido ? 'festeja' : 'siesta';
+      const estado = p.cumplido ? 'festejando' : 'durmiendo';
       if (estado !== gatoActual) {
         gatoActual = estado;
-        c.querySelector('#gato-ayuno').innerHTML = gatoSVG(estado, { titulo: gato });
+        c.querySelector('#gato-ayuno').innerHTML = pjHTML(estado, { titulo: gato });
         c.querySelector('#estado').textContent = p.cumplido
           ? `¡Llegaste a las ${a.meta_h} horas! Podés cortar cuando quieras.`
           : 'Tomá agua, té o café sin azúcar. Si te sentís mal, cortá: no pasa nada.';

@@ -1,6 +1,6 @@
 // Perfil — plan actual, editar datos (Fase 8), clave propia de Gemini (Fase 6) y respaldo (Fase 8).
 import { obtener, guardar, exportarTodo, importarTodo, leerRespaldo, borrarTodo, hoy as fechaHoy } from '../db.js';
-import { gatoSVG } from '../gato.js';
+import { pjHTML } from './pj.js';
 import { metaVigente, pesoActual } from '../objetivo.js';
 import { obtenerClave, guardarClave, borrarClave, probarClave } from '../ia.js';
 import { revisarMeta } from '../adaptativo.js';
@@ -24,10 +24,10 @@ export async function montar(contenedor) {
     c.innerHTML = `
       <div class="pila">
         <div class="retos__cabecera">
-          <div class="retos__gato">${gatoSVG('feliz', { titulo: perfil?.gato?.nombre })}</div>
+          <div class="retos__gato">${pjHTML('feliz', { titulo: perfil?.gato?.nombre })}</div>
           <div>
             <h1 tabindex="-1">${esc(perfil?.nombre || 'Perfil')}</h1>
-            <p>Con ${esc(perfil?.gato?.nombre || 'tu gatito')} desde ${perfil?.actualizado ? esc(new Date(perfil.actualizado).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })) : 'hoy'}.</p>
+            <p>Con ${esc(perfil?.gato?.nombre || 'tu personaje')} desde ${perfil?.actualizado ? esc(new Date(perfil.actualizado).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })) : 'hoy'}.</p>
           </div>
         </div>
 
