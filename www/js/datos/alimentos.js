@@ -1,7 +1,9 @@
 // Base de alimentos de Nathor Fit: comida argentina casera y de todos los días.
 // Valores APROXIMADOS por 100 g (kcal, proteínas, carbohidratos, grasas, fibra), redondeados a partir de
-// tablas públicas de composición (USDA FoodData Central y referencias argentinas). Pendiente: revisarlos
-// uno por uno contra Argenfoods antes del lanzamiento. Se puede editar todo al registrar.
+// tablas públicas de composición (USDA FoodData Central y referencias argentinas). Revisados uno por uno
+// (Fase 8, 2026-11-23) contra valores de referencia de cada alimento cocido/listo para comer; los tests
+// verifican además que las kcal cierren con los macros. Antes de vender, conviene que un/a nutricionista
+// los firme contra la tabla Argenfoods. Se puede editar todo al registrar.
 //
 // Fila: [id, nombre, emoji, kcal, prot, carb, grasa, fibra, porciones [[nombre, gramos], ...], sinónimos, alcohol]
 // El alcohol (g por 100 g) aporta 7 kcal/g: por eso en las bebidas alcohólicas las kcal superan a los macros.
@@ -67,7 +69,7 @@ const F = [
   ['bife-chorizo', 'Bife de chorizo', '🥩', 230, 27, 0, 13, 0, [['bife', 250]], 'carne'],
   ['lomo', 'Lomo', '🥩', 180, 28, 0, 7, 0, [['porción', 200]], 'carne'],
   ['carne-picada', 'Carne picada cocida', '🥩', 250, 25, 0, 17, 0, [['porción', 150]], 'carne molida'],
-  ['chorizo', 'Chorizo parrillero', '🌭', 300, 15, 2, 26, 0, [['unidad', 100]], 'parrilla'],
+  ['chorizo', 'Chorizo parrillero', '🌭', 330, 16, 2, 29, 0, [['unidad', 100]], 'parrilla'],
   ['morcilla', 'Morcilla', '🌭', 380, 14, 13, 30, 0, [['unidad', 100]], 'parrilla'],
   ['choripan', 'Choripán', '🌭', 300, 12, 28, 16, 1.5, [['unidad', 180]], 'chori'],
   ['pechuga', 'Pechuga de pollo a la plancha', '🍗', 165, 31, 0, 3.6, 0, [['pechuga', 180]], 'pollo grillado'],

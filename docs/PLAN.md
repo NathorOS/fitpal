@@ -116,7 +116,15 @@ PWA instalable con 5 pestañas, IndexedDB, cálculos, offline y publicación aut
 ### ✅ Fase 7 — Meta adaptativa y sugerencias · `/replica-build`
 - Recalcular cada domingo con 28 días; sugerencias de ajuste, nunca cambios automáticos.
 
-### Fase 8 — Pulido, respaldo y APK · `/replica-brand` (barrido) + `/replica-diff` (final)
+### 🟡 Fase 8 — Pulido, respaldo y APK · `/replica-brand` (barrido) + `/replica-diff` (final)
+- ✅ Hecho (2026-11-23): ruedas de números (onboarding y peso), barra de IMC, plan listo con agua, pasos y
+  "Nuestro trato"; editar datos y recalcular el plan; respaldo guardar/restaurar y borrar todo; miniaturas de
+  las fotos de la IA; ícono y logo con el gatito; escena de Hoy ilustrada (mañana, tarde, noche); revisión de
+  los 135 alimentos; 67 tests unitarios + 39 pruebas de punta a punta (Playwright + axe), ver
+  `replica/test-plan.md` y `replica/bugs.md`. Paridad 80,9 (28 de 29 imprescindibles; "subir de peso" queda
+  afuera a propósito).
+- ⏳ Falta: modo oscuro, página de aviso legal y privacidad, probar en celulares reales (cámara, voz, Gemini
+  real, instalación) y la APK.
 - Modo oscuro, accesibilidad, estados vacíos, exportar/importar respaldo, aviso legal.
 - Barrido de marca: ningún "BitePal", color o texto suyo en el código.
 - **Control de parecido final** y veredicto: "lista para vender" = todas las funciones imprescindibles hechas.

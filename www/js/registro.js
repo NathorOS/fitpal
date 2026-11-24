@@ -168,11 +168,13 @@ export async function obtenerComida(id) {
 }
 
 /** Guarda (o reemplaza, si trae id) una comida con sus ítems. */
-export async function guardarComida({ id, fecha, hora, momento, items }) {
+export async function guardarComida({ id, fecha, hora, momento, items, foto = null }) {
   if (!items?.length) throw new Error('La comida no tiene alimentos');
   const { guardar } = await db();
   const total = sumar(items);
   const fila = { fecha, hora, momento, items, ...total, actualizado: new Date().toISOString() };
+  // Miniatura de la foto (si se anotó con la cámara): data URL JPEG chica, solo para mostrar.
+  if (typeof foto === 'string' && foto.startsWith('data:image/')) fila.foto = foto;
   if (id) fila.id = Number(id);
   return guardar('registro', fila);
 }

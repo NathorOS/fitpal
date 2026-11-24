@@ -28,6 +28,11 @@
   --macro-prot: #E2524A;
   /* gráficos: puntos de peso (la tendencia usa --accent) */
   --serie-peso: #D9661A;
+  /* IMC (tramos de la OMS; siempre con su nombre escrito) */
+  --imc-bajo: #4A8FC9;
+  --imc-normal: #2FA36F;
+  --imc-sobre: #E0A21B;
+  --imc-alto: #D14B57;
 
   /* tipografía */
   --font-display: 'Fredoka', ui-rounded, system-ui, sans-serif;

@@ -178,5 +178,10 @@ export async function prepararFoto(archivo, lado = 800) {
   canvas.width = Math.round(bmp.width * k); canvas.height = Math.round(bmp.height * k);
   canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
   const url = canvas.toDataURL('image/jpeg', 0.82);
-  return { base64: url.split(',')[1], url };
+  // Miniatura cuadrada (recorte central) para mostrar en la lista de comidas: ~5–10 KB.
+  const MINI = 160, l = Math.min(bmp.width, bmp.height);
+  const cm = document.createElement('canvas');
+  cm.width = cm.height = MINI;
+  cm.getContext('2d').drawImage(bmp, (bmp.width - l) / 2, (bmp.height - l) / 2, l, l, 0, 0, MINI, MINI);
+  return { base64: url.split(',')[1], url, mini: cm.toDataURL('image/jpeg', 0.7) };
 }

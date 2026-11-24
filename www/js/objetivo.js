@@ -19,6 +19,21 @@ export function imc(kg, cm) {
   return redondear1(kg / (m * m));
 }
 
+// Categorías de la OMS. Es una referencia general: no distingue músculo de grasa.
+export const IMC_TRAMOS = [
+  { id: 'bajo', nombre: 'Bajo peso', hasta: 18.5 },
+  { id: 'normal', nombre: 'Saludable', hasta: 25 },
+  { id: 'sobre', nombre: 'Sobrepeso', hasta: 30 },
+  { id: 'alto', nombre: 'Obesidad', hasta: Infinity },
+];
+export function categoriaImc(valor) {
+  return IMC_TRAMOS.find(t => valor < t.hasta) ?? IMC_TRAMOS.at(-1);
+}
+
+// Pasos por día sugeridos según cuánto te movés hoy (una meta alcanzable, no 10.000 de entrada).
+export const PASOS_POR_NIVEL = { sedentario: 6000, ligero: 7500, moderado: 9000, alto: 10000 };
+export const metaPasos = actividad => PASOS_POR_NIVEL[actividad] ?? 7000;
+
 // Peso más bajo permitido como meta para esa altura (IMC 18,5).
 export function pesoMetaMinimo(cm) {
   const m = cm / 100;
@@ -106,8 +121,12 @@ export function calcularPlan(p, hoy = new Date(), tdee = null) {
 
 // --- Con base de datos (solo en el navegador) ---
 
-/** Valida, guarda el perfil, el peso de hoy y la meta de hoy. Lanza error si no valida. */
-export async function guardarPerfil(datos, hoy = new Date()) {
+/**
+ * Valida, guarda el perfil, el peso de hoy y la meta de hoy. Lanza error si no valida.
+ * Al editar los datos desde el perfil, registrarPeso es false: el peso se usa para calcular
+ * pero no se anota como una pesada nueva.
+ */
+export async function guardarPerfil(datos, hoy = new Date(), { registrarPeso = true } = {}) {
   const { guardar, hoy: fechaHoy } = await import('./db.js');
   const v = validarPerfil(datos, hoy);
   if (!v.ok) {
@@ -118,14 +137,17 @@ export async function guardarPerfil(datos, hoy = new Date()) {
   const plan = calcularPlan(datos, hoy);
   const fecha = fechaHoy(hoy);
   const { peso_kg, ...resto } = datos;
+  // Se conservan los campos que no vienen en `datos` (p. ej. preferencias guardadas por otras pantallas),
+  // menos la marca de perfil provisional de la Fase 0.
+  const { provisional, ...anterior } = (await (await import('./db.js')).obtener('perfil', 'main')) ?? {};
   await guardar('perfil', {
-    id: 'main', ...resto,
+    ...anterior, id: 'main', ...resto,
     altura_cm: Number(datos.altura_cm),
     peso_meta: datos.objetivo === 'bajar' ? Number(datos.peso_meta) : null,
     ritmo_kg_sem: datos.objetivo === 'bajar' ? Number(datos.ritmo_kg_sem) : 0,
     actualizado: new Date().toISOString(),
   });
-  await guardar('peso', { fecha, kg: Number(peso_kg) });
+  if (registrarPeso) await guardar('peso', { fecha, kg: Number(peso_kg) });
   await guardar('metas', {
     fecha, kcal_objetivo: plan.kcal, tdee: plan.tdee,
     prot: plan.macros.prot, carb: plan.macros.carb, grasa: plan.macros.grasa,

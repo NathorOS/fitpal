@@ -82,20 +82,48 @@ export async function exportarTodo() {
   return JSON.stringify(salida);
 }
 
-// Importa todo en UNA transacción: si algo falla, no queda nada a medias.
+/** Revisa un respaldo antes de importarlo. Devuelve { fecha, comidas, pesos } o lanza un error claro. */
+export function leerRespaldo(json) {
+  let datos;
+  try { datos = typeof json === 'string' ? JSON.parse(json) : json; } catch { throw new Error('El archivo no se puede leer: no es un respaldo de Nathor Fit.'); }
+  if (datos?._app !== 'nathorfit') throw new Error('El archivo no es un respaldo de Nathor Fit.');
+  if (Number(datos._version) > VERSION) throw new Error('El respaldo es de una versión más nueva de Nathor Fit. Actualizá la app y probá de nuevo.');
+  const perfil = Array.isArray(datos.perfil) ? datos.perfil.find(p => p.id === 'main') : null;
+  if (!perfil) throw new Error('El respaldo no tiene un perfil: no se puede restaurar.');
+  for (const [k, v] of Object.entries(datos)) if (!k.startsWith('_') && !Array.isArray(v)) throw new Error('El respaldo está dañado.');
+  return { datos, fecha: datos._fecha ? new Date(datos._fecha) : null, comidas: datos.registro?.length ?? 0, pesos: datos.peso?.length ?? 0, nombre: perfil.nombre };
+}
+
+/**
+ * Restaura un respaldo REEMPLAZANDO los datos del teléfono, en UNA transacción:
+ * si algo falla, no queda nada a medias. La clave de la IA del teléfono se conserva.
+ */
 export async function importarTodo(json) {
-  const datos = JSON.parse(json);
-  if (datos._app !== 'nathorfit') throw new Error('El archivo no es un respaldo de Nathor Fit');
+  const { datos } = leerRespaldo(json);
   const db = await abrirDB();
-  const stores = Object.keys(datos).filter(k => !k.startsWith('_') && db.objectStoreNames.contains(k));
+  const stores = [...db.objectStoreNames];
+  const privadas = (await todos('config')).filter(c => CLAVES_PRIVADAS.includes(c.clave));
   const tx = db.transaction(stores, 'readwrite');
   for (const store of stores) {
     const s = tx.objectStore(store);
-    for (const fila of datos[store]) s.put(fila);
+    s.clear();
+    const filas = (datos[store] ?? []).filter(f => !(store === 'config' && CLAVES_PRIVADAS.includes(f.clave)));
+    for (const fila of filas) s.put(fila);
+    if (store === 'config') for (const c of privadas) s.put(c);
   }
   return new Promise((ok, fallo) => {
     tx.oncomplete = () => ok();
     tx.onerror = () => fallo(tx.error);
     tx.onabort = () => fallo(tx.error);
+  });
+}
+
+/** Borra la base entera (empezar de cero). */
+export async function borrarTodo() {
+  const db = await abrirDB();
+  db.close(); _db = null;
+  await new Promise((ok, fallo) => {
+    const r = indexedDB.deleteDatabase(NOMBRE);
+    r.onsuccess = () => ok(); r.onerror = () => fallo(r.error); r.onblocked = () => ok();
   });
 }

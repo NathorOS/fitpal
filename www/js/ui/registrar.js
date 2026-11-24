@@ -28,7 +28,7 @@ export async function montar(c, params = new URLSearchParams()) {
   // Editar una comida ya anotada
   if (params.get('editar')) {
     const comida = await obtenerComida(params.get('editar'));
-    if (comida) Object.assign(estado, { id: comida.id, fecha: comida.fecha, hora: comida.hora, momento: comida.momento, items: [...comida.items] });
+    if (comida) Object.assign(estado, { id: comida.id, fecha: comida.fecha, hora: comida.hora, momento: comida.momento, items: [...comida.items], foto: comida.foto ?? null });
   }
 
   // Lo que encontró la IA llega como carrito para revisar antes de anotar.
@@ -38,6 +38,8 @@ export async function montar(c, params = new URLSearchParams()) {
       const items = JSON.parse(sessionStorage.getItem('nathorfit-carrito') ?? '[]');
       sessionStorage.removeItem('nathorfit-carrito');
       if (Array.isArray(items) && items.length) { estado.items = items; desdeIA = true; }
+      estado.foto = sessionStorage.getItem('nathorfit-foto');
+      sessionStorage.removeItem('nathorfit-foto');
     } catch { /* nada */ }
   }
 

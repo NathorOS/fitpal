@@ -15,11 +15,12 @@ const vistas = {
   '/entrenar':   () => import('./ui/entrenar.js'),
   '/progreso':   () => import('./ui/progreso.js'),
   '/perfil':     () => import('./ui/perfil.js'),
+  '/datos':      () => import('./ui/datos.js'),
   '/onboarding': () => import('./ui/onboarding.js'),
 };
 // Pantallas de pantalla completa: sin barra inferior y con fondo blanco.
 const COMPLETAS = { '/onboarding': 'modo-onboarding', '/registrar': 'modo-registrar', '/peso': 'modo-registrar', '/actividad': 'modo-registrar',
-  '/ayuno': 'modo-registrar', '/sesion': 'modo-registrar', '/ia': 'modo-registrar', '/codigo': 'modo-registrar', '/resultado': 'modo-resultado', '/racha': 'modo-resultado' };
+  '/ayuno': 'modo-registrar', '/sesion': 'modo-registrar', '/ia': 'modo-registrar', '/codigo': 'modo-registrar', '/datos': 'modo-registrar', '/resultado': 'modo-resultado', '/racha': 'modo-resultado' };
 
 const cont = document.getElementById('vista');
 const tabs = document.getElementById('tabs');
@@ -101,7 +102,10 @@ menu.addEventListener('click', async e => {
 window.addEventListener('hashchange', navegar);
 await abrirDB();
 navegar();
-if ('serviceWorker' in navigator) {
+// En desarrollo (localhost) no se usa el service worker, para ver siempre los archivos nuevos.
+// Para probar el modo sin conexión en local: agregar ?sw=1 a la dirección.
+const enDesarrollo = ['localhost', '127.0.0.1'].includes(location.hostname) && !new URLSearchParams(location.search).has('sw');
+if ('serviceWorker' in navigator && !enDesarrollo) {
   // Si había una versión anterior y se instala una nueva, recargamos una vez para mostrarla
   // (si no, la persona ve la versión vieja hasta abrir la app por segunda vez).
   const habiaVersion = Boolean(navigator.serviceWorker.controller);

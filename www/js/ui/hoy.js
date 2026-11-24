@@ -4,6 +4,7 @@ import { obtener, todos, hoy as fechaHoy } from '../db.js';
 import { metaVigente, pesoActual } from '../objetivo.js';
 import { aguaDelDia, sumarAgua, quitarAgua, metaAgua, actividadesDelDia, pasosDelDia, kcalExtraDelDia, kcalPasos } from '../actividad.js';
 import { gatoSVG } from '../gato.js';
+import { escenaSVG, momentoDelDia } from '../escena.js';
 import { MOMENTOS, comidasDelDia, sumar } from '../registro.js';
 import { ayunoEnCurso, progresoAyuno, reloj, metaAyunoPreferida } from '../ayuno.js';
 import { puntajeDelDia, etiquetaPuntaje } from '../puntaje.js';
@@ -86,6 +87,9 @@ export async function montar(c, params = new URLSearchParams()) {
   const estadoGato = { vacio: 'saluda', siesta: 'siesta', bien: 'feliz', cerca: 'festeja', pasado: 'normal' }[situacion];
   const frase = esHoy ? frases[situacion](esc(perfil?.nombre ?? '')) : `Así fue tu ${etiquetaDia(fecha, hoyStr).toLowerCase()}.`;
 
+  // La escena sigue la hora real si es hoy; los días pasados se ven de día.
+  const momento = esHoy ? momentoDelDia() : 'manana';
+
   // Navegación de días
   const dia = d => { const f = new Date(fecha + 'T12:00'); f.setDate(f.getDate() + d); return fechaHoy(f); };
   const hrefDia = f => (f === hoyStr ? '#/hoy' : `#/hoy?fecha=${f}`);
@@ -99,7 +103,8 @@ export async function montar(c, params = new URLSearchParams()) {
 
   c.innerHTML = `
     <div class="pila hoy">
-      <div class="hoy__escena">
+      <div class="hoy__escena hoy__escena--${momento}">
+        ${escenaSVG(momento)}
         <p class="hoy__frase">${frase}</p>
         <div class="gato-grande">${gatoSVG(estadoGato, { titulo: gato })}</div>
         <nav class="hoy__dias" aria-label="Cambiar de día">
@@ -170,7 +175,7 @@ export async function montar(c, params = new URLSearchParams()) {
         </div>
         ${actividades.length || pasos ? `<ul class="lista-simple">
           ${actividades.map(a => `<li><span>${a.emoji} ${esc(a.nombre)} · ${a.minutos} min</span><b>${num(a.kcal)} kcal</b></li>`).join('')}
-          ${pasos ? `<li><span>👣 ${num(pasos)} pasos</span><b>${num(kcalPasos(pasos, kg))} kcal</b></li>` : ''}
+          ${pasos ? `<li><span>👣 ${num(pasos)}${perfil?.meta_pasos ? ` de ${num(perfil.meta_pasos)}` : ''} pasos${perfil?.meta_pasos && pasos >= perfil.meta_pasos ? ' ✅' : ''}</span><b>${num(kcalPasos(pasos, kg))} kcal</b></li>` : ''}
         </ul>` : '<p class="hoy__vacio">Caminar, entrenar o los pasos del día suman calorías a tu meta.</p>'}
         ${esHoy ? '<a class="btn btn--secundario" href="#/entrenar" style="margin-top:8px">🏋️ Entrenar con una rutina</a>' : ''}
       </section>
@@ -261,12 +266,16 @@ export async function montar(c, params = new URLSearchParams()) {
   }
 }
 
+// Solo se muestran miniaturas que son imágenes en data URL (un respaldo editado a mano no puede meter otra cosa).
+const esFoto = f => typeof f === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(f);
+
 function htmlComida(com) {
   const m = MOMENTOS.find(x => x.id === com.momento) ?? MOMENTOS[0];
   const emojis = [...new Set(com.items.map(i => i.emoji))].slice(0, 3).join('');
   const nombres = com.items.map(i => i.nombre).join(', ');
   return `<li><a class="comida" href="#/registrar?editar=${com.id}" aria-label="${esc(m.nombre)} ${esc(com.hora)}, ${num(com.kcal)} kcal. Editar">
-    <span class="comida__emoji" aria-hidden="true">${emojis}</span>
+    ${esFoto(com.foto) ? `<img class="comida__foto" src="${esc(com.foto)}" alt="" width="52" height="52">`
+      : `<span class="comida__emoji" aria-hidden="true">${emojis}</span>`}
     <span class="comida__texto"><b>${esc(m.nombre)} <small>${esc(com.hora)}</small></b><small>${esc(nombres)}</small></span>
     <span class="comida__kcal">${num(com.kcal)}<small> kcal</small></span>
   </a></li>`;

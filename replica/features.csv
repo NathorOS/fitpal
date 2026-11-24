@@ -6,16 +6,16 @@ Comidas por día y ventana horaria con ruedas,onboarding,should,yes,no,S13 S14
 Preguntas de ayuno con recomendación,onboarding,should,yes,no,S15-S17
 Tipo de dieta y restricciones con chips,onboarding,should,yes,no,S19 S20
 Aviso médico en hoja inferior,onboarding,must,yes,yes,S23 · clon: pantalla propia con casilla obligatoria
-Datos personales con ruedas (género edad altura peso peso ideal),onboarding,must,yes,partial,"S26-S34 · clon: contador −/+ y campo, sin rueda"
-Resumen personal con barra de IMC,onboarding,must,yes,partial,S33 · clon: IMC actual y meta en el plan; sin barra
-Plan listo con kcal macros ayuno agua pasos y compromiso,onboarding,must,yes,partial,"S36 · clon: kcal, macros, ritmo, semanas e IMC; falta ayuno, agua, pasos y compromiso"
+Datos personales con ruedas (género edad altura peso peso ideal),onboarding,must,yes,yes,"S26-S34 · clon: ruedas deslizables para altura, peso y peso meta (accesibles con teclado); fecha con selector nativo"
+Resumen personal con barra de IMC,onboarding,must,yes,yes,"S33 · clon: barra de IMC en vivo al elegir el peso y en el plan, con marca de meta"
+Plan listo con kcal macros ayuno agua pasos y compromiso,onboarding,must,yes,yes,"S36 · clon: kcal, macros, agua, pasos, proteína, IMC y ""Nuestro trato""; ayuno se elige en su pantalla"
 Pantallas de datos o curva de otras apps,onboarding,could,yes,no,S07 S09 S16 S22; textos propios y fuentes reales
 Pre-permiso de recordatorios con horarios,onboarding,should,yes,no,S10 S11
 Muro de pago y oferta,cobro,could,yes,no,se decide en Fase 9
 Cuenta con Google,cuenta,skip,yes,skip,local-first sin cuenta
 Inicio con tarjeta de calorías consumidas y botón +,hoy,must,yes,yes,S50 · clon: anillo con +
 Barras de macros en Inicio,hoy,must,yes,yes,en BitePal bloqueadas para gratis; en Nathor Fit gratis · clon: gratis
-Miniaturas de las comidas del día,hoy,must,yes,partial,"S50 · clon: emojis de los alimentos, sin fotos"
+Miniaturas de las comidas del día,hoy,must,yes,yes,S50 · clon: foto de la IA como miniatura; emojis si no hay foto
 Tarjeta de calorías por quemar,hoy,should,yes,partial,S50 · clon: tarjeta Actividad con lo quemado; sin meta a quemar
 Tarjeta de agua con vasos,agua,must,yes,yes,S50
 Tarjeta de ayuno,ayuno,must,yes,yes,S50 · clon: con reloj en vivo
@@ -50,7 +50,7 @@ Escena con la mascota que reacciona,mascota,must,yes,yes,"gatito propio; reaccio
 Mascota pierde vida si no registrás,mascota,skip,yes,skip,mecánica de culpa: va contra las reglas de Nathor Fit
 Rutinas de fuerza con series y progresión,entrenamiento,could,no,yes,"extra de Nathor Fit · clon: 62 ejercicios, 4–7 rutinas según equipo y nivel, descanso guiado y progresión"
 Meta adaptativa según peso real,metas,should,no,yes,"extra de Nathor Fit · clon: propone (no aplica sola), ±150 kcal por ajuste, respeta pisos"
-Respaldo exportar e importar,datos,should,no,no,extra: datos locales
+Respaldo exportar e importar,datos,should,no,yes,extra: guardar (compartir o descargar) y restaurar con confirmación; la clave de la IA nunca sale
 Hoja Mi comida con hora editable y Ajustar con IA,registro,must,yes,yes,S57 · clon: la IA arma el carrito y se corrige antes de anotar
 Agua con número exacto en ml,agua,should,yes,partial,S62 · clon: vasos de 250 ml y total en ml; sin cargar un número exacto
 Empezar ayuno desde la última comida,ayuno,should,yes,yes,S64
@@ -66,3 +66,5 @@ Sugerencia de actividad para completar las kcal a quemar,actividad,should,no,yes
 Iniciar o editar un ayuno hacia atrás,ayuno,should,no,yes,R2 mejora 7 · clon: hasta 24 h
 Escaneos con IA sin límite de 2 por día,registro,should,no,yes,R2 mejora 8; depende del costo de Gemini · clon: el límite es el de la clave gratuita de Gemini del usuario
 Carbohidratos netos (keto),macros,could,no,no,R2: 1 reseña
+Editar datos y recalcular el plan,datos,should,yes,yes,clon: pantalla Tus datos con vista previa de la nueva meta; no anota un peso falso
+Escena de Hoy que cambia con la hora,hoy,could,no,yes,"extra de Nathor Fit: mañana, tarde y noche (dibujo propio)"

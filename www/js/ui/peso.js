@@ -4,10 +4,10 @@ import { gatoSVG } from '../gato.js';
 import { pesos, guardarPeso } from '../actividad.js';
 import { PESO } from '../objetivo.js';
 import { aviso } from './registrar.js';
+import { montarRuedasDecimal } from './rueda.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const num = n => Number(n).toLocaleString('es-AR', { maximumFractionDigits: 1 });
-const leerNum = s => Number(String(s ?? '').replace(',', '.'));
 
 export async function montar(c, params = new URLSearchParams()) {
   const perfil = await obtener('perfil', 'main');
@@ -26,15 +26,7 @@ export async function montar(c, params = new URLSearchParams()) {
         <div>${gatoSVG('normal', { titulo: perfil?.gato?.nombre || 'Tu gatito' })}</div>
         <p class="burbuja">¿Cuánto pesás hoy?</p>
       </div>
-      <div class="contador">
-        <button class="icono-btn" data-delta="-0.1" aria-label="Menos 100 gramos">–</button>
-        <div class="contador__centro">
-          <label class="visualmente-oculto" for="kg">Peso en kilos</label>
-          <input id="kg" type="text" inputmode="decimal" value="${String(previo).replace('.', ',')}">
-          <span class="contador__unidad">kg</span>
-        </div>
-        <button class="icono-btn" data-delta="0.1" aria-label="Más 100 gramos">+</button>
-      </div>
+      <div data-rueda></div>
       <label class="campo">Día<input type="date" id="fecha" class="campo-texto" value="${fecha}" max="${fechaHoy()}"></label>
       <p class="error" role="alert"></p>
       <p class="ayuda">Pesate a la misma hora, si podés en ayunas. El peso sube y baja día a día por agua y sal: lo que importa es la tendencia, no un número suelto.</p>
@@ -46,21 +38,19 @@ export async function montar(c, params = new URLSearchParams()) {
       </div>` : ''}
     </section>`;
 
-  const input = c.querySelector('#kg');
-  c.querySelectorAll('[data-delta]').forEach(b => b.addEventListener('click', () => {
-    const n = Math.round((leerNum(input.value) + Number(b.dataset.delta)) * 10) / 10;
-    input.value = String(n).replace('.', ',');
-  }));
+  const rueda = montarRuedasDecimal(c.querySelector('[data-rueda]'), {
+    min: PESO.min, max: PESO.max, valor: previo, etiqueta: 'Peso', unidad: 'kg',
+  });
   c.querySelector('#fecha').addEventListener('change', e => {
     fecha = e.target.value || fecha;
     const ese = lista.find(p => p.fecha === fecha);
-    if (ese) input.value = String(ese.kg).replace('.', ',');
+    if (ese) rueda.fijar(ese.kg);
   });
   c.querySelector('#guardar').addEventListener('click', async () => {
-    const kg = leerNum(input.value);
+    const kg = rueda.valor();
     if (!(kg >= PESO.min && kg <= PESO.max)) {
       c.querySelector('.error').textContent = `Poné un peso entre ${PESO.min} y ${PESO.max} kg.`;
-      input.focus(); return;
+      return;
     }
     await guardarPeso(fecha, kg);
     if (!volver.startsWith('#/progreso')) aviso(`Peso guardado: ${num(kg)} kg.`);

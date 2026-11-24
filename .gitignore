@@ -9,3 +9,7 @@ replica/reviews.csv
 replica/feedback.md
 # Imágenes derivadas de capturas de terceros: solo locales
 replica/diffs/*.png
+
+# Pruebas de punta a punta (Playwright)
+test-results/
+playwright-report/

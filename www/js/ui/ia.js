@@ -121,7 +121,10 @@ export async function montar(contenedor, params = new URLSearchParams()) {
     if (b.dataset.a === 'voz') dictar(b);
     if (b.dataset.a === 'otra') { st.foto = null; pintarInicio(); }
     if (b.dataset.a === 'revisar') {
-      try { sessionStorage.setItem('nathorfit-carrito', JSON.stringify(st.items)); } catch { /* sin almacenamiento */ }
+      try {
+        sessionStorage.setItem('nathorfit-carrito', JSON.stringify(st.items));
+        if (st.foto?.mini) sessionStorage.setItem('nathorfit-foto', st.foto.mini); else sessionStorage.removeItem('nathorfit-foto');
+      } catch { /* sin almacenamiento */ }
       const p = new URLSearchParams({ desde: 'ia' });
       if (fecha) p.set('fecha', fecha);
       location.hash = `#/registrar?${p}`;

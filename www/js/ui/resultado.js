@@ -75,6 +75,8 @@ export async function montar(c, params = new URLSearchParams()) {
           <h2 class="metrica__titulo">${m.emoji} ${esc(m.nombre)} · ${esc(comida.hora)}</h2>
           <a class="chip" href="#/registrar?editar=${comida.id}">✏️ Editar</a>
         </div>
+        ${typeof comida.foto === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(comida.foto)
+          ? `<img class="resultado__foto" src="${esc(comida.foto)}" alt="Foto de tu comida" width="160" height="160">` : ''}
         <ul class="lista-simple">${comida.items.map(it => `<li><span>${it.emoji} ${esc(it.nombre)} <small class="suave">${esc(textoCantidad(it))}</small></span><b>${num(it.kcal)} kcal</b></li>`).join('')}</ul>
         <div class="hoja__chips" style="justify-content:flex-start;margin-top:8px">
           <span class="chip"><i class="punto" style="background:var(--macro-prot)"></i>Proteínas ${num(tot.prot)} g</span>

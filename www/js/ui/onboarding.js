@@ -2,10 +2,14 @@
 // 3 bloques (tu gatito · vos · tu plan), una pregunta por pantalla, y al final "Tu plan está listo".
 import { gatoSVG } from '../gato.js';
 import {
-  validarPerfil, calcularPlan, guardarPerfil, pesoMetaMinimo, imc,
+  validarPerfil, calcularPlan, guardarPerfil, pesoMetaMinimo, imc, metaPasos,
   EDAD_MINIMA, ALTURA, PESO, RITMOS,
 } from '../objetivo.js';
 import { MINIMO_KCAL } from '../calculos.js';
+import { metaAgua } from '../actividad.js';
+import { montarRuedaEntera, montarRuedasDecimal } from './rueda.js';
+import { htmlBarraImc } from './imc.js';
+import { logoHTML } from '../marca.js';
 
 const CLAVE_BORRADOR = 'nathorfit-onboarding';
 
@@ -53,18 +57,18 @@ export const PASOS = [
     ayuda: `Nathor Fit es para mayores de ${EDAD_MINIMA} años.` },
 
   { id: 'altura', bloque: 2, tipo: 'numero', campo: 'altura_cm', gato: 'normal', unidad: 'cm',
-    paso: 1, min: ALTURA.min, max: ALTURA.max, decimales: 0,
+    paso: 1, min: ALTURA.min, max: ALTURA.max, decimales: 0, rueda: 'entera',
     inicial: d => (d.sexo === 'm' ? 175 : 162),
     pregunta: () => '¿Cuánto medís?' },
 
   { id: 'peso', bloque: 2, tipo: 'numero', campo: 'peso_kg', gato: 'normal', unidad: 'kg',
-    paso: 0.1, min: PESO.min, max: PESO.max, decimales: 1,
+    paso: 0.1, min: PESO.min, max: PESO.max, decimales: 1, rueda: 'decimas',
     inicial: d => (d.sexo === 'm' ? 85 : 70),
     pregunta: () => '¿Cuánto pesás hoy?',
     ayuda: 'Si no sabés exacto, poné uno aproximado. Después lo vas actualizando.' },
 
   { id: 'peso_meta', bloque: 2, tipo: 'numero', campo: 'peso_meta', gato: 'feliz', unidad: 'kg',
-    paso: 0.5, min: PESO.min, max: PESO.max, decimales: 1,
+    paso: 0.5, min: PESO.min, max: PESO.max, decimales: 1, rueda: 'medios',
     si: d => d.objetivo === 'bajar',
     inicial: d => Math.max(pesoMetaMinimo(d.altura_cm), Math.round(d.peso_kg * 0.92 * 2) / 2),
     pregunta: () => '¿A qué peso querés llegar?',
@@ -126,6 +130,7 @@ export function datosFinales(d) {
     objetivo: d.objetivo, sexo: d.sexo, nacimiento: d.nacimiento,
     altura_cm: Number(d.altura_cm), peso_kg: Number(d.peso_kg),
     actividad: d.actividad, equipo: d.equipo,
+    meta_pasos: metaPasos(d.actividad),
     aviso_aceptado: d.acepto_aviso ? new Date().toISOString() : null,
   };
   if (d.objetivo === 'bajar') {
@@ -141,7 +146,6 @@ export function datosFinales(d) {
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const formatoNum = (n, dec = 1) =>
   Number(n).toLocaleString('es-AR', { maximumFractionDigits: dec, minimumFractionDigits: 0 });
-const leerNum = s => Number(String(s).replace(',', '.'));
 const z = n => String(n).padStart(2, '0');
 const fechaISO = f => `${f.getFullYear()}-${z(f.getMonth() + 1)}-${z(f.getDate())}`;
 
@@ -152,6 +156,7 @@ export async function montar(c) {
   let d = leerBorrador();
   let i = Math.min(d._paso ?? 0, pasosVisibles(d).length - 1);
   let error = null;
+  let rueda = null;   // la rueda de números del paso actual, si tiene
 
   const guardarBorrador = () => {
     try { sessionStorage.setItem(CLAVE_BORRADOR, JSON.stringify({ ...d, _paso: i })); } catch { /* sin almacenamiento: no pasa nada */ }
@@ -167,10 +172,7 @@ export async function montar(c) {
 
   function seguir() {
     const paso = pasosVisibles(d)[i];
-    if (paso.tipo === 'numero') {
-      const input = c.querySelector('#valor');
-      d[paso.campo] = redondear(leerNum(input.value), paso.decimales);
-    }
+    if (paso.tipo === 'numero') d[paso.campo] = redondear(rueda.valor(), paso.decimales);
     if (paso.tipo === 'texto') d[paso.campo] = c.querySelector('#valor').value.trim();
     if (paso.tipo === 'fecha') d[paso.campo] = c.querySelector('#valor').value;
     error = errorDelPaso(paso, d);
@@ -187,7 +189,7 @@ export async function montar(c) {
     raiz.innerHTML = paso.tipo === 'bienvenida' ? htmlBienvenida() : htmlPaso(paso, pasos, d, error);
     c.append(raiz);
     conectar(raiz, paso);
-    const foco = raiz.querySelector(error ? '#valor, .opcion, .casilla input' : 'h1');
+    const foco = raiz.querySelector(error ? '#valor, .rueda, .opcion, .casilla input' : 'h1');
     if (foco && !(conservarFoco && foco.tagName === 'H1')) foco.focus({ preventScroll: !error });
     if (error) raiz.querySelector('#err')?.scrollIntoView({ block: 'center' });
   }
@@ -213,23 +215,29 @@ export async function montar(c) {
     raiz.querySelectorAll('[data-sugerencia]').forEach(b => b.addEventListener('click', () => {
       raiz.querySelector('#valor').value = b.dataset.sugerencia;
     }));
-    raiz.querySelectorAll('[data-delta]').forEach(b => b.addEventListener('click', () => {
-      const input = raiz.querySelector('#valor');
-      const n = redondear(leerNum(input.value || 0) + Number(b.dataset.delta), paso.decimales);
-      input.value = String(Math.min(paso.max, Math.max(paso.min, n))).replace('.', ',');
-      actualizarAyudaMeta(raiz, paso);
-    }));
-    raiz.querySelector('#valor')?.addEventListener('input', () => actualizarAyudaMeta(raiz, paso));
+    rueda = null;
+    if (paso.tipo === 'numero') {
+      const lugar = raiz.querySelector('[data-rueda]');
+      const opciones = {
+        min: paso.min, max: paso.max, valor: d[paso.campo] ?? paso.inicial(d),
+        etiqueta: paso.pregunta(d), unidad: paso.unidad,
+        alCambiar: v => actualizarAyudaMeta(raiz, paso, v),
+      };
+      rueda = paso.rueda === 'entera' ? montarRuedaEntera(lugar, opciones)
+        : montarRuedasDecimal(lugar, { ...opciones, dec: paso.rueda });
+      lugar.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); seguir(); } });
+    }
     raiz.querySelector('#valor')?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); seguir(); } });
     raiz.querySelector('#acepto')?.addEventListener('change', e => { d.acepto_aviso = e.target.checked; guardarBorrador(); });
   }
 
-  function actualizarAyudaMeta(raiz, paso) {
-    if (paso.id !== 'peso_meta') return;
-    const meta = leerNum(raiz.querySelector('#valor').value);
-    const diff = redondear(d.peso_kg - meta, 1);
-    raiz.querySelector('#diferencia').textContent =
-      diff > 0 ? `Son ${formatoNum(diff)} kg menos que hoy.` : '';
+  // Mientras se mueve la rueda: cuánto es menos que hoy (meta) o el IMC (peso).
+  function actualizarAyudaMeta(raiz, paso, v) {
+    if (paso.id === 'peso_meta') {
+      const diff = redondear(d.peso_kg - v, 1);
+      raiz.querySelector('#diferencia').textContent = diff > 0 ? `Son ${formatoNum(diff)} kg menos que hoy.` : '';
+    }
+    if (paso.id === 'peso' && d.altura_cm) raiz.querySelector('#imc').innerHTML = htmlBarraImc(imc(v, d.altura_cm));
   }
 
   async function calcular() {
@@ -299,6 +307,7 @@ function htmlBienvenida() {
   return `
     <div class="ob__bienvenida">
       <div>
+        ${logoHTML()}
         <div class="gato-grande">${gatoSVG('saluda', { titulo: 'Gatito saludando' })}</div>
         <h1 tabindex="-1">Comé mejor, sin culpa</h1>
         <p style="margin-top:8px">Un gatito que te acompaña a llegar a tu peso. Todo gratis y guardado en tu teléfono.</p>
@@ -376,18 +385,10 @@ function htmlControl(paso, d, error) {
 
   if (paso.tipo === 'numero') {
     const v = valor ?? paso.inicial(d);
-    const delta = paso.paso;
-    const extra = paso.id === 'peso_meta'
-      ? `<p class="ayuda" id="diferencia" aria-live="polite">${d.peso_kg - v > 0 ? `Son ${formatoNum(redondear(d.peso_kg - v, 1))} kg menos que hoy.` : ''}</p>` : '';
-    return `<div class="contador">
-        <button type="button" class="icono-btn" data-delta="${-delta}" aria-label="Menos ${formatoNum(delta)} ${paso.unidad}">–</button>
-        <div class="contador__centro">
-          <label class="visualmente-oculto" for="valor">${esc(paso.pregunta(d))} (${paso.unidad})</label>
-          <input id="valor" type="text" inputmode="decimal" value="${String(v).replace('.', ',')}" ${inv}>
-          <span class="contador__unidad">${paso.unidad}</span>
-        </div>
-        <button type="button" class="icono-btn" data-delta="${delta}" aria-label="Más ${formatoNum(delta)} ${paso.unidad}">+</button>
-      </div>${extra}`;
+    let extra = '';
+    if (paso.id === 'peso_meta') extra = `<p class="ayuda" id="diferencia" aria-live="polite">${d.peso_kg - v > 0 ? `Son ${formatoNum(redondear(d.peso_kg - v, 1))} kg menos que hoy.` : ''}</p>`;
+    if (paso.id === 'peso' && d.altura_cm) extra = `<div id="imc">${htmlBarraImc(imc(v, d.altura_cm))}</div>`;
+    return `<div data-rueda ${error ? 'class="rueda--error"' : ''}></div>${extra}`;
   }
 
   if (paso.tipo === 'fecha') {
@@ -451,8 +452,10 @@ function htmlPlan(d, plan) {
     ['Gasto diario estimado', `${formatoNum(plan.tdee, 0)} kcal`],
     bajar && ['Ritmo', `${formatoNum(plan.ritmoReal, 2)} kg por semana`],
     bajar && plan.semanas && ['Tiempo estimado', `${plan.semanas} semanas`],
-    ['IMC', bajar ? `${formatoNum(plan.imcActual)} → ${formatoNum(plan.imcMeta)}` : formatoNum(plan.imcActual)],
   ].filter(Boolean);
+  const agua = metaAgua(d.peso_kg);
+  const pasos = metaPasos(d.actividad);
+  const gato = esc(d.gato_nombre);
 
   return `
     <div class="plan__hero">
@@ -470,12 +473,31 @@ function htmlPlan(d, plan) {
       </div>
     </div>
     <div class="tarjeta">
+      <div class="metrica__titulo">Tus metas de cada día</div>
+      <ul class="plan__metas">
+        <li><span aria-hidden="true">💧</span><b>${formatoNum(agua / 1000, 2)} L</b><small>de agua</small></li>
+        <li><span aria-hidden="true">👣</span><b>${formatoNum(pasos, 0)}</b><small>pasos</small></li>
+        <li><span aria-hidden="true">🥩</span><b>${m.prot} g</b><small>de proteína</small></li>
+      </ul>
+    </div>
+    <div class="tarjeta">${htmlBarraImc(plan.imcActual, { meta: bajar ? plan.imcMeta : null })}
+      <p class="plan__nota" style="margin-top:8px">El IMC es una referencia general: no distingue músculo de grasa.</p></div>
+    <div class="tarjeta">
       ${filas.map(([k, v]) => `<div class="plan__fila"><span class="suave">${k}</span><b>${v}</b></div>`).join('')}
     </div>
     ${notas.map(n => `<p class="plan__nota">${n}</p>`).join('')}
+    <div class="tarjeta trato">
+      <div class="metrica__titulo">Nuestro trato</div>
+      <p>${gato} se compromete a acompañarte sin retos. Vos, a intentar:</p>
+      <ul>
+        <li>Anotar lo que comés, aunque sea aproximado.</li>
+        <li>Pesarte una vez por semana, siempre a la misma hora.</li>
+        <li>Volver al día siguiente aunque un día no salga como querías.</li>
+      </ul>
+    </div>
     <p class="error" id="error-guardar" role="alert"></p>
     <div class="ob__pie" style="position:static">
-      <button class="btn" data-accion="arrancar">Arrancar</button>
+      <button class="btn" data-accion="arrancar">🐾 ¡Trato hecho, arrancamos!</button>
       <button class="btn btn--fantasma" data-accion="cambiar">Cambiar algo</button>
     </div>`;
 }

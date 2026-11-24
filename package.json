@@ -4,6 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/"
+    "test": "node --test tests/",
+    "e2e": "playwright test",
+    "todo": "node --test tests/ && playwright test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
+    "@playwright/test": "^1.47.2"
   }
 }
