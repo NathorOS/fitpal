@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Galería del personaje · Nathor Fit</title>
+<style>
+  :root { --bg:#12302A; --card:#1c4038; --txt:#f2f7f4; --mut:#a9c5bb; --ac:#5bf410; }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--bg); color:var(--txt); font:15px/1.45 system-ui, sans-serif }
+  main { max-width:1100px; margin:0 auto; padding:16px 14px 60px }
+  h1 { font-size:22px; margin:6px 0 2px } h2 { font-size:17px; margin:28px 0 10px; color:var(--ac) }
+  p.s { color:var(--mut); margin:0 0 12px }
+  .barra { position:sticky; top:0; z-index:5; background:var(--bg); padding:10px 0; display:flex; flex-wrap:wrap; gap:8px; align-items:center }
+  .barra button { font:600 14px system-ui; border:2px solid #fff3; background:var(--card); color:var(--txt); border-radius:99px; padding:8px 14px; min-height:40px; cursor:pointer }
+  .barra button[aria-pressed="true"] { border-color:var(--ac); background:#2b5a4e }
+  .escena { position:relative; border-radius:16px; overflow:hidden; aspect-ratio:4/3; max-width:640px; background:#000 }
+  .escena img.cuarto { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:opacity .6s }
+  .escena canvas, .escena img.pj { position:absolute; left:50%; bottom:3%; height:72%; transform:translateX(-50%); width:auto }
+  .escena .obj { position:absolute; width:13%; bottom:6% }
+  .controles { display:flex; flex-wrap:wrap; gap:10px; margin:10px 0 }
+  .controles label { display:flex; flex-direction:column; font-size:13px; color:var(--mut) }
+  .controles select, .controles input { font:15px system-ui; min-height:36px }
+  .grilla { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px }
+  .grilla.chica { grid-template-columns:repeat(auto-fill,minmax(84px,1fr)) }
+  figure { margin:0; background:var(--card); border-radius:12px; padding:6px; text-align:center }
+  figure img, figure canvas { width:100%; height:auto; display:block }
+  figcaption { font-size:11px; color:var(--mut); word-break:break-all; margin-top:3px }
+  @keyframes respira { 50% { transform:translateX(-50%) scaleY(1.015) } }
+  .escena canvas { animation:respira 3.2s ease-in-out infinite; transform-origin:bottom center }
+</style>
+</head>
+<body>
+<main>
+  <h1>Galería del personaje</h1>
+  <p class="s">Todo lo que salió de Gemini, ya recortado. Elegí un equipo: las camisetas se pintan por código. Abajo, una prueba de la escena de Hoy armada por capas.</p>
+
+  <div class="barra" id="equipos" role="group" aria-label="Equipo"></div>
+
+  <h2>Escena de Hoy (prueba)</h2>
+  <div class="controles">
+    <label>Etapa <select id="etapa"><option value="e1">1 · muy gordo</option><option value="e3" selected>3 · a mitad</option><option value="e5">5 · en su meta</option></select></label>
+    <label>Pose <select id="pose"><option>contento</option><option>fiaca</option><option>empachado</option><option>entrenando</option><option>festejando</option></select></label>
+    <label>Limpieza <input id="limpieza" type="range" min="0" max="100" value="70"></label>
+    <label>Hora <select id="hora"><option value="dia">Día</option><option value="noche">Noche</option></select></label>
+  </div>
+  <div class="escena" id="escena"><img class="cuarto" id="cuarto" alt=""></div>
+
+  <h2>Personajes</h2>
+  <div class="grilla" id="personajes"></div>
+
+  <h2>Íconos</h2><div class="grilla chica" id="iconos"></div>
+  <h2>Insignias y premios</h2><div class="grilla chica" id="insignias"></div>
+  <h2>Objetos de la escena</h2><div class="grilla chica" id="escenaObj"></div>
+  <h2>Efectos</h2><div class="grilla chica" id="efectos"></div>
+</main>
+
+<script type="module">
+import { prepararImagen, EQUIPOS } from '/js/personaje.js';
+
+const PJ = ['e1-contento','e1-fiaca','e1-empachado','e1-entrenando','e1-festejando','e1-ojos-cerrados',
+  'e3-contento','e3-contento-limpio','e3-fiaca','e3-empachado','e3-entrenando','e3-entrenando-limpio','e3-festejando','e3-festejando-limpio',
+  'e5-contento','e5-contento-limpio','e5-fiaca','e5-empachado','e5-entrenando','e5-entrenando-limpio','e5-festejando','e5-festejando-limpio',
+  'e3-durmiendo','e3-tomando-agua','e3-pesandose','e3-saludando','e3-con-un-trofeo','e3-triste'];
+const ICONOS = ['hoy','retos','progreso','perfil','agregar','anotar-comida','foto-ia','codigo-barras','agua','peso','pasos','actividad','ayuno','entrenar','calorias','proteina','carbohidratos','grasas',
+  'desayuno','almuerzo','merienda','cena','snack','favoritos','alimento-propio','registro-rapido','carrito','puntaje-malo','puntaje-regular','puntaje-bueno','puntaje-excelente','vacio-comidas','vacio-agua','sin-conexion','cargando','error',
+  'buscar','editar','borrar','guardar','respaldo-guardar','respaldo-restaurar','clave-ia','ajustes','mi-equipo','prog-grafico','prog-imc','prog-medidas','prog-sube','prog-baja','prog-calendario','prog-tabla','prog-antes-despues','prog-meta',
+  'actividad-sedentario','actividad-ligero','actividad-moderado','actividad-alto','ritmo-025','ritmo-05','ritmo-075','ritmo-1','meta','equipo-ninguno','equipo-mancuernas','equipo-gimnasio','objetivo-bajar','objetivo-mantener',
+  'personalidad-carinoso','personalidad-directo','personalidad-divertido','personalidad-tranqui','ayuno-12','ayuno-14','ayuno-16','ayuno-18','ayuno-en-curso','ayuno-completo','ayuno-romper','ayuno-ventana','ayuno-pausa',
+  'grupo-piernas','grupo-cardio','grupo-core','grupo-espalda','grupo-gluteos','grupo-pecho','grupo-movilidad','grupo-brazos','grupo-hombros','alim-carnes','alim-lacteos','alim-verduras','alim-frutas','alim-panes','alim-legumbres','alim-bebidas','alim-dulces','alim-rapidas'];
+const INSIGNIAS = ['reto-anotar3','reto-agua','reto-moverse','reto-meta','reto-racha7','reto-dias5','reto-enmeta3','reto-agua5','reto-act3','reto-peso2','reto-ayuno3','logro-primera-foto','logro-primer-entreno','logro-primera-comida','logro-agua100','logro-30-dias','logro-racha30','logro-primera-semana',
+  'racha-3','racha-7','racha-14','racha-30','cofre-cerrado','cofre-abierto','moneda','estrella','escudo-racha','hito-1kg','hito-5kg','hito-10kg','hito-15kg','hito-20kg','hito-mejor-peso','hito-llegada','hito-meta','hito-mantener'];
+const OBJ = ['premio-rack','premio-planta','premio-bici','premio-cinta','premio-poster','premio-trofeos','premio-mate-oro','premio-zapatillas','premio-balanza',
+  'sano-agua','sano-mate','sano-mancuerna','sano-zapatillas','sano-ensalada','sano-manzana','sano-balanza','sano-toalla','sano-banana',
+  'vicio-cerveza','vicio-fernet','vicio-vino','vicio-alfajores','vicio-pizza','vicio-choripan','vicio-cenicero','vicio-papas','vicio-gaseosa',
+  'mugre-salsa','mugre-grasa','mugre-cafe','mugre-migas','mugre-moscas','mugre-olor','mugre-transpiracion','mugre-mostaza','mugre-barro'];
+const EFECTOS = ['burbuja-dialogo','burbuja-pensamiento','confeti','fuegos','cinta-premio','brillos','corazones','gotas-sudor','nube-polvo'];
+
+const $ = id => document.getElementById(id);
+const fig = (src, nombre) => `<figure><img loading="lazy" src="${src}" alt=""><figcaption>${nombre}</figcaption></figure>`;
+$('iconos').innerHTML = ICONOS.map(n => fig(`/img/iconos/${n}.webp`, n)).join('');
+$('insignias').innerHTML = INSIGNIAS.map(n => fig(`/img/insignias/${n}.webp`, n)).join('');
+$('escenaObj').innerHTML = OBJ.map(n => fig(`/img/escena/${n}.webp`, n)).join('');
+$('efectos').innerHTML = EFECTOS.map(n => fig(`/img/efectos/${n}.webp`, n)).join('');
+
+let equipo = 'boca';
+const botones = Object.entries(EQUIPOS).map(([id, e]) => `<button type="button" data-eq="${id}" aria-pressed="${id === equipo}">${e.nombre}</button>`).join('');
+$('equipos').innerHTML = botones;
+$('equipos').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  equipo = b.dataset.eq;
+  $('equipos').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  pintarPersonajes(); escena();
+});
+
+async function pintarPersonajes() {
+  const cont = $('personajes');
+  cont.innerHTML = PJ.map(n => `<figure data-pj="${n}"><figcaption>${n}</figcaption></figure>`).join('');
+  for (const n of PJ) {
+    const c = await prepararImagen(`/img/personaje/${n}.webp`, { equipo });
+    cont.querySelector(`[data-pj="${n}"]`).prepend(c);
+  }
+}
+
+// Escena por capas: cuarto según limpieza y hora, personaje según etapa y pose, objetos según limpieza
+let turno = 0;
+async function escena() {
+  const mio = ++turno;
+  const lim = +$('limpieza').value, noche = $('hora').value === 'noche';
+  const estado = lim < 34 ? 'desastre' : lim < 67 ? 'normal' : 'ordenado';
+  const archivo = noche ? (estado === 'normal' ? 'cuarto-normal' : `cuarto-${estado}-noche`) : `cuarto-${estado}`;
+  $('cuarto').src = `/img/cuarto/${archivo}.webp`;
+  const etapa = $('etapa').value, pose = $('pose').value;
+  const limpio = lim >= 67 && ['contento', 'entrenando', 'festejando'].includes(pose) && etapa !== 'e1';
+  const c = await prepararImagen(`/img/personaje/${etapa}-${pose}${limpio ? '-limpio' : ''}.webp`, { equipo });
+  if (mio !== turno) return;
+  const ob = estado === 'desastre' ? ['vicio-cerveza', 'vicio-pizza', 'vicio-cenicero'] : estado === 'normal' ? ['sano-mate', 'vicio-alfajores'] : ['premio-planta', 'sano-agua', 'premio-trofeos'];
+  $('escena').querySelectorAll('canvas, .obj').forEach(x => x.remove());
+  $('escena').append(c);
+  ob.forEach((n, i) => {
+    const im = new Image(); im.className = 'obj'; im.alt = ''; im.src = `/img/escena/${n}.webp`;
+    im.style[i % 2 ? 'right' : 'left'] = `${6 + (i >> 1) * 12}%`;
+    $('escena').append(im);
+  });
+}
+['etapa', 'pose', 'limpieza', 'hora'].forEach(id => $(id).addEventListener('input', escena));
+pintarPersonajes(); escena();
+</script>
+</body>
+</html>
