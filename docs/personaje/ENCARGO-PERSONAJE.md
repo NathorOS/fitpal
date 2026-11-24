@@ -323,7 +323,61 @@ Los nombres de cada celda de cada hoja están en la lista `HOJAS` de `recortar-i
 Ya respondidas:
 
 1. **Equipo:** se elige en el onboarding (y se cambia en Perfil). Ver §4.
-2. **Monedas:** no; sin tienda no sirven. Queda el cofre semanal que da premios para el cuarto. Ver §6.
+2. **Monedas:** por ahora no; sin tienda no sirven. Queda el cofre semanal. Cuando haya tienda, ver §12.
 3. **Habla:** sí, con frases crudas bien argentinas: se burla y te dice qué no comer. Ver [`FRASES.md`](FRASES.md).
 4. **Cortes de etapa:** 34 % y 75 %, aprobados.
 5. **Agregado por el dueño:** el cuerpo arranca según el peso real (IMC). Ver §2.1.
+
+---
+
+## 12. Tienda (para más adelante)
+
+El dueño la quiere sumar en el futuro. Esto es lo que propongo para que sea linda y no canse. Los pedidos de
+imágenes para Gemini están en [`pedidos-tienda.md`](pedidos-tienda.md) y en `checklist-tienda.html`.
+
+### 12.1 Monedas: solo se ganan haciendo las cosas bien, y nunca se pierden
+
+| Acción | Monedas |
+| --- | --- |
+| Día completo anotado (3 comidas o más) | +10 |
+| Meta de agua | +5 |
+| Actividad anotada | +5 |
+| Pesarse (una vez por semana cuenta) | +5 |
+| Reto cumplido | +15 |
+| Cada 7 días de racha | +30 |
+
+Una semana buena da unas 200–250 monedas. Precios: **chico 150** (se compra con una semana buena),
+**mediano 400**, **grande 1000** (un mes). Las monedas no se pierden nunca: si va mal, ya lo castiga el cuarto
+sucio y la chicana del personaje. Se usa la imagen `moneda` que ya existe; reemplaza al cofre semanal de §6.5
+como fuente de premios (el cofre puede seguir y dar monedas extra).
+
+### 12.2 Qué se vende
+
+1. **Cosas para el cuarto**: los `premio-*` que ya existen y la hoja nueva de objetos. Van en una posición fija.
+2. **Accesorios para la cabeza** (gorra, vincha, anteojos…). Se dibujan sueltos y de frente, y se superponen
+   sobre la cabeza por código. Para eso hace falta una tabla con la posición de la cabeza en cada imagen del
+   personaje (`x`, `y`, `ancho`, en porcentaje): 28 imágenes, se mide una vez.
+3. **Camiseta suplente**: no lleva imágenes; es otra paleta en `EQUIPOS` (colores de la alternativa del club).
+4. **Fondos nuevos** en vez del cuarto: balcón con parrilla, patio con pileta, gimnasio, plaza.
+5. **Escudo de racha** (`escudo-racha`): caro (400) y como máximo uno guardado.
+6. **Paquetes de frases** para el personaje (modo abuela, modo DT, modo relator): solo texto, baratos de hacer.
+7. **Festejos**: otro efecto al cumplir un reto (globos, serpentinas, papelitos) y la pose `bailando`.
+
+### 12.3 Para que sea llevadero
+
+- **Vidriera que rota cada lunes**: 3 o 4 cosas, elegidas con una semilla por semana (todos los días la misma).
+- **Cosas que no se compran**: algunas solo se ganan con hitos (−5 kg, 30 días de racha). Se muestran con candado.
+- **Siempre mostrar el precio y lo que falta** ("te faltan 40"), con una barra.
+- **Nada con plata real.**
+
+### 12.4 Qué no se vende
+
+- Nada que cambie números (calorías extra, borrar un día, bajar la meta).
+- Comida chatarra "de premio" para el personaje.
+- Limpieza: el cuarto se limpia solo haciendo las cosas bien.
+
+### 12.5 Datos
+
+Store nuevo en IndexedDB `tienda`: `{ monedas, comprados: [id], equipado: { cabeza, fondo, frases, festejo } }`.
+Movimientos en `monedas_mov` (`fecha`, `motivo`, `cantidad`) para no dar dos veces lo mismo el mismo día.
+Funciones puras con tests (`monedasDelDia`, `vidrieraDeLaSemana`, `puedeComprar`).
