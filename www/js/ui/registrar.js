@@ -213,7 +213,7 @@ export async function montar(c, params = new URLSearchParams()) {
     boton.disabled = true; boton.setAttribute('aria-busy', 'true');
     try {
       const id = await guardarComida(estado);
-      // Comida nueva: pantalla de resultado (puntaje, comentario del gatito y racha).
+      // Comida nueva: pantalla de resultado (puntaje, comentario del personaje y racha).
       if (!estado.id) {
         document.body.classList.remove('con-carrito');
         location.hash = `#/resultado?id=${id}`;

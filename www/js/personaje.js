@@ -118,3 +118,41 @@ export async function prepararImagen(url, { equipo = 'river' } = {}) {
   g.putImageData(datos, 0, 0);
   return c;
 }
+
+/**
+ * Caja de la bandera verde chillón de un fondo (cuarto, balcón…): solo cuenta el verde muy puro y brillante,
+ * para no confundirla con plantas o pasto. Devuelve [x0, y0, x1, y1] o null.
+ */
+export function cajaBandera(px, ancho, alto) {
+  const porX = new Uint32Array(ancho), porY = new Uint32Array(alto);
+  let n = 0;
+  for (let y = 0, k = 0; y < alto; y++) for (let x = 0; x < ancho; x++, k++) {
+    const i = k * 4;
+    const [h, s, v] = hsv(px[i], px[i + 1], px[i + 2]);
+    if (h >= 85 && h <= 125 && s >= 0.8 && v >= 0.7) { porX[x]++; porY[y]++; n++; }
+  }
+  if (n < 200) return null;
+  const percentil = (hist, p) => { let acc = 0; for (let j = 0; j < hist.length; j++) { acc += hist[j]; if (acc >= n * p) return j; } return hist.length - 1; };
+  const x0 = percentil(porX, 0.01), x1 = percentil(porX, 0.99), y0 = percentil(porY, 0.01), y1 = percentil(porY, 0.99);
+  const mx = Math.round((x1 - x0) * 0.06), my = Math.round((y1 - y0) * 0.06);
+  return [Math.max(0, x0 - mx), Math.max(0, y0 - my), Math.min(ancho - 1, x1 + mx), Math.min(alto - 1, y1 + my)];
+}
+
+/** En el navegador: fondo con la bandera pintada con los colores del equipo. Devuelve un canvas. */
+export async function prepararFondo(url, { equipo = 'verde' } = {}) {
+  const img = new Image();
+  img.src = url;
+  await img.decode();
+  const c = document.createElement('canvas');
+  c.width = img.naturalWidth; c.height = img.naturalHeight;
+  const g = c.getContext('2d', { willReadFrequently: true });
+  g.drawImage(img, 0, 0);
+  if (!EQUIPOS[equipo]?.base) return c;
+  const caja = cajaBandera(g.getImageData(0, 0, c.width, c.height).data, c.width, c.height);
+  if (!caja) return c;
+  const [x0, y0, x1, y1] = caja;
+  const zona = g.getImageData(x0, y0, x1 - x0 + 1, y1 - y0 + 1);
+  pintarCamiseta(zona.data, zona.width, zona.height, equipo);
+  g.putImageData(zona, x0, y0);
+  return c;
+}

@@ -18,19 +18,19 @@ export const EQUIPO_PERMITE = {
 // En principiante algunos ejercicios se cambian por su versión más fácil.
 const PLANTILLAS = {
   ninguno: [
-    { id: 'casa-a', nombre: 'Cuerpo completo A', emoji: '🏠', met: 4, ejercicios: ['sentadilla', 'flexiones', 'puente', 'perro-pajaro', 'plancha'] },
-    { id: 'casa-b', nombre: 'Cuerpo completo B', emoji: '🏠', met: 4, ejercicios: ['zancada-atras', 'fondos-silla', 'superman', 'sentadilla-sumo', 'plancha-lateral'] },
-    { id: 'cardio', nombre: 'Cardio y abdomen', emoji: '🔥', met: 6, ejercicios: ['caminar-lugar', 'saltos-tijera', 'rodillas-arriba', 'escaladores', 'crunch', 'bicho-muerto'] },
-    { id: 'movilidad', nombre: 'Movilidad', emoji: '🧘', met: 2.5, ejercicios: ['gato-vaca', 'circulos-cadera', 'rotacion-toracica', 'isquios', 'estiramiento-cadera'] },
+    { id: 'casa-a', icono: 'entrenar', nombre: 'Cuerpo completo A', emoji: '🏠', met: 4, ejercicios: ['sentadilla', 'flexiones', 'puente', 'perro-pajaro', 'plancha'] },
+    { id: 'casa-b', icono: 'grupo-core', nombre: 'Cuerpo completo B', emoji: '🏠', met: 4, ejercicios: ['zancada-atras', 'fondos-silla', 'superman', 'sentadilla-sumo', 'plancha-lateral'] },
+    { id: 'cardio', icono: 'grupo-cardio', nombre: 'Cardio y abdomen', emoji: '🔥', met: 6, ejercicios: ['caminar-lugar', 'saltos-tijera', 'rodillas-arriba', 'escaladores', 'crunch', 'bicho-muerto'] },
+    { id: 'movilidad', icono: 'grupo-movilidad', nombre: 'Movilidad', emoji: '🧘', met: 2.5, ejercicios: ['gato-vaca', 'circulos-cadera', 'rotacion-toracica', 'isquios', 'estiramiento-cadera'] },
   ],
   mancuernas: [
-    { id: 'manc-a', nombre: 'Fuerza A', emoji: '🏋️', met: 5, ejercicios: ['goblet', 'press-piso', 'remo-una', 'rumano-manc', 'plancha'] },
-    { id: 'manc-b', nombre: 'Fuerza B', emoji: '🏋️', met: 5, ejercicios: ['zancada-manc', 'press-hombros', 'curl', 'triceps-cabeza', 'puente-manc', 'giro-ruso'] },
+    { id: 'manc-a', icono: 'equipo-mancuernas', nombre: 'Fuerza A', emoji: '🏋️', met: 5, ejercicios: ['goblet', 'press-piso', 'remo-una', 'rumano-manc', 'plancha'] },
+    { id: 'manc-b', icono: 'grupo-brazos', nombre: 'Fuerza B', emoji: '🏋️', met: 5, ejercicios: ['zancada-manc', 'press-hombros', 'curl', 'triceps-cabeza', 'puente-manc', 'giro-ruso'] },
   ],
   gimnasio: [
-    { id: 'gym-a', nombre: 'Gimnasio A', emoji: '🏟️', met: 5, ejercicios: ['prensa', 'press-banca', 'jalon', 'curl-femoral', 'plancha'] },
-    { id: 'gym-b', nombre: 'Gimnasio B', emoji: '🏟️', met: 5, ejercicios: ['hip-thrust', 'press-inclinado', 'remo-polea', 'extension-cuad', 'laterales', 'triceps-polea'] },
-    { id: 'gym-cardio', nombre: 'Cardio en máquinas', emoji: '🚴', met: 6.5, ejercicios: ['cinta', 'bici-fija', 'eliptico'], minutosCada: 10 },
+    { id: 'gym-a', icono: 'equipo-gimnasio', nombre: 'Gimnasio A', emoji: '🏟️', met: 5, ejercicios: ['prensa', 'press-banca', 'jalon', 'curl-femoral', 'plancha'] },
+    { id: 'gym-b', icono: 'grupo-piernas', nombre: 'Gimnasio B', emoji: '🏟️', met: 5, ejercicios: ['hip-thrust', 'press-inclinado', 'remo-polea', 'extension-cuad', 'laterales', 'triceps-polea'] },
+    { id: 'gym-cardio', icono: 'grupo-cardio', nombre: 'Cardio en máquinas', emoji: '🚴', met: 6.5, ejercicios: ['cinta', 'bici-fija', 'eliptico'], minutosCada: 10 },
   ],
 };
 

@@ -37,5 +37,5 @@ export function iconoSVG({ maskable = false, redondeado = false } = {}) {
 
 /** Logo para pantallas: cara + nombre (el nombre va en HTML con la fuente de la app). */
 export function logoHTML() {
-  return `<div class="logo"><svg viewBox="40 14 120 126" aria-hidden="true" focusable="false">${caraGato()}</svg><span>Nathor <b>Fit</b></span></div>`;
+  return `<div class="logo"><img src="img/marca/icon-192.png" alt="" width="40" height="40"><span>Nathor <b>Fit</b></span></div>`;
 }

@@ -17,10 +17,11 @@ const vistas = {
   '/perfil':     () => import('./ui/perfil.js'),
   '/datos':      () => import('./ui/datos.js'),
   '/onboarding': () => import('./ui/onboarding.js'),
+  '/logro':      () => import('./ui/logro.js'),
 };
 // Pantallas de pantalla completa: sin barra inferior y con fondo blanco.
 const COMPLETAS = { '/onboarding': 'modo-onboarding', '/registrar': 'modo-registrar', '/peso': 'modo-registrar', '/actividad': 'modo-registrar',
-  '/ayuno': 'modo-registrar', '/sesion': 'modo-registrar', '/ia': 'modo-registrar', '/codigo': 'modo-registrar', '/datos': 'modo-registrar', '/resultado': 'modo-resultado', '/racha': 'modo-resultado' };
+  '/ayuno': 'modo-registrar', '/sesion': 'modo-registrar', '/ia': 'modo-registrar', '/codigo': 'modo-registrar', '/datos': 'modo-registrar', '/resultado': 'modo-resultado', '/racha': 'modo-resultado', '/logro': 'modo-resultado' };
 
 const cont = document.getElementById('vista');
 const tabs = document.getElementById('tabs');
@@ -93,7 +94,7 @@ menu.addEventListener('click', async e => {
     const { sumarAgua } = await import('./actividad.js');
     const { hoy } = await import('./db.js');
     await sumarAgua(menu.dataset.fecha || hoy(), 250);
-    try { sessionStorage.setItem('nathorfit-aviso', '💧 +250 ml de agua'); } catch { /* nada */ }
+    try { sessionStorage.setItem('nathorfit-aviso', '💧 +250 ml de agua'); sessionStorage.setItem('nathorfit-pose', 'tomando-agua'); } catch { /* nada */ }
     cerrarMenu();
     navegar();
   }
@@ -101,6 +102,20 @@ menu.addEventListener('click', async e => {
 
 window.addEventListener('hashchange', navegar);
 await abrirDB();
+// El personaje: etapa, limpieza y equipo se calculan al abrir, y cualquier pantalla que lo dibuje se llena sola.
+try {
+  const [{ leerDatos, personajeDe }, { fijarPersonaje }] = await Promise.all([import('./juego.js'), import('./ui/pj.js')]);
+  const datos = await leerDatos();
+  if (datos.perfil) fijarPersonaje(personajeDe(datos));
+} catch (err) { console.error(err); }
+import('./ui/pj.js').then(({ hidratar }) => {
+  let pendiente = false;
+  new MutationObserver(() => {
+    if (pendiente) return;
+    pendiente = true;
+    queueMicrotask(() => { pendiente = false; hidratar(document); });
+  }).observe(document.body, { childList: true, subtree: true });
+});
 navegar();
 // En desarrollo (localhost) no se usa el service worker, para ver siempre los archivos nuevos.
 // Para probar el modo sin conexión en local: agregar ?sw=1 a la dirección.

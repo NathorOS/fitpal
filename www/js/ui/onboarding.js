@@ -1,6 +1,6 @@
-// Fase 1 — Onboarding conversacional: el gatito pregunta, vos respondés.
-// 3 bloques (tu gatito · vos · tu plan), una pregunta por pantalla, y al final "Tu plan está listo".
-import { gatoSVG } from '../gato.js';
+// Fase 1 — Onboarding conversacional: el personaje pregunta, vos respondés.
+// 3 bloques (tu personaje · vos · tu plan), una pregunta por pantalla, y al final "Tu plan está listo".
+import { pjHTML, hidratar } from './pj.js';
 import {
   validarPerfil, calcularPlan, guardarPerfil, pesoMetaMinimo, imc, metaPasos,
   EDAD_MINIMA, ALTURA, PESO, RITMOS,
@@ -10,6 +10,7 @@ import { metaAgua } from '../actividad.js';
 import { montarRuedaEntera, montarRuedasDecimal } from './rueda.js';
 import { htmlBarraImc } from './imc.js';
 import { logoHTML } from '../marca.js';
+import { EQUIPOS, EQUIPOS_AZAR } from '../personaje.js';
 
 const CLAVE_BORRADOR = 'nathorfit-onboarding';
 
@@ -22,16 +23,25 @@ export const PASOS = [
 
   { id: 'gato_nombre', bloque: 1, tipo: 'texto', campo: 'gato_nombre', gato: 'saluda',
     pregunta: () => '¡Hola! Voy a ser tu compañero. ¿Cómo me vas a llamar?',
-    placeholder: 'Ej.: Tito, Luna, Pancho', max: 20,
-    sugerencias: ['Tito', 'Luna', 'Pancho', 'Mandarina', 'Toto'] },
+    placeholder: 'Ej.: Tito, Cacho, Pancho', max: 20,
+    sugerencias: ['Tito', 'Cacho', 'Pancho', 'Beto', 'Toto'] },
 
   { id: 'gato_personalidad', bloque: 1, tipo: 'opciones', campo: 'gato_personalidad', gato: 'feliz',
     pregunta: d => `¡${d.gato_nombre}, me encanta! ¿Cómo querés que te hable?`,
     opciones: [
-      { valor: 'carinoso', emoji: '🧡', titulo: 'Cariñoso', sub: 'Te festejo cada paso' },
-      { valor: 'directo', emoji: '🎯', titulo: 'Directo', sub: 'Te digo las cosas claras, sin vueltas' },
-      { valor: 'divertido', emoji: '😹', titulo: 'Divertido', sub: 'Con humor, para que no sea un embole' },
-      { valor: 'tranqui', emoji: '🌿', titulo: 'Tranqui', sub: 'Pocos avisos y cero presión' },
+      { valor: 'carinoso', emoji: '🧡', icono: 'personalidad-carinoso', titulo: 'Cariñoso', sub: 'Te banco, pero te digo las cosas' },
+      { valor: 'directo', emoji: '🎯', icono: 'personalidad-directo', titulo: 'Directo', sub: 'Crudo y sin vueltas: si aflojás, te bardeo' },
+      { valor: 'divertido', emoji: '😜', icono: 'personalidad-divertido', titulo: 'Divertido', sub: 'Te gasto con humor, para que no sea un embole' },
+      { valor: 'tranqui', emoji: '🌿', icono: 'personalidad-tranqui', titulo: 'Tranqui', sub: 'Pocos avisos y menos presión' },
+    ] },
+
+  { id: 'equipo_futbol', bloque: 1, tipo: 'opciones', campo: 'equipo_futbol', gato: 'contento', equipos: true,
+    pregunta: d => `¿Y de qué cuadro sos? Así ${d.gato_nombre || 'tu personaje'} se pone la camiseta.`,
+    ayuda: 'Solo cambia los colores de la camiseta. Lo podés cambiar después en Perfil.',
+    opciones: [
+      ...EQUIPOS_AZAR.map(id => ({ valor: id, titulo: EQUIPOS[id].nombre })),
+      { valor: 'verde', titulo: 'Ninguno' },
+      { valor: 'azar', titulo: 'Al azar' },
     ] },
 
   { id: 'nombre', bloque: 1, tipo: 'texto', campo: 'nombre', gato: 'normal',
@@ -40,8 +50,8 @@ export const PASOS = [
   { id: 'objetivo', bloque: 2, tipo: 'opciones', campo: 'objetivo', gato: 'feliz',
     pregunta: d => `Un gusto, ${d.nombre}. ¿Qué querés lograr?`,
     opciones: [
-      { valor: 'bajar', emoji: '📉', titulo: 'Bajar de peso' },
-      { valor: 'mantener', emoji: '⚖️', titulo: 'Mantener mi peso', sub: 'y comer mejor' },
+      { valor: 'bajar', emoji: '📉', icono: 'objetivo-bajar', titulo: 'Bajar de peso' },
+      { valor: 'mantener', emoji: '⚖️', icono: 'objetivo-mantener', titulo: 'Mantener mi peso', sub: 'y comer mejor' },
     ] },
 
   { id: 'sexo', bloque: 2, tipo: 'opciones', campo: 'sexo', gato: 'normal',
@@ -77,10 +87,10 @@ export const PASOS = [
   { id: 'actividad', bloque: 3, tipo: 'opciones', campo: 'actividad', gato: 'saluda',
     pregunta: () => '¿Cuánto te movés en un día normal?',
     opciones: [
-      { valor: 'sedentario', emoji: '🛋️', titulo: 'Poco', sub: 'Trabajo sentado, casi sin ejercicio' },
-      { valor: 'ligero', emoji: '🚶', titulo: 'Algo', sub: 'Caminatas o ejercicio 1 a 3 veces por semana' },
-      { valor: 'moderado', emoji: '🏃', titulo: 'Bastante', sub: 'Ejercicio 3 a 5 veces por semana' },
-      { valor: 'alto', emoji: '🔥', titulo: 'Mucho', sub: 'Entreno fuerte casi todos los días o trabajo físico' },
+      { valor: 'sedentario', emoji: '🛋️', icono: 'actividad-sedentario', titulo: 'Poco', sub: 'Trabajo sentado, casi sin ejercicio' },
+      { valor: 'ligero', emoji: '🚶', icono: 'actividad-ligero', titulo: 'Algo', sub: 'Caminatas o ejercicio 1 a 3 veces por semana' },
+      { valor: 'moderado', emoji: '🏃', icono: 'actividad-moderado', titulo: 'Bastante', sub: 'Ejercicio 3 a 5 veces por semana' },
+      { valor: 'alto', emoji: '🔥', icono: 'actividad-alto', titulo: 'Mucho', sub: 'Entreno fuerte casi todos los días o trabajo físico' },
     ] },
 
   { id: 'ritmo', bloque: 3, tipo: 'opciones', campo: 'ritmo_kg_sem', gato: 'normal', numerico: true,
@@ -88,18 +98,18 @@ export const PASOS = [
     pregunta: () => '¿A qué ritmo querés bajar?',
     ayuda: 'Más lento es más fácil de sostener. Lo podés cambiar cuando quieras.',
     opciones: [
-      { valor: 0.25, emoji: '🐢', titulo: 'Tranqui', sub: '0,25 kg por semana' },
-      { valor: 0.5, emoji: '🚲', titulo: 'Constante', sub: '0,5 kg por semana', recomendado: true },
-      { valor: 0.75, emoji: '🏃', titulo: 'Firme', sub: '0,75 kg por semana' },
-      { valor: 1, emoji: '🚀', titulo: 'Rápido', sub: '1 kg por semana' },
+      { valor: 0.25, emoji: '🐢', icono: 'ritmo-025', titulo: 'Tranqui', sub: '0,25 kg por semana' },
+      { valor: 0.5, emoji: '🚲', icono: 'ritmo-05', titulo: 'Constante', sub: '0,5 kg por semana', recomendado: true },
+      { valor: 0.75, emoji: '🏃', icono: 'ritmo-075', titulo: 'Firme', sub: '0,75 kg por semana' },
+      { valor: 1, emoji: '🚀', icono: 'ritmo-1', titulo: 'Rápido', sub: '1 kg por semana' },
     ] },
 
   { id: 'equipo', bloque: 3, tipo: 'opciones', campo: 'equipo', gato: 'feliz',
     pregunta: () => 'Para entrenar, ¿con qué contás?',
     opciones: [
-      { valor: 'ninguno', emoji: '🏠', titulo: 'Nada, entreno en casa' },
-      { valor: 'mancuernas', emoji: '🏋️', titulo: 'Mancuernas o bandas' },
-      { valor: 'gimnasio', emoji: '🏟️', titulo: 'Voy al gimnasio' },
+      { valor: 'ninguno', emoji: '🏠', icono: 'equipo-ninguno', titulo: 'Nada, entreno en casa' },
+      { valor: 'mancuernas', emoji: '🏋️', icono: 'equipo-mancuernas', titulo: 'Mancuernas o bandas' },
+      { valor: 'gimnasio', emoji: '🏟️', icono: 'equipo-gimnasio', titulo: 'Voy al gimnasio' },
     ] },
 
   { id: 'salud', bloque: 3, tipo: 'salud', campo: 'acepto_aviso', gato: 'normal',
@@ -127,6 +137,8 @@ export function datosFinales(d) {
   const base = {
     nombre: String(d.nombre).trim(),
     gato: { nombre: String(d.gato_nombre).trim(), personalidad: d.gato_personalidad },
+    // "Al azar" elige un equipo una sola vez y queda guardado
+    equipo_futbol: d.equipo_futbol === 'azar' ? EQUIPOS_AZAR[Math.floor(Math.random() * EQUIPOS_AZAR.length)] : (d.equipo_futbol || 'verde'),
     objetivo: d.objetivo, sexo: d.sexo, nacimiento: d.nacimiento,
     altura_cm: Number(d.altura_cm), peso_kg: Number(d.peso_kg),
     actividad: d.actividad, equipo: d.equipo,
@@ -203,6 +215,9 @@ export async function montar(c) {
       error = null;
       raiz.querySelector('.error').textContent = '';
       guardarBorrador();
+      // Elegir equipo: el personaje de arriba se pone esa camiseta
+      const pj = paso.equipos && raiz.querySelector('.pregunta .pj');
+      if (pj && op.dataset.valor !== 'azar') { pj.dataset.equipo = op.dataset.valor; hidratar(raiz); }
     }));
     // Flechas dentro del grupo de opciones
     raiz.querySelector('[role="radiogroup"]')?.addEventListener('keydown', e => {
@@ -246,7 +261,7 @@ export async function montar(c) {
     raiz.className = 'ob';
     raiz.innerHTML = `
       <div class="calculando" role="status">
-        <div class="gato-grande">${gatoSVG('normal', { titulo: d.gato_nombre })}</div>
+        <div class="gato-grande">${pjHTML('normal', { titulo: d.gato_nombre })}</div>
         <h1 class="burbuja" tabindex="-1">Armando tu plan…</h1>
         <div class="barra" aria-hidden="true"><i></i></div>
         <p class="suave" id="paso-calculo">Calculando cuánto gasta tu cuerpo</p>
@@ -308,9 +323,9 @@ function htmlBienvenida() {
     <div class="ob__bienvenida">
       <div>
         ${logoHTML()}
-        <div class="gato-grande">${gatoSVG('saluda', { titulo: 'Gatito saludando' })}</div>
+        <div class="gato-grande">${pjHTML('saluda', { titulo: 'Tu personaje saludando' })}</div>
         <h1 tabindex="-1">Comé mejor, sin culpa</h1>
-        <p style="margin-top:8px">Un gatito que te acompaña a llegar a tu peso. Todo gratis y guardado en tu teléfono.</p>
+        <p style="margin-top:8px">Un personaje bien argentino que te acompaña hasta tu peso y no te deja aflojar. Todo gratis y guardado en tu teléfono.</p>
       </div>
     </div>
     <div class="ob__pie">
@@ -343,7 +358,7 @@ function htmlPaso(paso, pasos, d, error) {
     </div>
     <div class="ob__cuerpo">
       <div class="pregunta">
-        <div>${gatoSVG(paso.gato, { titulo: d.gato_nombre || 'Tu gatito' })}</div>
+        <div>${pjHTML(paso.gato, { titulo: d.gato_nombre || 'Tu personaje', equipo: EQUIPOS[d.equipo_futbol] ? d.equipo_futbol : undefined })}</div>
         <h1 class="burbuja" tabindex="-1">${pregunta}</h1>
       </div>
       ${ayuda ? `<p class="ayuda">${esc(ayuda)}</p>` : ''}
@@ -370,12 +385,14 @@ function htmlControl(paso, d, error) {
 
   if (paso.tipo === 'opciones') {
     const extra = paso.id === 'ritmo' ? extrasRitmo(d) : {};
-    return `<div class="opciones" role="radiogroup" aria-label="${esc(paso.pregunta(d))}">
+    return `<div class="opciones${paso.equipos ? ' opciones--equipos' : ''}" role="radiogroup" aria-label="${esc(paso.pregunta(d))}">
       ${paso.opciones.map((o, k) => {
         const elegido = valor === o.valor;
         const tab = elegido || (valor == null && k === 0) ? 0 : -1;
         return `<button type="button" class="opcion" role="radio" aria-checked="${elegido}" tabindex="${tab}" data-valor="${o.valor}">
-          <span class="emoji" aria-hidden="true">${o.emoji}</span>
+          ${paso.equipos ? `<span class="opcion__pj" aria-hidden="true">${o.valor === 'azar' ? '<span class="emoji">🎲</span>' : pjHTML('contento', { etapa: 'e3', equipo: o.valor, titulo: '' })}</span>`
+            : o.icono ? `<img class="opcion__icono" src="img/iconos/${o.icono}.webp" alt="" width="44" height="44">`
+            : `<span class="emoji" aria-hidden="true">${o.emoji}</span>`}
           <span>${esc(o.titulo)}${o.recomendado ? '<span class="etiqueta">Recomendado</span>' : ''}${o.sub ? `<small>${esc(o.sub)}</small>` : ''}</span>
           ${extra[o.valor] ? `<span class="opcion__extra">${extra[o.valor]}</span>` : ''}
         </button>`;
@@ -461,7 +478,7 @@ function htmlPlan(d, plan) {
     <div class="plan__hero">
       <h1 tabindex="-1">¡Tu plan está listo, ${nombre}!</h1>
       <p>${esc(titulo)}</p>
-      <div class="gato-grande">${gatoSVG('festeja', { titulo: `${d.gato_nombre} festejando` })}</div>
+      <div class="gato-grande">${pjHTML('festeja', { titulo: `${d.gato_nombre} festejando` })}</div>
     </div>
     <div class="tarjeta">
       <div class="metrica__titulo">Tu meta por día</div>
@@ -475,9 +492,9 @@ function htmlPlan(d, plan) {
     <div class="tarjeta">
       <div class="metrica__titulo">Tus metas de cada día</div>
       <ul class="plan__metas">
-        <li><span aria-hidden="true">💧</span><b>${formatoNum(agua / 1000, 2)} L</b><small>de agua</small></li>
-        <li><span aria-hidden="true">👣</span><b>${formatoNum(pasos, 0)}</b><small>pasos</small></li>
-        <li><span aria-hidden="true">🥩</span><b>${m.prot} g</b><small>de proteína</small></li>
+        <li><img class="ico" src="img/iconos/agua.webp" alt=""><b>${formatoNum(agua / 1000, 2)} L</b><small>de agua</small></li>
+        <li><img class="ico" src="img/iconos/pasos.webp" alt=""><b>${formatoNum(pasos, 0)}</b><small>pasos</small></li>
+        <li><img class="ico" src="img/iconos/proteina.webp" alt=""><b>${m.prot} g</b><small>de proteína</small></li>
       </ul>
     </div>
     <div class="tarjeta">${htmlBarraImc(plan.imcActual, { meta: bajar ? plan.imcMeta : null })}
@@ -488,7 +505,7 @@ function htmlPlan(d, plan) {
     ${notas.map(n => `<p class="plan__nota">${n}</p>`).join('')}
     <div class="tarjeta trato">
       <div class="metrica__titulo">Nuestro trato</div>
-      <p>${gato} se compromete a acompañarte sin retos. Vos, a intentar:</p>
+      <p>${gato} se compromete a no dejarte aflojar. Vos, a intentar:</p>
       <ul>
         <li>Anotar lo que comés, aunque sea aproximado.</li>
         <li>Pesarte una vez por semana, siempre a la misma hora.</li>
@@ -497,7 +514,7 @@ function htmlPlan(d, plan) {
     </div>
     <p class="error" id="error-guardar" role="alert"></p>
     <div class="ob__pie" style="position:static">
-      <button class="btn" data-accion="arrancar">🐾 ¡Trato hecho, arrancamos!</button>
+      <button class="btn" data-accion="arrancar">🤝 ¡Trato hecho, arrancamos!</button>
       <button class="btn btn--fantasma" data-accion="cambiar">Cambiar algo</button>
     </div>`;
 }

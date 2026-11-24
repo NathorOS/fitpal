@@ -228,7 +228,7 @@ a.icono-btn { text-decoration: none; }
 .act[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); }
 .resumen-kcal { text-align: center; color: var(--text-muted); }
 .resumen-kcal b { color: var(--text); }
-.reg .pregunta svg { width: 72px; }
+.reg .pregunta svg, .reg .pregunta > div:first-child { width: 72px; }
 .ayuda { color: var(--text-muted); font-size: var(--fs-sm); line-height: var(--lh-sm); }
 .error { color: var(--danger); font-weight: 700; font-size: var(--fs-sm); }
 .error:empty { display: none; }
@@ -310,7 +310,7 @@ body.modo-resultado main { padding-bottom: calc(var(--s-8) + env(safe-area-inset
 .resultado { display: grid; gap: var(--s-3); }
 .resultado__gato { padding: var(--s-2) var(--s-2) 0; }
 .resultado__gato .burbuja { background: var(--bg); }
-.resultado__gato svg { width: 96px; }
+.resultado__gato svg, .resultado__gato > div:first-child { width: 96px; flex: none; }
 .resultado__suma { font-weight: 700; color: var(--text-muted); }
 .resultado__suma b { font: 700 var(--fs-2xl)/1 var(--font-display); color: var(--text); }
 .resultado__pista { height: 12px; margin: var(--s-2) 0; }
@@ -490,3 +490,109 @@ label.btn { cursor: pointer; }
 .logo svg { width: 40px; height: 42px; }
 .logo span { font: 600 var(--fs-xl)/1 var(--font-display); color: var(--ink); }
 .logo b { color: var(--accent-text); font-weight: 700; }
+
+/* ---------- El personaje (docs/personaje/ENCARGO-PERSONAJE.md) ---------- */
+/* Lugar del personaje: misma proporción que las imágenes (560 × 750), así nada salta al cargar */
+.pj { display: block; width: 100%; aspect-ratio: 560 / 750; position: relative; }
+.pj img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.pj img.pj__nueva { animation: pj-fundido .4s ease-out both; }
+@keyframes pj-fundido { from { opacity: 0; } }
+/* Respira: se estira apenas desde los pies */
+.escena-pj__personaje .pj, .logro__pj .pj, .racha__gato .pj { transform-origin: 50% 100%; animation: pj-respira 3.2s ease-in-out infinite; }
+@keyframes pj-respira { 50% { transform: scaleY(1.015); } }
+
+/* Hoy: el cuarto de fondo, los objetos y el personaje por capas */
+.hoy .hoy__escena { min-height: min(108vw, 560px); display: flex; flex-direction: column; background: #20302b; }
+.escena-pj { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
+.escena-pj__cuarto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+.escena-pj::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgb(0 0 0 / .28), transparent 28%, transparent 70%, rgb(0 0 0 / .18)); }
+.escena-pj__obj { position: absolute; height: auto; }
+.escena-pj__suelto { width: 14%; bottom: calc(var(--s-8) + 13%); }
+.hoy .hoy__frase { position: relative; color: var(--ink); background: color-mix(in srgb, var(--bg) 92%, transparent); border-radius: 18px;
+  padding: var(--s-2) var(--s-3); max-width: 32ch; margin: 0 auto; min-height: 0; font-size: var(--fs-base); line-height: 1.35;
+  box-shadow: 0 2px 10px rgb(0 0 0 / .15); }
+.hoy .hoy__frase::after { content: ''; position: absolute; left: 50%; bottom: -8px; border: 9px solid transparent; border-bottom: 0;
+  border-top-color: color-mix(in srgb, var(--bg) 92%, transparent); transform: translateX(-50%); }
+.hoy__escena--noche .hoy__frase { color: var(--ink); }
+.escena-pj__personaje { position: relative; width: min(56vw, 270px); margin: auto auto -48px; z-index: 1; }
+.hoy .hoy__dias { margin-top: -40px; justify-content: flex-start; gap: var(--s-2); }
+.hoy .hoy__dias > :last-child { margin-left: auto; }
+.hoy .hoy__dias { position: relative; }
+.hoy .hoy__dia { color: #fff; text-shadow: 0 1px 3px rgb(0 0 0 / .5); }
+.chip--racha img { vertical-align: -5px; }
+
+/* Efectos */
+.efecto { position: absolute; pointer-events: none; }
+.efecto--moscas { width: 22%; left: 39%; top: 30%; animation: moscas 7s linear infinite; }
+@keyframes moscas { 0% { transform: rotate(0deg) translateX(10%) rotate(0deg); } 100% { transform: rotate(360deg) translateX(10%) rotate(-360deg); } }
+.efecto--olor { width: 14%; left: 54%; top: 38%; animation: olor 3s ease-in infinite; }
+@keyframes olor { 0% { opacity: 0; transform: translateY(20%); } 40% { opacity: .9; } 100% { opacity: 0; transform: translateY(-40%); } }
+.efecto--brillos { width: 18%; right: 6%; top: 26%; animation: brillo 2.4s ease-in-out infinite; }
+.efecto--brillos + .efecto--brillos { left: 6%; right: auto; animation-delay: 1.2s; }
+@keyframes brillo { 50% { opacity: .25; transform: scale(.85); } }
+.efecto--sudor { width: 26%; right: -6%; top: 2%; animation: sudor 1.6s ease-in infinite; }
+@keyframes sudor { 0% { opacity: 0; transform: translateY(-10%); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(40%); } }
+.efecto--confeti { width: 70%; left: 15%; top: 4%; animation: confeti 2.2s ease-out both; }
+@keyframes confeti { from { opacity: 0; transform: translateY(-30%) scale(.8); } 30% { opacity: 1; } to { opacity: 0; transform: translateY(30%); } }
+
+/* Cofre de la semana */
+.cofre { position: absolute; right: var(--gutter); top: calc(var(--s-6) + env(safe-area-inset-top) + 64px); width: 64px; height: 64px;
+  border: 0; padding: 0; background: none; cursor: pointer; animation: cofre 1.4s ease-in-out infinite; }
+.cofre img { width: 100%; height: 100%; }
+@keyframes cofre { 50% { transform: translateY(-6px) rotate(-4deg); } }
+
+/* Pantalla de logro */
+.logro { position: relative; display: grid; justify-items: center; gap: var(--s-2); text-align: center; padding-top: var(--s-4); }
+.logro__pj { width: min(52vw, 220px); }
+.logro__insignia { width: 112px; height: 112px; margin-top: calc(-1 * var(--s-6)); filter: drop-shadow(0 4px 8px rgb(0 0 0 / .2)); }
+.logro__frase { color: var(--text-muted); max-width: 32ch; }
+.logro__premio { display: flex; align-items: center; gap: var(--s-2); font-weight: 700; }
+.logro .btn { width: 100%; margin-top: var(--s-3); }
+.logro__confeti { top: 0; }
+
+/* Opciones con ícono y elección de equipo */
+.opcion__icono { width: 44px; height: 44px; flex: none; object-fit: contain; }
+.opciones--equipos { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s-2); }
+.opciones--equipos .opcion { flex-direction: column; gap: var(--s-1); min-height: 0; padding: var(--s-2); text-align: center; justify-content: flex-start; }
+.opcion__pj { width: 64px; height: 86px; display: grid; place-items: center; }
+.opcion__pj .pj { width: 64px; }
+.opcion__pj .emoji { font-size: 40px; width: auto; }
+
+/* Íconos dibujados en lugar de emojis */
+.ico { width: 1.6em; height: 1.6em; object-fit: contain; vertical-align: middle; }
+.logo img { width: 40px; height: 40px; border-radius: 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pj, .pj img, .efecto, .cofre, .escena-pj__personaje .pj, .logro__pj .pj, .racha__gato .pj { animation: none !important; }
+  .efecto--confeti, .efecto--olor, .efecto--sudor { display: none; }
+}
+
+/* Mis logros */
+.insignias { list-style: none; margin: var(--s-2) 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: var(--s-3) var(--s-2); }
+.insignias li { display: grid; justify-items: center; gap: 4px; text-align: center; font-size: var(--fs-xs, 12px); line-height: 1.25; color: var(--text-muted); }
+.insignias img { width: 64px; height: 64px; filter: grayscale(1); opacity: .35; }
+.insignias li.ganada { color: var(--text); font-weight: 700; }
+.insignias li.ganada img { filter: none; opacity: 1; }
+
+/* Íconos dibujados en la barra y en el menú del + */
+.nav__ico { width: 32px; height: 32px; object-fit: contain; opacity: .7; transition: transform .15s, opacity .15s; }
+.nav a[aria-current="page"] .nav__ico { opacity: 1; transform: scale(1.12); }
+.menu-mas__ico { width: 40px; height: 40px; object-fit: contain; }
+.menu-mas__principal .menu-mas__ico { width: 32px; height: 32px; }
+.metrica__titulo .ico { width: 1.7em; height: 1.7em; vertical-align: -.5em; margin-right: 2px; }
+.plan__metas .ico { width: 36px; height: 36px; }
+.vacio { display: flex; align-items: center; gap: var(--s-3); }
+.vacio img { width: 64px; height: 64px; flex: none; }
+img.rutina__emoji { width: 48px; height: 48px; object-fit: contain; }
+
+/* Aviso de logro nuevo en Hoy */
+.tarjeta--logro { position: relative; display: flex; align-items: center; gap: var(--s-3); text-decoration: none; color: var(--text);
+  border: 2px solid var(--accent); animation: logro-entra .5s ease-out both; }
+.tarjeta--logro img { width: 56px; height: 56px; flex: none; }
+.tarjeta--logro small { display: block; color: var(--accent-text); font-weight: 800; text-transform: uppercase; letter-spacing: .04em; font-size: 12px; }
+.tarjeta--logro b { font: 700 var(--fs-lg)/1.2 var(--font-display); }
+.tarjeta--logro__ver { margin-left: auto; font-weight: 800; color: var(--accent-text); }
+@keyframes logro-entra { from { transform: translateY(8px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .tarjeta--logro { animation: none; } }
+/* Manchas sobre el personaje cuando la semana viene mal (se multiplican con la ropa, como mugre de verdad) */
+.mancha { position: absolute; width: 15%; mix-blend-mode: multiply; opacity: .85; pointer-events: none; }

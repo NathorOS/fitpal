@@ -3,11 +3,11 @@
 import { ALIMENTOS_BASE } from './datos/alimentos.js';
 
 export const MOMENTOS = [
-  { id: 'desayuno', nombre: 'Desayuno', emoji: '☕' },
-  { id: 'almuerzo', nombre: 'Almuerzo', emoji: '🍽️' },
-  { id: 'merienda', nombre: 'Merienda', emoji: '🧉' },
-  { id: 'cena', nombre: 'Cena', emoji: '🌙' },
-  { id: 'colacion', nombre: 'Colación', emoji: '🍎' },
+  { id: 'desayuno', nombre: 'Desayuno', emoji: '☕', icono: 'desayuno' },
+  { id: 'almuerzo', nombre: 'Almuerzo', emoji: '🍽️', icono: 'almuerzo' },
+  { id: 'merienda', nombre: 'Merienda', emoji: '🧉', icono: 'merienda' },
+  { id: 'cena', nombre: 'Cena', emoji: '🌙', icono: 'cena' },
+  { id: 'colacion', nombre: 'Colación', emoji: '🍎', icono: 'snack' },
 ];
 
 /** Momento del día según la hora (0–23). */

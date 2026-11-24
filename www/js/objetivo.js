@@ -1,5 +1,6 @@
 // Fase 1 — lógica del perfil y la meta calórica (sin interfaz).
 // La usan el onboarding y la pestaña Perfil. Las funciones puras se prueban en tests/.
+import { pInicial } from './personaje-estado.js';
 import { FACTORES, KCAL_POR_KG, MINIMO_KCAL, edadDesde, bmr, tdeeInicial, metaKcal, macrosObjetivo } from './calculos.js';
 
 export const EDAD_MINIMA = 18;          // pendiente de confirmar (el plan original decía 14)
@@ -145,6 +146,9 @@ export async function guardarPerfil(datos, hoy = new Date(), { registrarPeso = t
     altura_cm: Number(datos.altura_cm),
     peso_meta: datos.objetivo === 'bajar' ? Number(datos.peso_meta) : null,
     ritmo_kg_sem: datos.objetivo === 'bajar' ? Number(datos.ritmo_kg_sem) : 0,
+    // Con qué cuerpo arranca el personaje: se fija una sola vez, la primera vez que se guarda el perfil
+    peso_inicial: anterior.peso_inicial ?? Number(peso_kg),
+    p_inicial: anterior.p_inicial ?? pInicial(Number(peso_kg), Number(datos.altura_cm)),
     actualizado: new Date().toISOString(),
   });
   if (registrarPeso) await guardar('peso', { fecha, kg: Number(peso_kg) });
