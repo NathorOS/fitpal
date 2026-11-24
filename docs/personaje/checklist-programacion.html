@@ -1,0 +1,114 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Programar el personaje · Nathor Fit</title>
+<style>
+:root{--bg:#faf7f0;--card:#fff;--tx:#1f1b16;--mut:#6b6359;--ac:#e0a800;--ok:#2e7d32;--bd:#e4dccb}
+@media(prefers-color-scheme:dark){:root{--bg:#17140f;--card:#221e17;--tx:#f2ece0;--mut:#a89f8f;--bd:#3a3326}}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--tx)}
+main{max-width:780px;margin:0 auto;padding:16px 14px 80px}
+h1{font-size:22px;margin:8px 0 4px}p.s{color:var(--mut);margin:0 0 12px}
+.barra{position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:5}
+.barra b{display:block;margin-bottom:6px}.pista{height:10px;background:var(--bd);border-radius:9px;overflow:hidden}.pista i{display:block;height:100%;width:0;background:var(--ok);transition:width .25s}
+h2{font-size:17px;margin:28px 0 2px;padding-top:6px;border-top:2px solid var(--ac);display:flex;justify-content:space-between;gap:8px}
+h2 small{color:var(--mut);font-weight:600;font-size:13px;white-space:nowrap}
+p.fase{color:var(--mut);margin:2px 0 6px;font-size:14px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px 14px;margin:10px 0}
+.top{display:flex;gap:12px;align-items:flex-start}
+.top input{width:26px;height:26px;flex:none;margin-top:2px;accent-color:var(--ok)}
+.t{font-weight:700;font-size:16.5px}
+.card.hecho{opacity:.55}.card.hecho .t{text-decoration:line-through}.card.hecho .cuerpo{display:none}
+.cuerpo{margin:6px 0 0 38px;font-size:15px}
+.cuerpo p{margin:4px 0}.cuerpo ul{margin:4px 0;padding-left:20px}
+.donde{font:13px/1.5 ui-monospace,monospace;color:var(--mut);margin-top:6px;word-break:break-word}
+.listo{margin-top:6px;padding:6px 10px;border-left:4px solid var(--ok);background:rgba(46,125,50,.1);border-radius:6px;font-size:14px}
+code{font:13.5px ui-monospace,monospace;background:rgba(127,127,127,.15);padding:1px 4px;border-radius:4px}
+.opc{display:inline-block;font-size:12px;font-weight:700;color:#1f1b16;background:var(--ac);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:2px}
+button{font:600 13px system-ui;min-height:36px;padding:0 14px;border:1px solid var(--bd);border-radius:99px;background:transparent;color:var(--mut);cursor:pointer;margin-top:20px}
+</style></head><body><main>
+<h1>Programar el personaje en la app</h1>
+<p class="s">Todo lo que hay que hacer para meter el personaje, el juego y la tienda en Nathor Fit, en orden. Cada fase deja la app funcionando, así podés ir subiendo de a una. El detalle de cada regla está en <b>ENCARGO-PERSONAJE.md</b> (te indico la sección) y las frases en <b>FRASES.md</b>.</p>
+<p class="s">Regla de oro: la lógica va en funciones puras con tests (como <code>retos.js</code>), y la pantalla solo las usa.</p>
+<div class="barra"><b id="cuenta"></b><div class="pista"><i id="rel"></i></div></div>
+<div id="lista"></div>
+<button id="reset">Destildar todo</button>
+</main>
+<script>
+const FASES = [
+ { f: 'Fase 0 · Preparar', d: 'Antes de tocar código.', items: [
+  ['Traer la rama de las imágenes', '<p>Crear una rama de trabajo desde <code>personaje-imagenes</code> (no trabajar directo en <code>main</code>: lo que entra a <code>main</code> se publica).</p>', 'git fetch && git switch -c personaje-app origin/personaje-imagenes', '<code>npm test</code> pasa (71 tests).'],
+  ['Mirar la galería', '<p>Levantar la app y abrir la galería: ahí están todas las imágenes con su nombre y una prueba de la escena por capas.</p>', 'www/dev/galeria.html', 'Ves los personajes con la camiseta de cada equipo y los íconos.'],
+ ]},
+ { f: 'Fase 1 · El personaje reemplaza al gato', d: 'Lo mínimo para que se vea el personaje nuevo en Hoy.', items: [
+  ['Calcular la etapa (con el IMC inicial)', '<p>Función <code>etapaDe({ pInicial, pesoInicial, pesoActual, pesoMeta, objetivo, etapaAnterior })</code> que devuelve <code>e1</code>, <code>e3</code> o <code>e5</code>. Usa la tendencia de peso, no el último pesaje, y la histéresis de 0,08.</p><p>Encargo §2.1.</p>', 'www/js/personaje-estado.js (nuevo) · tests/personaje-estado.test.js', 'Los tres ejemplos de la tabla del encargo (120, 100 y 90 kg) dan la etapa correcta en los tests.'],
+  ['Guardar p_inicial al terminar el onboarding', '<p>Calcular <code>p_inicial</code> con el peso y la altura del onboarding y guardarlo una sola vez en el perfil.</p>', 'www/js/ui/onboarding.js · www/js/objetivo.js', 'Alguien con IMC ≥ 35 arranca en e1; con IMC 30 o menos, en e3.'],
+  ['Calcular la pose del día', '<p>Función <code>poseDelDia(...)</code> con el orden de prioridad: festejando › empachado › entrenando › fiaca › contento.</p><p>Encargo §2.2.</p>', 'www/js/personaje-estado.js', 'Tests para cada pose y para cuando se cumplen dos a la vez.'],
+  ['Escena de Hoy por capas', '<p>Reemplazar <code>gatoSVG</code> y <code>escenaSVG</code> por: cuarto de fondo → objetos → personaje (canvas de <code>prepararImagen</code>) → efectos. Cachear el canvas por archivo y equipo.</p><p>Encargo §7. La galería ya tiene una versión de prueba para copiar.</p>', 'www/js/ui/hoy.js · www/css/estilos.css', 'Hoy muestra al personaje en su cuarto, con la pose del día.'],
+  ['Cuarto de día y de noche', '<p>Usar <code>momentoDelDia()</code>: de 20 a 6 h va la versión <code>-noche</code>. El cuarto normal no tiene noche: usa el de día.</p>', 'www/js/escena.js · www/img/cuarto/', 'A la noche cambia el cuarto.'],
+  ['Respirar y parpadear', '<p>Respiración con <code>scaleY</code> y parpadeo cada 3–6 s. Con <code>prefers-reduced-motion</code>, nada se mueve.</p><p>Encargo §5.</p>', 'www/css/estilos.css · www/js/ui/hoy.js', 'Se mueve suave; con movimiento reducido queda quieto.'],
+  ['Sacar al gato de toda la app', '<p>Hay 23 archivos que nombran al gato. Cambiar textos e imágenes; las claves guardadas (<code>perfil.gato.nombre</code>, <code>perfil.gato.personalidad</code>) se pueden dejar igual para no tener que migrar datos.</p><ul><li>Onboarding: "¿Cómo me vas a llamar?" con el personaje en vez del gato.</li><li>Resultado, Perfil, Datos, Retos, Racha, Sesión, Entrenar, Ayuno, Peso, IA, Código.</li><li>Al final, borrar <code>gato.js</code> y <code>dev/gato.html</code> si ya nadie los usa.</li></ul>', 'grep -rl gato www/', 'El comando no encuentra textos visibles del gato.'],
+ ]},
+ { f: 'Fase 2 · El equipo', d: 'Encargo §4.', items: [
+  ['Paso "¿De qué cuadro sos?" en el onboarding', '<p>Paso nuevo después de la personalidad. Cada botón muestra al personaje con esa camiseta. Más "Ninguno" (verde) y "Al azar" (elige de <code>EQUIPOS_AZAR</code> una vez).</p>', 'www/js/ui/onboarding.js (PASOS) · www/js/personaje.js', 'Se guarda en <code>perfil.equipo_futbol</code> (no confundir con <code>equipo</code> de entrenamiento).'],
+  ['Cambiar el equipo en Perfil', '<p>Selector con el ícono <code>mi-equipo</code>.</p>', 'www/js/ui/perfil.js · www/js/ui/datos.js', 'Al cambiarlo, Hoy se repinta con la camiseta nueva.'],
+  ['Pintar la bandera del cuarto', '<p>Probar <code>pintarCamiseta</code> sobre el cuarto. Si pinta otras cosas verdes, limitar la zona a la bandera.</p>', 'www/js/personaje.js', 'La bandera sale con los colores del equipo.'],
+ ]},
+ { f: 'Fase 3 · Las frases', d: 'El personaje habla crudo. FRASES.md.', items: [
+  ['Banco de frases y elección', '<p>Pasar FRASES.md a un módulo y escribir <code>elegirFrase({ situacion, personalidad, yaDichasHoy, datos })</code>.</p><ul><li>Orden de situaciones: el de FRASES.md.</li><li>Cariñoso y Tranqui usan la versión suave en las marcadas con ✋.</li><li>Sin repetir en el mismo día.</li></ul>', 'www/js/frases.js (nuevo) · tests/frases.test.js', 'Tests: ninguna frase pasa de 70 caracteres, no se repiten y por debajo del piso de calorías no hay chicana.'],
+  ['Burbuja en Hoy', '<p>Burbuja (<code>burbuja-dialogo</code>) al abrir Hoy y al anotar algo; se va a los 4 s. Con <code>aria-live="polite"</code> para lectores de pantalla.</p>', 'www/js/ui/hoy.js', 'Reemplaza a <code>FRASES</code> viejo de hoy.js.'],
+  ['"Eso no lo comas"', '<p>Al anotar algo de <code>alim-dulces</code>, <code>alim-rapidas</code>, alcohol o más de 600 kcal de una vez, salta una frase de esa sección con el nombre de la comida.</p>', 'www/js/ui/registrar.js', 'Anotás una pizza y el personaje te bardea.'],
+ ]},
+ { f: 'Fase 4 · Limpieza y cuarto', d: 'Si vas bien, todo limpio y lindo; la mugre solo si vas mal. Encargo §2.3.', items: [
+  ['Calcular la limpieza (0 a 100)', '<p>Función pura con los últimos 7 días: comidas, agua y actividad. Sube de a poco (+10 por día como mucho) y baja más rápido (−15). Arranca en 50.</p>', 'www/js/personaje-estado.js', 'Tests con una semana buena, una mala y una mezclada.'],
+  ['Cuarto y objetos según la limpieza', '<p>Menos de 34: desastre, vicios y mugre. De 34 a 66: normal. 67 o más: ordenado, cosas sanas y premios.</p>', 'www/js/ui/hoy.js · www/img/escena/', 'Al mover la limpieza cambia el cuarto (como en la galería).'],
+  ['Personaje limpio o sucio', '<p>Con limpieza ≥ 67 y pose contento, entrenando o festejando, usar la versión <code>-limpio</code> (no existe para e1).</p>', 'www/img/personaje/', ''],
+  ['Efectos', '<p>Moscas (&lt; 34), olor (&lt; 20), brillos (≥ 67), gotas de sudor al entrenar, confeti al cumplir algo, nube de polvo cuando aparece o se va un objeto.</p><p>Encargo §5.</p>', 'www/img/efectos/ · www/css/estilos.css', 'Todo se apaga con movimiento reducido.'],
+ ]},
+ { f: 'Fase 5 · Que sea un juego', d: 'Encargo §6. Necesita una versión nueva de la base de datos.', items: [
+  ['Subir la base de datos a la versión 2', '<p>Agregar el store <code>logros</code> (insignias, hitos y premios ganados, con fecha). Sumarlo al respaldo (exportar e importar).</p>', 'www/js/db.js (VERSION = 1 → 2)', 'Un respaldo viejo se sigue pudiendo importar.'],
+  ['Racha con llama', '<p>En Hoy, la llama que crece: <code>racha-3</code>, <code>-7</code>, <code>-14</code>, <code>-30</code>. Usa <code>racha()</code> de estadisticas.js.</p>', 'www/js/ui/hoy.js · www/js/ui/racha.js', ''],
+  ['Insignias y "Mis logros"', '<p>Pantalla dentro de Retos con todas las insignias (las que faltan, con candado). Al ganar una: pantalla con <code>e3-con-un-trofeo</code> y confeti.</p>', 'www/js/ui/retos.js · www/img/insignias/', 'Los nombres de las insignias coinciden con los ids de retos.js.'],
+  ['Hitos de peso', '<p><code>hito-1kg</code>, <code>5kg</code>, <code>10kg</code>… calculados con la tendencia, no con un pesaje suelto.</p>', 'www/js/personaje-estado.js', ''],
+  ['Premios que quedan en el cuarto', '<p>Cada hito o cada 7 días de racha desbloquea un <code>premio-*</code> que queda para siempre en una posición fija del cuarto.</p>', 'www/img/escena/premio-*', 'Lo que se ganó no se pierde nunca.'],
+  ['Cofre semanal', '<p>Con 4 o más retos en la semana, el domingo aparece el cofre; al tocarlo se abre y sale un premio nuevo.</p>', 'www/img/insignias/cofre-*', ''],
+  ['Escudo de racha <span class="opc">opcional</span>', '<p>Uno por semana: si un día no anotás, se gasta en vez de cortar la racha.</p>', '', ''],
+ ]},
+ { f: 'Fase 6 · Íconos', d: 'Cambiar los emojis por los dibujos. Encargo §3.4.', items: [
+  ['Barra de navegación', '<p><code>hoy</code>, <code>retos</code>, <code>progreso</code>, <code>perfil</code>, <code>agregar</code>.</p>', 'www/index.html · www/js/app.js', ''],
+  ['Opciones del onboarding', '<p>Actividad, ritmo, equipo de entrenamiento, objetivo y personalidad: cada opción con su ícono en vez del emoji.</p>', 'www/js/ui/onboarding.js', ''],
+  ['Registrar y comidas', '<p>Desayuno, almuerzo, merienda, cena, snack, foto con IA, código de barras, favoritos, categorías de alimentos.</p>', 'www/js/ui/registrar.js · www/js/ui/codigo.js · www/js/ui/ia.js', ''],
+  ['Progreso, ayuno y entrenar', '<p>Íconos <code>prog-*</code>, <code>ayuno-*</code> y <code>grupo-*</code>.</p>', 'www/js/ui/progreso.js · www/js/ui/ayuno.js · www/js/ui/entrenar.js', ''],
+  ['Puntaje, pantallas vacías y errores', '<p><code>puntaje-*</code>, <code>vacio-*</code>, <code>sin-conexion</code>, <code>cargando</code>, <code>error</code>, y los de ajustes y respaldo.</p>', 'www/js/ui/*.js', ''],
+  ['Ícono de la app', '<p>Reemplazar los de <code>www/icons/</code> por los de <code>www/img/marca/</code> y actualizar el manifest.</p>', 'www/manifest.webmanifest · www/index.html', 'Al instalar la app en el celu se ve el personaje.'],
+ ]},
+ { f: 'Fase 7 · Antes de publicar', d: 'Encargo §8.', items: [
+  ['Service worker', '<p>Subir <code>CACHE</code> de <code>nathorfit-v14</code> a <code>v15</code>. Precargar solo lo que se ve al abrir (personaje de la etapa actual, cuarto); el resto, a medida que se usa.</p>', 'www/sw.js', 'Con el celu en modo avión, Hoy se ve igual.'],
+  ['Accesibilidad', '<p>Texto alternativo en el personaje ("Tu personaje, contento"), burbuja con <code>aria-live</code>, contraste de los textos sobre el cuarto.</p>', '', ''],
+  ['Probar todo', '<p>Tests, pruebas de punta a punta y en un celular de verdad.</p>', 'npm run todo', 'Todo en verde.'],
+  ['Publicar', '<p>Pasar la rama a <code>main</code>: GitHub Pages la publica sola.</p>', '', 'La app online muestra el personaje.'],
+ ]},
+ { f: 'Fase 8 · Tienda (más adelante)', d: 'Encargo §12. Las imágenes ya están en www/img/tienda/ y www/img/fondos/.', items: [
+  ['Monedas', '<p><code>monedasDelDia</code> con la tabla del encargo; store <code>tienda</code> y movimientos en <code>monedas_mov</code> para no dar dos veces lo mismo. Nunca se pierden.</p>', 'www/js/tienda.js (nuevo) · www/js/db.js', 'Una semana buena da unas 200–250.'],
+  ['Pantalla de la tienda', '<p>Vidriera que rota cada lunes (<code>vidrieraDeLaSemana</code>), precio y "te faltan X", cosas con candado que solo se ganan con hitos.</p>', 'www/js/ui/tienda.js (nuevo)', ''],
+  ['Accesorios en la cabeza', '<p>Medir una vez la posición de la cabeza en cada imagen del personaje (x, y, ancho) y superponer el accesorio.</p>', 'www/img/tienda/acc-*', 'La gorra queda bien puesta en todas las poses.'],
+  ['Fondos, festejos y frases', '<p>Cambiar el cuarto por un fondo comprado, usar el festejo elegido (incluida la pose <code>e3-bailando</code>) y los paquetes de frases.</p>', 'www/img/fondos/ · www/img/tienda/fest-*', 'En el gimnasio, pintar solo la bandera de la pared.'],
+ ]},
+];
+const K = 'nathor-programacion-v1';
+let hechos = new Set(); try { hechos = new Set(JSON.parse(localStorage.getItem(K) || '[]')) } catch (e) {}
+const ITEMS = []; FASES.forEach((fa, i) => fa.items.forEach((it, j) => ITEMS.push({ id: `${i}.${j}`, fase: i, it })));
+function pintar() {
+  document.getElementById('lista').innerHTML = FASES.map((fa, i) => {
+    const mios = ITEMS.filter(o => o.fase === i), h = mios.filter(o => hechos.has(o.id)).length;
+    return `<h2>${fa.f}<small>${h}/${mios.length}</small></h2><p class="fase">${fa.d}</p>` + mios.map(o => {
+      const [t, det, donde, listo] = o.it;
+      return `<section class="card ${hechos.has(o.id) ? 'hecho' : ''}" data-id="${o.id}"><div class="top"><input type="checkbox" aria-label="Hecho" ${hechos.has(o.id) ? 'checked' : ''}><div class="t">${t}</div></div>
+      <div class="cuerpo">${det}${donde ? `<div class="donde">📁 ${donde}</div>` : ''}${listo ? `<div class="listo"><b>Listo cuando:</b> ${listo}</div>` : ''}</div></section>`;
+    }).join('');
+  }).join('');
+  const h = ITEMS.filter(o => hechos.has(o.id)).length;
+  document.getElementById('cuenta').textContent = `${h} de ${ITEMS.length} hechos`;
+  document.getElementById('rel').style.width = (100 * h / ITEMS.length) + '%';
+}
+function guardar() { try { localStorage.setItem(K, JSON.stringify([...hechos])) } catch (e) {} pintar() }
+document.addEventListener('change', e => { const c = e.target.closest('.card'); if (!c) return; e.target.checked ? hechos.add(c.dataset.id) : hechos.delete(c.dataset.id); guardar() });
+document.getElementById('reset').onclick = () => { if (confirm('¿Destildar todo?')) { hechos.clear(); guardar() } };
+pintar();
+</script></body></html>
