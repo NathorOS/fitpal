@@ -45,6 +45,12 @@ HOJAS = [
     # Esta hoja no respeta la grilla (las manchas son más grandes que una celda): se recorta por manchas,
     # de arriba a la izquierda hacia abajo a la derecha
     (ORIG / 'objetos-mugre-2.jpg', 'escena', ['mugre-grasa', 'mugre-cafe', 'mugre-transpiracion'], 'manchas'),
+    # Tienda (para más adelante, ver ENCARGO-PERSONAJE.md §12)
+    (ILU / 'hoja-tienda-accesorios.jpg', 'tienda', ['acc-gorra', 'acc-vincha', 'acc-gorro-lana', 'acc-piluso', 'acc-corona', 'acc-anteojos-negros', 'acc-anteojos-espejados', 'acc-auriculares', 'acc-silbato'], False),
+    (ILU / 'hoja-tienda-cuarto.jpg', 'tienda', ['cuarto-bolsa-boxeo', 'cuarto-colchoneta', 'cuarto-lampara', 'cuarto-guirnalda', 'cuarto-estante', 'cuarto-cuadro', 'cuarto-parlante', 'cuarto-pelota', 'cuarto-alfombra'], False),
+    # Las manos que aplauden salieron con piel durazno y había una lamparita suelta: se usa la versión corregida
+    (ILU / 'hoja-tienda-festejos-amarillo.jpg', 'tienda', ['fest-globos', 'fest-serpentinas', 'fest-papelitos', 'fest-corneta', 'fest-bombo', 'fest-bengalas', 'fest-estrellas', 'fest-aplausos', 'fest-arcoiris'], False),
+    (ILU / 'hoja-tienda-iconos.jpg', 'tienda', ['tienda', 'monedas-bolsa', 'monedas-pila', 'candado-cerrado', 'candado-abierto', 'precio', 'tiempo', 'regalo', 'frases'], False),
 ]
 
 

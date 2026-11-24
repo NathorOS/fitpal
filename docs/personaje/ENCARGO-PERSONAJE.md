@@ -381,3 +381,14 @@ como fuente de premios (el cofre puede seguir y dar monedas extra).
 Store nuevo en IndexedDB `tienda`: `{ monedas, comprados: [id], equipado: { cabeza, fondo, frases, festejo } }`.
 Movimientos en `monedas_mov` (`fecha`, `motivo`, `cantidad`) para no dar dos veces lo mismo el mismo día.
 Funciones puras con tests (`monedasDelDia`, `vidrieraDeLaSemana`, `puedeComprar`).
+
+### 12.6 Imágenes de la tienda (ya hechas)
+
+- `www/img/tienda/` (36, 256 × 256): accesorios `acc-*`, objetos para el cuarto `cuarto-*`, festejos `fest-*`
+  e íconos de la pantalla (`tienda`, `monedas-bolsa`, `monedas-pila`, `candado-cerrado`, `candado-abierto`,
+  `precio`, `tiempo`, `regalo`, `frases`).
+- `www/img/fondos/` (1200 × 896): `fondo-balcon`, `fondo-patio`, `fondo-gimnasio`, `fondo-plaza`. Cada uno tiene
+  una bandera verde chillón para pintar con el equipo (igual que el cuarto). **Ojo:** el gimnasio tiene un
+  segundo rectángulo verde en la ventana; al pintar la bandera, limitar la zona a la de la pared.
+- `www/img/personaje/e3-bailando.webp`: festejo que se compra.
+- Todo se ve en `www/dev/galeria.html`.

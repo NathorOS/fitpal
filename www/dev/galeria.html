@@ -53,6 +53,8 @@
   <h2>Insignias y premios</h2><div class="grilla chica" id="insignias"></div>
   <h2>Objetos de la escena</h2><div class="grilla chica" id="escenaObj"></div>
   <h2>Efectos</h2><div class="grilla chica" id="efectos"></div>
+  <h2>Tienda (para más adelante)</h2><div class="grilla chica" id="tienda"></div>
+  <h2>Fondos de la tienda</h2><div class="grilla" id="fondos"></div>
 </main>
 
 <script type="module">
@@ -61,7 +63,7 @@ import { prepararImagen, EQUIPOS } from '/js/personaje.js';
 const PJ = ['e1-contento','e1-fiaca','e1-empachado','e1-entrenando','e1-festejando','e1-ojos-cerrados',
   'e3-contento','e3-contento-limpio','e3-fiaca','e3-empachado','e3-entrenando','e3-entrenando-limpio','e3-festejando','e3-festejando-limpio',
   'e5-contento','e5-contento-limpio','e5-fiaca','e5-empachado','e5-entrenando','e5-entrenando-limpio','e5-festejando','e5-festejando-limpio',
-  'e3-durmiendo','e3-tomando-agua','e3-pesandose','e3-saludando','e3-con-un-trofeo','e3-triste'];
+  'e3-durmiendo','e3-tomando-agua','e3-pesandose','e3-saludando','e3-con-un-trofeo','e3-triste','e3-bailando'];
 const ICONOS = ['hoy','retos','progreso','perfil','agregar','anotar-comida','foto-ia','codigo-barras','agua','peso','pasos','actividad','ayuno','entrenar','calorias','proteina','carbohidratos','grasas',
   'desayuno','almuerzo','merienda','cena','snack','favoritos','alimento-propio','registro-rapido','carrito','puntaje-malo','puntaje-regular','puntaje-bueno','puntaje-excelente','vacio-comidas','vacio-agua','sin-conexion','cargando','error',
   'buscar','editar','borrar','guardar','respaldo-guardar','respaldo-restaurar','clave-ia','ajustes','mi-equipo','prog-grafico','prog-imc','prog-medidas','prog-sube','prog-baja','prog-calendario','prog-tabla','prog-antes-despues','prog-meta',
@@ -74,6 +76,11 @@ const OBJ = ['premio-rack','premio-planta','premio-bici','premio-cinta','premio-
   'sano-agua','sano-mate','sano-mancuerna','sano-zapatillas','sano-ensalada','sano-manzana','sano-balanza','sano-toalla','sano-banana',
   'vicio-cerveza','vicio-fernet','vicio-vino','vicio-alfajores','vicio-pizza','vicio-choripan','vicio-cenicero','vicio-papas','vicio-gaseosa',
   'mugre-salsa','mugre-grasa','mugre-cafe','mugre-migas','mugre-moscas','mugre-olor','mugre-transpiracion','mugre-mostaza','mugre-barro'];
+const TIENDA = ['acc-gorra','acc-vincha','acc-gorro-lana','acc-piluso','acc-corona','acc-anteojos-negros','acc-anteojos-espejados','acc-auriculares','acc-silbato',
+  'cuarto-bolsa-boxeo','cuarto-colchoneta','cuarto-lampara','cuarto-guirnalda','cuarto-estante','cuarto-cuadro','cuarto-parlante','cuarto-pelota','cuarto-alfombra',
+  'fest-globos','fest-serpentinas','fest-papelitos','fest-corneta','fest-bombo','fest-bengalas','fest-estrellas','fest-aplausos','fest-arcoiris',
+  'tienda','monedas-bolsa','monedas-pila','candado-cerrado','candado-abierto','precio','tiempo','regalo','frases'];
+const FONDOS = ['fondo-balcon','fondo-patio','fondo-gimnasio','fondo-plaza'];
 const EFECTOS = ['burbuja-dialogo','burbuja-pensamiento','confeti','fuegos','cinta-premio','brillos','corazones','gotas-sudor','nube-polvo'];
 
 const $ = id => document.getElementById(id);
@@ -82,6 +89,8 @@ $('iconos').innerHTML = ICONOS.map(n => fig(`/img/iconos/${n}.webp`, n)).join(''
 $('insignias').innerHTML = INSIGNIAS.map(n => fig(`/img/insignias/${n}.webp`, n)).join('');
 $('escenaObj').innerHTML = OBJ.map(n => fig(`/img/escena/${n}.webp`, n)).join('');
 $('efectos').innerHTML = EFECTOS.map(n => fig(`/img/efectos/${n}.webp`, n)).join('');
+$('tienda').innerHTML = TIENDA.map(n => fig(`/img/tienda/${n}.webp`, n)).join('');
+$('fondos').innerHTML = FONDOS.map(n => fig(`/img/fondos/${n}.webp`, n)).join('');
 
 let equipo = 'boca';
 const botones = Object.entries(EQUIPOS).map(([id, e]) => `<button type="button" data-eq="${id}" aria-pressed="${id === equipo}">${e.nombre}</button>`).join('');
