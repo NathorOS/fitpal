@@ -25,22 +25,45 @@ empachado según lo anotado. Los íconos y menús, en cambio, **siempre** se ven
 
 | Eje | Qué lo decide | Valores | Cambia… |
 | --- | --- | --- | --- |
-| **Etapa (cuerpo)** | Avance de peso hacia la meta | `e1` muy gordo · `e3` a mitad · `e5` en su meta | Despacio (semanas) |
+| **Etapa (cuerpo)** | IMC con el que arrancó + avance de peso hacia la meta | `e1` muy gordo · `e3` a mitad · `e5` en su meta | Despacio (semanas) |
 | **Pose** | Lo que pasó **hoy** | `contento`, `fiaca`, `empachado`, `entrenando`, `festejando` (+ extras) | Durante el día |
 | **Limpieza** | Cómo viene la **última semana** | 0 a 100 | De a poco, día a día |
 
 ### 2.1 Etapa
 
+**El personaje arranca con el cuerpo que corresponde a tu peso real.** Si la persona empieza con obesidad,
+arranca en lo más gordo (`e1`); si empieza con unos kilos de más, arranca más arriba. Para eso hay una
+"posición" `p` de 0 (lo más gordo) a 1 (en su meta):
+
 ```
-avance = (peso_inicial − peso_actual) / (peso_inicial − peso_meta)   // 0 a 1, recortado
-avance < 0.34 → e1    ·    0.34 a 0.75 → e3    ·    ≥ 0.75 → e5
+imc_inicial = peso_inicial / (altura_cm / 100)²
+p_inicial   = clamp((35 − imc_inicial) / 10, 0, 0.5)     // IMC ≥ 35 → 0 · IMC 30 → 0,5 · nunca más de 0,5
+avance      = clamp((peso_inicial − peso_actual) / (peso_inicial − peso_meta), 0, 1)
+p           = p_inicial + (1 − p_inicial) · avance
+
+p < 0.34 → e1    ·    0.34 a 0.75 → e3    ·    ≥ 0.75 → e5
 ```
+
+Ejemplos (1,75 m, meta 75 kg):
+
+| Peso inicial | IMC | Arranca en | Pasa a e3 | Pasa a e5 |
+| --- | --- | --- | --- | --- |
+| 120 kg | 39 | `e1` | con 105 kg | con 86 kg |
+| 100 kg | 32,7 | `e1` (p = 0,23) | con 97 kg | con 83 kg |
+| 90 kg | 29,4 | `e3` (p = 0,5) | ya está | con 82,5 kg |
+
+- El tope de 0,5 hace que **siempre se vea un cambio**: aunque tenga pocos kilos para bajar, arranca en `e3` y
+  termina en `e5`; nunca arranca ya en la meta.
+- `peso_inicial` y `altura_cm` ya se piden en el onboarding (`objetivo.js`). Guardar `p_inicial` en el perfil
+  una sola vez, al terminar el onboarding, para que no cambie si después se corrige la altura.
+- Si vuelve a subir por encima del peso inicial, `avance` queda en 0 y se ve como al principio (nunca peor).
 
 - `peso_actual`: usar la **tendencia** (ya existe la recta de mínimos cuadrados en `adaptativo.js`) y no el
   último pesaje, para que no salte de etapa por un día de retención.
 - **Histéresis:** para bajar de etapa (volver a engordar) exigir que el avance caiga 0,08 por debajo del corte.
   Así no titila entre dos etapas.
-- Si el objetivo es "mantener": siempre `e5` mientras esté dentro de ±2 kg de la meta; si no, `e3`.
+- Si el objetivo es "mantener": siempre `e5` mientras esté dentro de ±2 kg de la meta; si no, `e3`. Si el
+  IMC es ≥ 35, `e1` aunque esté manteniendo.
 
 ### 2.2 Pose del día (orden de prioridad, gana la primera que se cumpla)
 
@@ -165,7 +188,7 @@ Reemplazan a los emojis. Mapeo con lo que ya existe en la app:
   30 días anotando, racha de 30, primera semana completa). **No existen todavía** en el código.
 - `racha-3`, `-7`, `-14`, `-30`: la llama que crece con la racha.
 - `hito-1kg`, `-5kg`, `-10kg`, `-15kg`, `-20kg`, `hito-mejor-peso`, `-llegada`, `-meta`, `-mantener`.
-- `cofre-cerrado`, `cofre-abierto`, `moneda`, `estrella`, `escudo-racha`: para el sistema de §6.
+- `cofre-cerrado`, `cofre-abierto`, `escudo-racha`: para el sistema de §6. `moneda` y `estrella` quedan sin usar.
 
 ### 3.6 Efectos: `www/img/efectos/`
 
@@ -187,9 +210,10 @@ Reemplazan a los emojis. Mapeo con lo que ya existe en la app:
   Selección, Verde (sin pintar). Tests en `tests/personaje.test.js`.
 - Ahora el recorte del fondo ya viene hecho en los WebP; `recortarFondo` no hace daño pero se puede saltear.
 - **Cachear** el canvas por `(archivo, equipo)` en memoria; no repintar en cada render.
-- Falta: **selector de equipo en Perfil** (usar `mi-equipo`) y la opción "al azar" (elige uno de
-  `EQUIPOS_AZAR` una vez y lo guarda). Guardarlo en el perfil (`perfil.equipo_futbol`, que no choque con
-  `equipo` de entrenamiento).
+- Falta: **elegir el equipo en el onboarding** (decidido por el dueño): un paso nuevo "¿De qué cuadro sos?"
+  con botones que muestran el personaje ya pintado con cada camiseta, más "Ninguno" (verde) y "Al azar" (elige
+  uno de `EQUIPOS_AZAR` una vez y lo guarda). Después se puede cambiar en Perfil (ícono `mi-equipo`).
+  Guardarlo en `perfil.equipo_futbol`, que no choque con `equipo` de entrenamiento.
 - **Nunca escudos ni nombres de marcas en imágenes**: solo colores (el repo es público).
 
 ---
@@ -212,8 +236,9 @@ Reemplazan a los emojis. Mapeo con lo que ya existe en la app:
 | Hablar | `burbuja-dialogo` con una frase corta, se va a los 4 s | Al abrir Hoy y al anotar algo |
 
 - **Respetar `prefers-reduced-motion`**: sin respiración, sin partículas; solo cambios de imagen.
-- Las frases dependen de la **personalidad** elegida en el onboarding (ya existen en `hoy.js`, `FRASES`): hay que
-  reescribirlas porque hablan "del gatito" y en primera persona felina.
+- **El personaje habla** (decidido por el dueño), con frases **picantes y bien argentinas** que te empujen a
+  hacer las cosas. El banco completo y sus reglas están en [`FRASES.md`](FRASES.md). Reemplaza a `FRASES` de
+  `hoy.js`, que habla "del gatito" y tiene la regla "nunca retan": ahora sí chicanea, pero **nunca del cuerpo**.
 
 ---
 
@@ -226,8 +251,9 @@ Las imágenes ya están; la lógica **no existe**. Propuesta, de lo más importa
 3. **Hitos de peso** (`hito-*`) calculados con la tendencia.
 4. **Cuarto que progresa**: cada hito o cada 7 días de racha desbloquea un `premio-*`, que queda en el cuarto
    para siempre (en una posición fija por objeto). Lo que se ganó no se pierde.
-5. **Monedas y cofre** (opcional): +1 moneda por reto cumplido; el cofre de la semana se abre el domingo si
-   cumplió ≥ 4 retos semanales.
+5. **Cofre semanal, sin monedas** (decidido: las monedas sin tienda no sirven, y una tienda no vale la pena):
+   si cumplió ≥ 4 retos en la semana, el domingo aparece `cofre-cerrado`; al tocarlo se abre (`cofre-abierto`
+   + confeti) y sale un `premio-*` nuevo para el cuarto. `moneda` y `estrella` quedan sin usar.
 6. **Escudo de racha** (opcional): 1 por semana; si un día no anota, se consume en vez de cortar la racha.
 
 Todo como funciones puras con tests, igual que `retos.js`.
@@ -294,9 +320,10 @@ Los nombres de cada celda de cada hoja están en la lista `HOJAS` de `recortar-i
 
 ## 11. Preguntas abiertas para el dueño
 
-Las dejo marcadas para no inventar:
+Ya respondidas:
 
-1. ¿El usuario elige equipo en el onboarding o solo en Perfil?
-2. ¿Monedas y cofres sí o no? (Suma juego pero también complejidad.)
-3. ¿El personaje habla con frases (burbujas) o solo se mueve?
-4. Los cortes de etapa (34 % y 75 % del camino): ¿están bien o preferís otros?
+1. **Equipo:** se elige en el onboarding (y se cambia en Perfil). Ver §4.
+2. **Monedas:** no; sin tienda no sirven. Queda el cofre semanal que da premios para el cuarto. Ver §6.
+3. **Habla:** sí, con frases picantes bien argentinas. Ver [`FRASES.md`](FRASES.md).
+4. **Cortes de etapa:** 34 % y 75 %, aprobados.
+5. **Agregado por el dueño:** el cuerpo arranca según el peso real (IMC). Ver §2.1.
