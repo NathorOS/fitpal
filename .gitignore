@@ -13,3 +13,6 @@ replica/diffs/*.png
 # Pruebas de punta a punta (Playwright)
 test-results/
 playwright-report/
+
+# Copias locales de las imágenes del personaje para la página de prueba (los originales están en docs/personaje/originales)
+www/dev/pj/

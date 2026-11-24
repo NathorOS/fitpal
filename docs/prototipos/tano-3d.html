@@ -1,0 +1,446 @@
+<title>El Tano 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito+Sans:wght@600;800&display=swap">
+<style>
+  /* Escena de estudio: fondo cálido fijo (un solo look, a propósito), panel flotante abajo. */
+  :root {
+    --fondo-1: #ffe6b8; --fondo-2: #f6b26b; --tinta: #2b1a0e; --tinta-suave: #6b4a2e;
+    --panel: rgba(255, 250, 240, 0.92); --acento: #d8342c; --acento-suave: #fde1d0; --borde: rgba(43, 26, 14, 0.12);
+    --display: 'Fredoka', ui-rounded, system-ui, sans-serif; --texto: 'Nunito Sans', system-ui, sans-serif;
+    color-scheme: light;
+  }
+  html, body { height: 100%; }
+  body { margin: 0; background: radial-gradient(120% 90% at 50% 30%, var(--fondo-1) 0%, var(--fondo-2) 100%); color: var(--tinta);
+    font-family: var(--texto); overflow: hidden; }
+  #lienzo { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  .panel { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    width: min(560px, calc(100% - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+    background: var(--panel); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--borde); border-radius: 22px; padding: 14px 16px 16px; box-sizing: border-box;
+    display: grid; gap: 12px; box-shadow: 0 12px 36px rgba(80, 40, 10, 0.18); }
+  .cabecera { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .cabecera h1 { margin: 0; font: 700 26px/1 var(--display); letter-spacing: 0.2px; }
+  .etapa { font: 600 15px/1.2 var(--display); color: var(--acento); }
+  .kilos { font: 800 14px/1 var(--texto); color: var(--tinta-suave); font-variant-numeric: tabular-nums; }
+  .fila { display: grid; gap: 6px; }
+  .fila label, .rotulo { font: 800 11px/1 var(--texto); text-transform: uppercase; letter-spacing: 0.8px; color: var(--tinta-suave); }
+  input[type=range] { width: 100%; accent-color: var(--acento); height: 28px; margin: 0; }
+  .marcas { display: flex; justify-content: space-between; font: 600 11px/1 var(--texto); color: var(--tinta-suave); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips button { font: 600 14px/1 var(--display); color: var(--tinta); background: transparent; border: 2px solid var(--borde);
+    border-radius: 999px; padding: 8px 12px; cursor: pointer; min-height: 36px; }
+  .chips button[aria-pressed="true"] { background: var(--acento); border-color: var(--acento); color: #fff; }
+  .chips button:focus-visible, input:focus-visible { outline: 3px solid var(--tinta); outline-offset: 2px; }
+  .pista { position: fixed; top: calc(12px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
+    font: 600 12px/1 var(--texto); color: var(--tinta-suave); background: rgba(255,250,240,.7); padding: 6px 10px; border-radius: 999px; white-space: nowrap;
+    transition: opacity .6s; }
+  .pista.oculta { opacity: 0; }
+  .error { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; font: 600 16px/1.4 var(--texto); }
+  @media (max-height: 640px) { .panel { gap: 8px; padding: 10px 12px 12px; } .cabecera h1 { font-size: 22px; } }
+</style>
+
+<canvas id="lienzo" aria-label="El Tano, personaje en 3D. Arrastrá para girarlo."></canvas>
+<p class="pista">Arrastrá para girarlo · pellizcá para acercar</p>
+
+<section class="panel" aria-label="Controles del personaje">
+  <div class="cabecera">
+    <h1>El Tano</h1>
+    <span class="etapa" id="etapa">Muy gordo</span>
+    <span class="kilos" id="kilos">98,0 kg</span>
+  </div>
+  <div class="fila">
+    <label for="progreso">Progreso hacia la meta</label>
+    <input id="progreso" type="range" min="0" max="100" step="1" value="0">
+    <div class="marcas" aria-hidden="true"><span>Arranque</span><span>Mitad</span><span>Meta</span></div>
+  </div>
+  <div class="fila">
+    <span class="rotulo" id="r-animo">Cómo le fue hoy</span>
+    <div class="chips" role="group" aria-labelledby="r-animo" id="animos">
+      <button data-animo="contento" aria-pressed="true">Contento</button>
+      <button data-animo="lleno" aria-pressed="false">Se pasó</button>
+      <button data-animo="cansado" aria-pressed="false">Cansado</button>
+      <button data-animo="entreno" aria-pressed="false">Entrenó</button>
+      <button data-animo="festeja" aria-pressed="false">Festeja</button>
+    </div>
+  </div>
+  <div class="fila">
+    <span class="rotulo" id="r-piel">Piel</span>
+    <div class="chips" role="group" aria-labelledby="r-piel" id="pieles">
+      <button data-piel="amarilla" aria-pressed="true">Amarilla</button>
+      <button data-piel="natural" aria-pressed="false">Natural</button>
+    </div>
+  </div>
+</section>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const lienzo = document.getElementById('lienzo');
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas: lienzo, antialias: true, alpha: true });
+} catch {
+  document.body.insertAdjacentHTML('beforeend', '<p class="error">Este navegador no puede mostrar 3D (WebGL).</p>');
+  throw new Error('sin WebGL');
+}
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.92;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const escena = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+escena.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+
+const camara = new THREE.PerspectiveCamera(28, 1, 0.1, 100);
+const controles = new OrbitControls(camara, lienzo);
+controles.enableDamping = true;
+controles.enablePan = false;
+controles.minDistance = 4; controles.maxDistance = 16;
+controles.minPolarAngle = 0.35; controles.maxPolarAngle = 1.62;
+controles.target.set(0, 1.55, 0);
+
+// --- Luces de estudio: principal cálida, contraluz fría y relleno ---
+escena.add(new THREE.HemisphereLight(0xfff4e6, 0x8a5a3a, 0.55));
+const principal = new THREE.DirectionalLight(0xfff0d8, 2.4);
+principal.position.set(3.2, 6, 5);
+principal.castShadow = true;
+principal.shadow.mapSize.set(2048, 2048);
+Object.assign(principal.shadow.camera, { left: -3, right: 3, top: 4.5, bottom: -1, near: 1, far: 20 });
+principal.shadow.radius = 6; principal.shadow.bias = -0.0004;
+escena.add(principal);
+const contraluz = new THREE.DirectionalLight(0xbfe2ff, 2.2);
+contraluz.position.set(-4, 4.5, -5);
+escena.add(contraluz);
+const relleno = new THREE.DirectionalLight(0xffd9b0, 0.6);
+relleno.position.set(-4, 2, 4);
+escena.add(relleno);
+
+// Piso: sombra suave + sombra de contacto difusa
+const piso = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.ShadowMaterial({ opacity: 0.22 }));
+piso.rotation.x = -Math.PI / 2; piso.receiveShadow = true;
+escena.add(piso);
+const cc = document.createElement('canvas'); cc.width = cc.height = 128;
+const g2 = cc.getContext('2d');
+const grad = g2.createRadialGradient(64, 64, 0, 64, 64, 64);
+grad.addColorStop(0, 'rgba(60,25,5,0.45)'); grad.addColorStop(1, 'rgba(60,25,5,0)');
+g2.fillStyle = grad; g2.fillRect(0, 0, 128, 128);
+const contacto = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 1.8), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cc), transparent: true, depthWrite: false }));
+contacto.rotation.x = -Math.PI / 2; contacto.position.y = 0.003;
+escena.add(contacto);
+
+// --- Materiales ---
+const PIELES = { amarilla: 0xffbf1f, natural: 0xe8a07a };
+const piel = new THREE.MeshPhysicalMaterial({ color: PIELES.amarilla, roughness: 0.5, sheen: 0.35, sheenRoughness: 0.5, sheenColor: new THREE.Color(0xff8a2a), clearcoat: 0.1, clearcoatRoughness: 0.6, emissive: 0x5a2400, emissiveIntensity: 0.07 });
+const tela = new THREE.MeshPhysicalMaterial({ color: 0xf6f3ec, roughness: 0.88, sheen: 1, sheenColor: new THREE.Color(0xffffff), sheenRoughness: 0.8, side: THREE.DoubleSide });
+const mancha = new THREE.MeshStandardMaterial({ color: 0xb8322a, roughness: 0.6 });
+const short = new THREE.MeshPhysicalMaterial({ color: 0x2f5fae, roughness: 0.78, sheen: 0.6, sheenColor: new THREE.Color(0x9cc2ff), side: THREE.DoubleSide });
+const pelo = new THREE.MeshPhysicalMaterial({ color: 0x2a1a10, roughness: 0.62, sheen: 0.4, sheenColor: new THREE.Color(0x8a5a3a) });
+const suela = new THREE.MeshStandardMaterial({ color: 0xd8342c, roughness: 0.55 });
+const tira = new THREE.MeshStandardMaterial({ color: 0x1f6fd1, roughness: 0.5 });
+const blanco = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.05 });
+const iris = new THREE.MeshPhysicalMaterial({ color: 0x6a3f1c, roughness: 0.25, clearcoat: 1 });
+const pupila = new THREE.MeshStandardMaterial({ color: 0x080606, roughness: 0.2 });
+const brillo = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const boca = new THREE.MeshStandardMaterial({ color: 0x4a1614, roughness: 0.7 });
+const lengua = new THREE.MeshStandardMaterial({ color: 0xe0646b, roughness: 0.5 });
+const gota = new THREE.MeshPhysicalMaterial({ color: 0xcdeeff, roughness: 0.04, clearcoat: 1, transparent: true, opacity: 0.85 });
+const rubor = new THREE.MeshBasicMaterial({ color: 0xff6b6b, transparent: true, opacity: 0, depthWrite: false });
+const vincha = new THREE.MeshStandardMaterial({ color: 0xd8342c, roughness: 0.7 });
+
+const malla = (geo, mat, sombra = true) => { const m = new THREE.Mesh(geo, mat); m.castShadow = sombra; m.receiveShadow = true; return m; };
+const esfera = (r, mat, sx = 1, sy = 1, sz = 1) => { const m = malla(new THREE.SphereGeometry(r, 48, 32), mat); m.scale.set(sx, sy, sz); return m; };
+const lerp = (a, b, t) => a + (b - a) * t;
+
+// --- Forma del cuerpo: radio del torso a cada altura según qué tan gordo (f: 1 gordo, 0 en forma) ---
+function anclas(f) {
+  return [
+    [0.80, lerp(0.48, 0.60, f)], [0.95, lerp(0.50, 0.74, f)], [1.15, lerp(0.51, 0.88, f)], [1.35, lerp(0.54, 0.92, f)],
+    [1.55, lerp(0.60, 0.86, f)], [1.72, lerp(0.66, 0.77, f)], [1.88, lerp(0.58, 0.60, f)], [2.00, 0.42], [2.12, 0.30],
+  ];
+}
+function radio(a, y) {
+  const n = a.length;
+  if (y <= a[0][0]) return a[0][1];
+  if (y >= a[n - 1][0]) return a[n - 1][1];
+  let i = 0; while (y > a[i + 1][0]) i++;
+  const t = (y - a[i][0]) / (a[i + 1][0] - a[i][0]);
+  const p0 = a[Math.max(0, i - 1)][1], p1 = a[i][1], p2 = a[i + 1][1], p3 = a[Math.min(n - 1, i + 2)][1];
+  const t2 = t * t, t3 = t2 * t;
+  return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
+}
+const panzaEn = (y, f, extra) => (f * 0.30 + extra) * Math.exp(-(((y - 1.22) / 0.33) ** 2));
+const profundidad = f => lerp(0.8, 0.95, f);
+
+function torno(a, y0, y1, extraR, f, extra, cerrarAbajo, cerrarArriba) {
+  const pts = [];
+  if (cerrarAbajo) pts.push(new THREE.Vector2(0.001, y0));
+  const N = 56;
+  for (let k = 0; k <= N; k++) {
+    const y = y0 + (y1 - y0) * (k / N);
+    pts.push(new THREE.Vector2(radio(a, y) + extraR, y));
+  }
+  if (cerrarArriba) pts.push(new THREE.Vector2(0.001, y1 + 0.02));
+  const geo = new THREE.LatheGeometry(pts, 72);
+  const pos = geo.attributes.position, d = profundidad(f);
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i); let z = pos.getZ(i) * d;
+    const r = Math.hypot(x, z) || 1, nz = z / r;
+    const b = panzaEn(y, f, extra) * (1 + extraR);
+    if (nz > 0) z += b * nz * nz;
+    pos.setXYZ(i, x * (1 + b * 0.18), y, z);
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+const superficieZ = (a, y, f, extra) => radio(a, y) * profundidad(f) + panzaEn(y, f, extra);
+
+// --- Armado del personaje ---
+const tano = new THREE.Group(); escena.add(tano);
+const cuerpo = new THREE.Group(); tano.add(cuerpo);
+const torso = malla(new THREE.BufferGeometry(), piel); cuerpo.add(torso);
+const musculosa = malla(new THREE.BufferGeometry(), tela); cuerpo.add(musculosa);
+const shortArriba = malla(new THREE.BufferGeometry(), short); cuerpo.add(shortArriba);
+const tiras = [malla(new THREE.BufferGeometry(), tela), malla(new THREE.BufferGeometry(), tela)]; tiras.forEach(t => cuerpo.add(t));
+const manchaTuco = esfera(0.07, mancha, 1.3, 1, 0.25); cuerpo.add(manchaTuco);
+const manchaChica = esfera(0.035, mancha, 1, 1.2, 0.25); cuerpo.add(manchaChica);
+const ombligo = esfera(0.028, new THREE.MeshStandardMaterial({ color: 0x8a5a00, roughness: 0.8 }), 1, 1.3, 0.5); cuerpo.add(ombligo);
+
+const piernas = [-1, 1].map(s => {
+  const g = new THREE.Group(); cuerpo.add(g);
+  const pierna = malla(new THREE.CapsuleGeometry(1, 1, 8, 24), piel); g.add(pierna);
+  const botamanga = malla(new THREE.CylinderGeometry(1, 1.08, 1, 40, 1, true), short); g.add(botamanga);
+  const pie = esfera(0.13, piel, 1, 0.55, 1.55); g.add(pie);
+  const ojota = esfera(0.15, suela, 1.15, 0.16, 1.75); g.add(ojota);
+  const tiraPie = malla(new THREE.TorusGeometry(0.1, 0.022, 10, 24, Math.PI), tira); g.add(tiraPie);
+  return { s, g, pierna, botamanga, pie, ojota, tiraPie };
+});
+
+const brazos = [-1, 1].map(s => {
+  const hombro = new THREE.Group(); cuerpo.add(hombro);
+  const brazo = malla(new THREE.CapsuleGeometry(1, 1, 8, 24), piel); hombro.add(brazo);
+  const codo = new THREE.Group(); hombro.add(codo);
+  const antebrazo = malla(new THREE.CapsuleGeometry(1, 1, 8, 24), piel); codo.add(antebrazo);
+  const mano = esfera(0.15, piel, 1, 1.12, 0.82); codo.add(mano);
+  const pulgar = esfera(0.06, piel, 1, 1.4, 1); codo.add(pulgar);
+  return { s, hombro, brazo, codo, antebrazo, mano, pulgar };
+});
+
+// Cabeza
+const cabeza = new THREE.Group(); tano.add(cabeza);
+const craneo = esfera(0.62, piel, 1, 1.05, 0.95); cabeza.add(craneo);
+const quijada = esfera(0.5, piel, 1.1, 0.8, 1.0); quijada.position.set(0, -0.2, 0.1); cabeza.add(quijada);
+const papada = esfera(0.36, piel, 1, 0.45, 0.85); cabeza.add(papada);
+const cachetes = [-1, 1].map(s => { const m = esfera(0.15, piel); m.position.set(s * 0.27, -0.16, 0.42); cabeza.add(m); return m; });
+const rubores = [-1, 1].map(s => { const m = esfera(0.12, rubor, 1, 0.6, 0.3); m.position.set(s * 0.33, -0.1, 0.5); m.castShadow = false; cabeza.add(m); return m; });
+[-1, 1].forEach(s => { const o = esfera(0.2, piel, 0.38, 0.72, 0.6); o.position.set(s * 0.6, 0.0, -0.03); cabeza.add(o); });
+const nariz = esfera(0.14, piel, 1.1, 0.92, 1); nariz.position.set(0, -0.03, 0.64); cabeza.add(nariz);
+
+const ojos = [-1, 1].map(s => {
+  const g = new THREE.Group(); g.position.set(s * 0.21, 0.14, 0.47); g.rotation.y = s * 0.16; cabeza.add(g);
+  g.add(esfera(0.175, blanco));
+  const ir = esfera(0.088, iris, 1, 1, 0.35); ir.position.z = 0.152; g.add(ir);
+  const pu = esfera(0.046, pupila, 1, 1, 0.3); pu.position.z = 0.172; g.add(pu);
+  const br = esfera(0.022, brillo); br.position.set(0.035, 0.045, 0.182); br.castShadow = false; g.add(br);
+  const parpado = malla(new THREE.SphereGeometry(0.186, 40, 20, 0, Math.PI * 2, 0, Math.PI / 2), piel); g.add(parpado);
+  return { g, parpado };
+});
+const cejas = [-1, 1].map(s => {
+  const m = malla(new THREE.CapsuleGeometry(0.042, 0.19, 8, 16), pelo);
+  m.position.set(s * 0.22, 0.38, 0.5); cabeza.add(m); return m;
+});
+// Bigote: tres bollos por lado
+[-1, 1].forEach(s => {
+  [[0.08, -0.17, 0.62, 0.1], [0.19, -0.2, 0.575, 0.095], [0.29, -0.25, 0.49, 0.078]].forEach(([x, y, z, r]) => {
+    const m = esfera(r, pelo, 1.3, 0.68, 0.9); m.position.set(s * x, y, z); m.rotation.z = s * 0.3; cabeza.add(m);
+  });
+});
+// Pelo: costados, nuca y unos pocos pelos arriba (pelado con entradas)
+[-1, 1].forEach(s => { const m = esfera(0.2, pelo, 0.55, 1.05, 1.4); m.position.set(s * 0.55, 0.17, -0.14); cabeza.add(m); });
+const nuca = esfera(0.36, pelo, 1.55, 0.95, 0.72); nuca.position.set(0, 0.14, -0.4); cabeza.add(nuca);
+[[-0.12, 0.1], [0, 0.18], [0.12, 0.08]].forEach(([x, dx]) => {
+  const c = new THREE.QuadraticBezierCurve3(new THREE.Vector3(x, 0.63, 0.06), new THREE.Vector3(x + dx, 0.82, 0.12), new THREE.Vector3(x + dx * 1.6, 0.74, 0.22));
+  cabeza.add(malla(new THREE.TubeGeometry(c, 16, 0.012, 6), pelo));
+});
+// Boca
+const bocaGrupo = new THREE.Group(); cabeza.add(bocaGrupo);
+let sonrisaMalla = null;
+const bocaAbierta = esfera(0.15, boca, 1, 0.62, 0.45); bocaAbierta.position.set(0, -0.38, 0.52); cabeza.add(bocaAbierta);
+const lenguaM = esfera(0.08, lengua, 1.2, 0.5, 0.6); lenguaM.position.set(0, -0.42, 0.56); cabeza.add(lenguaM);
+function armarSonrisa(curva) {
+  if (sonrisaMalla) { bocaGrupo.remove(sonrisaMalla); sonrisaMalla.geometry.dispose(); }
+  const c = new THREE.QuadraticBezierCurve3(new THREE.Vector3(-0.16, -0.33, 0.55), new THREE.Vector3(0, -0.33 - curva, 0.61), new THREE.Vector3(0.16, -0.33, 0.55));
+  sonrisaMalla = malla(new THREE.TubeGeometry(c, 24, 0.022, 8), boca, false);
+  bocaGrupo.add(sonrisaMalla);
+}
+// Extras: vincha y gotas de transpiración
+const vinchaM = malla(new THREE.TorusGeometry(0.56, 0.055, 14, 64), vincha); vinchaM.rotation.x = Math.PI / 2; vinchaM.position.y = 0.33; vinchaM.scale.set(1, 0.93, 1); cabeza.add(vinchaM);
+const gotas = [[0.33, 0.45, 0.42], [-0.38, 0.28, 0.42], [0.42, 0.05, 0.38]].map(([x, y, z]) => { const m = esfera(0.045, gota, 0.65, 1, 0.6); m.position.set(x, y, z); cabeza.add(m); return m; });
+
+// --- Estados de ánimo (valores objetivo; el dibujo se acerca suave) ---
+const ANIMOS = {
+  contento: { sonrisa: 0.09, parpado: -0.45, cejaY: 0, cejaRot: 0.12, abierta: 0, lleno: 0, cansado: 0, entreno: 0, festeja: 0 },
+  lleno:    { sonrisa: -0.01, parpado: -0.25, cejaY: 0.05, cejaRot: 0.3, abierta: 0, lleno: 1, cansado: 0, entreno: 0, festeja: 0 },
+  cansado:  { sonrisa: -0.03, parpado: 0.6, cejaY: -0.03, cejaRot: -0.2, abierta: 0, lleno: 0, cansado: 1, entreno: 0, festeja: 0 },
+  entreno:  { sonrisa: 0.11, parpado: -0.5, cejaY: 0.02, cejaRot: -0.18, abierta: 0, lleno: 0, cansado: 0, entreno: 1, festeja: 0 },
+  festeja:  { sonrisa: 0.1, parpado: 0.25, cejaY: 0.07, cejaRot: 0.15, abierta: 1, lleno: 0, cansado: 0, entreno: 0, festeja: 1 },
+};
+const estado = { f: 1, ...ANIMOS.contento };
+let objetivo = { f: 1, ...ANIMOS.contento };
+let sonrisaArmada = null;
+let fArmado = -1, llenoArmado = -1;
+
+function actualizarCuerpo() {
+  const f = estado.f, extra = estado.lleno * 0.14;
+  const a = anclas(f);
+  // Geometrías que dependen de la forma (solo si cambió lo suficiente)
+  if (Math.abs(f - fArmado) > 0.003 || Math.abs(estado.lleno - llenoArmado) > 0.01) {
+    fArmado = f; llenoArmado = estado.lleno;
+    const dobladillo = lerp(0.99, 1.17, f) + estado.lleno * 0.07;
+    for (const [m, geo] of [[torso, torno(a, 0.8, 2.12, 0, f, extra, true, true)],
+      [musculosa, torno(a, dobladillo, 1.94, 0.03, f, extra, false, false)],
+      [shortArriba, torno(a, 0.74, 1.02, 0.035, f, extra * 0.4, true, false)]]) { m.geometry.dispose(); m.geometry = geo; }
+    // Tiras de la musculosa sobre los hombros
+    const zf = superficieZ(a, 1.86, f, extra) + 0.02, zb = -radio(a, 1.86) * profundidad(f) - 0.01;
+    tiras.forEach((t, i) => {
+      const s = i ? 1 : -1, x = s * lerp(0.2, 0.24, f);
+      const c = new THREE.CatmullRomCurve3([new THREE.Vector3(x, 1.8, zf - 0.02), new THREE.Vector3(x * 1.05, 2.0, zf * 0.55), new THREE.Vector3(x * 1.1, 2.06, 0), new THREE.Vector3(x * 1.05, 2.0, zb * 0.55), new THREE.Vector3(x, 1.8, zb + 0.02)]);
+      t.geometry.dispose(); t.geometry = new THREE.TubeGeometry(c, 24, 0.055, 10);
+      t.scale.set(1, 1, 1);
+    });
+    const ym = 1.46; manchaTuco.position.set(0.2, ym, superficieZ(a, ym, f, extra) * 0.97 + 0.03);
+    manchaChica.position.set(-0.12, 1.66, superficieZ(a, 1.66, f, extra) * 0.98 + 0.03);
+    const yo = (dobladillo + 1.0) / 2;
+    ombligo.visible = dobladillo > 1.06;
+    ombligo.position.set(0, yo, superficieZ(a, yo, f, extra) - 0.005);
+  }
+  // Piernas
+  const rp = lerp(0.15, 0.21, f), xp = lerp(0.22, 0.3, f);
+  piernas.forEach(p => {
+    p.g.position.set(p.s * xp, 0, 0);
+    p.pierna.scale.set(rp, 0.42 / 2, rp); p.pierna.position.y = 0.4;
+    p.botamanga.scale.set(rp + 0.06, 0.3, rp + 0.06); p.botamanga.position.y = 0.66;
+    p.pie.position.set(0, 0.075, 0.09); p.ojota.position.set(0, 0.018, 0.08);
+    p.tiraPie.position.set(0, 0.1, 0.16); p.tiraPie.rotation.set(-0.5, 0, 0);
+  });
+  // Brazos
+  const rb = lerp(0.12, 0.17, f), xh = radio(a, 1.84) + 0.02;
+  brazos.forEach(b => {
+    b.hombro.position.set(b.s * xh, 1.86, -0.02);
+    b.brazo.scale.set(rb, 0.24, rb); b.brazo.position.y = -0.27;
+    b.codo.position.y = -0.56;
+    b.antebrazo.scale.set(rb * 0.92, 0.2, rb * 0.92); b.antebrazo.position.y = -0.24;
+    b.mano.position.set(0, -0.53, 0.02); b.pulgar.position.set(-b.s * 0.1, -0.47, 0.08);
+    // Pose: apoyado, cansado (caído), festeja (arriba), lleno (la derecha sobre la panza)
+    const abierto = lerp(0.16, 0.42, f);
+    let rz = abierto, rx = 0, codoX = -0.18;
+    rz = lerp(rz, 0.08, estado.cansado);
+    rz = lerp(rz, 2.75, estado.festeja); codoX = lerp(codoX, -0.5, estado.festeja);
+    if (b.s === 1) { rx = lerp(rx, -0.55, estado.lleno); codoX = lerp(codoX, -1.25, estado.lleno); rz = lerp(rz, abierto + 0.05, estado.lleno); }
+    b.hombro.rotation.set(rx, 0, b.s * rz);
+    b.codo.rotation.set(codoX, 0, 0);
+  });
+  // Cabeza y cara
+  cabeza.position.set(0, 2.6 + lerp(0.05, 0, f) - estado.cansado * 0.04, 0.03 + estado.cansado * 0.04);
+  cabeza.rotation.x = estado.cansado * 0.24;
+  papada.position.set(0, -0.5, 0.2); const pf = lerp(0.25, 1, f); papada.scale.set(pf, 0.45 * pf, 0.85 * pf);
+  quijada.scale.set(lerp(0.98, 1.16, f), 0.8, lerp(0.95, 1.04, f));
+  const cf = lerp(0.6, 1.0, f) + estado.lleno * 0.18;
+  cachetes.forEach(c => c.scale.setScalar(cf));
+  rubor.opacity = Math.max(estado.entreno, estado.festeja * 0.7, estado.lleno * 0.4) * 0.55;
+  cejas.forEach((c, i) => { const s = i ? 1 : -1; c.position.y = 0.38 + estado.cejaY; c.rotation.z = Math.PI / 2 + s * -estado.cejaRot; });
+  bocaAbierta.visible = lenguaM.visible = estado.abierta > 0.5;
+  bocaGrupo.visible = !bocaAbierta.visible;
+  const curva = Math.round(estado.sonrisa * 100) / 100;
+  if (curva !== sonrisaArmada) { sonrisaArmada = curva; armarSonrisa(curva); }
+  vinchaM.visible = estado.entreno > 0.5;
+  gotas.forEach(g => { g.visible = estado.entreno > 0.5; });
+}
+
+// --- Animación ---
+const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let parpadeo = 0, proximoParpadeo = 2;
+const reloj = new THREE.Clock();
+function cuadro() {
+  const dt = Math.min(0.05, reloj.getDelta()), t = reloj.elapsedTime;
+  const k = 1 - Math.exp(-dt * 6);
+  for (const clave of Object.keys(objetivo)) estado[clave] = lerp(estado[clave], objetivo[clave], k);
+  actualizarCuerpo();
+  // Parpadeo
+  if (!quieto && t > proximoParpadeo) { parpadeo = 1; proximoParpadeo = t + 2.5 + Math.random() * 3; }
+  parpadeo = Math.max(0, parpadeo - dt * 7);
+  const cierre = lerp(estado.parpado, 1.57, Math.sin(Math.min(1, parpadeo) * Math.PI));
+  ojos.forEach(o => { o.parpado.rotation.x = cierre; });
+  // Respiración, balanceo y saltito al festejar
+  const resp = quieto ? 0 : Math.sin(t * (estado.cansado > 0.5 ? 1.4 : 2.2));
+  cuerpo.scale.set(1 + resp * 0.008, 1 + resp * 0.012, 1 + resp * 0.014);
+  cabeza.position.y += resp * 0.012;
+  tano.rotation.z = quieto ? 0 : Math.sin(t * 0.9) * 0.012;
+  tano.position.y = quieto ? 0 : Math.abs(Math.sin(t * 6)) * 0.12 * estado.festeja;
+  contacto.scale.setScalar(lerp(0.75, 1.05, estado.f) * (1 - tano.position.y * 0.8));
+  gotas.forEach((g, i) => { g.position.y = [0.45, 0.28, 0.05][i] - ((t * 0.35 + i * 0.3) % 1) * 0.12; });
+  controles.update();
+  renderer.render(escena, camara);
+  requestAnimationFrame(cuadro);
+}
+
+function ajustar() {
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false);
+  camara.aspect = w / h;
+  // El panel tapa la parte de abajo: se corre el centro de la imagen hacia arriba para que entre entero.
+  const panel = document.querySelector('.panel').getBoundingClientRect();
+  const libre = Math.max(200, panel.top - 8);
+  const angosto = w / libre < 0.9;
+  camara.fov = 30;
+  const dist = (angosto ? 14.5 : 11.8) * Math.max(1, 520 / libre);
+  camara.position.set(0, 1.9, dist);
+  controles.target.set(0, 1.7, 0);
+  camara.setViewOffset(w, h, 0, (h - libre) / 2, w, h);
+  camara.updateProjectionMatrix();
+}
+addEventListener('resize', ajustar);
+ajustar();
+
+// --- Controles de la página ---
+const ETAPAS = [[20, 'Muy gordo'], [40, 'Gordo'], [60, 'A mitad de camino'], [80, 'Casi en la meta'], [101, 'En su meta']];
+const KG_INICIO = 98, KG_META = 78;
+const deslizador = document.getElementById('progreso');
+function alMover() {
+  const p = Number(deslizador.value);
+  objetivo.f = 1 - p / 100;
+  document.getElementById('etapa').textContent = ETAPAS.find(([hasta]) => p < hasta)[1];
+  const kg = KG_INICIO - (KG_INICIO - KG_META) * p / 100;
+  document.getElementById('kilos').textContent = `${kg.toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kg`;
+  deslizador.setAttribute('aria-valuetext', `${p} %, ${kg.toFixed(1)} kilos`);
+}
+deslizador.addEventListener('input', alMover);
+alMover();
+document.getElementById('animos').addEventListener('click', e => {
+  const b = e.target.closest('[data-animo]'); if (!b) return;
+  objetivo = { ...objetivo, ...ANIMOS[b.dataset.animo] };
+  document.querySelectorAll('[data-animo]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+});
+document.getElementById('pieles').addEventListener('click', e => {
+  const b = e.target.closest('[data-piel]'); if (!b) return;
+  piel.color.setHex(PIELES[b.dataset.piel]);
+  document.querySelectorAll('[data-piel]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+});
+
+// La pista se va sola a los pocos segundos o al tocar el personaje.
+const pista = document.querySelector('.pista');
+setTimeout(() => pista.classList.add('oculta'), 4000);
+lienzo.addEventListener('pointerdown', () => pista.classList.add('oculta'), { once: true });
+
+cuadro();
+</script>

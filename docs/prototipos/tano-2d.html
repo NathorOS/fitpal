@@ -1,0 +1,277 @@
+<title>El Tano</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito+Sans:wght@600;800&display=swap">
+<style>
+  /* Dibujo animado plano: cielo celeste, personaje arriba, panel de controles abajo. Un solo look a propósito. */
+  :root {
+    --cielo: #8ed2f4; --cielo-bajo: #c6ecfb; --tinta: #1b1410; --tinta-suave: #5a4636;
+    --panel: #fffaf0; --acento: #e0412f; --borde: rgba(27, 20, 16, 0.14);
+    --display: 'Fredoka', ui-rounded, system-ui, sans-serif; --texto: 'Nunito Sans', system-ui, sans-serif;
+    color-scheme: light;
+  }
+  html, body { height: 100%; }
+  body { margin: 0; background: linear-gradient(var(--cielo) 0%, var(--cielo) 55%, var(--cielo-bajo) 100%); color: var(--tinta);
+    font-family: var(--texto); display: grid; grid-template-rows: 1fr auto; overflow: hidden; }
+  .escenario { min-height: 0; display: grid; place-items: center; padding-block: 8px 0;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  #dibujo { width: 100%; height: 100%; max-height: 100%; display: block; }
+  .panel { margin: 0 auto calc(12px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box;
+    width: min(560px, calc(100% - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+    background: var(--panel); border: 3px solid var(--tinta); border-radius: 22px; padding: 14px 16px 16px;
+    display: grid; gap: 12px; box-shadow: 0 6px 0 var(--tinta); }
+  .cabecera { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .cabecera h1 { margin: 0; font: 700 26px/1 var(--display); }
+  .etapa { font: 600 15px/1.2 var(--display); color: var(--acento); }
+  .kilos { font: 800 14px/1 var(--texto); color: var(--tinta-suave); font-variant-numeric: tabular-nums; }
+  .fila { display: grid; gap: 6px; }
+  .fila label, .rotulo { font: 800 11px/1 var(--texto); text-transform: uppercase; letter-spacing: 0.8px; color: var(--tinta-suave); }
+  input[type=range] { width: 100%; accent-color: var(--acento); height: 28px; margin: 0; }
+  .marcas { display: flex; justify-content: space-between; font: 600 11px/1 var(--texto); color: var(--tinta-suave); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips button { font: 600 14px/1 var(--display); color: var(--tinta); background: #fff; border: 2px solid var(--tinta);
+    border-radius: 999px; padding: 8px 12px; cursor: pointer; min-height: 36px; }
+  .chips button[aria-pressed="true"] { background: var(--acento); color: #fff; }
+  .chips button:focus-visible, input:focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
+  @media (max-height: 640px) { .panel { gap: 8px; padding: 10px 12px 12px; } .cabecera h1 { font-size: 22px; } }
+
+  /* Movimiento: respira, y salta cuando festeja */
+  #tano { transform-box: fill-box; transform-origin: 50% 100%; animation: respira 2.6s ease-in-out infinite; }
+  #tano.festeja { animation: salta .45s ease-in-out infinite alternate; }
+  #tano.cansado { animation-duration: 4s; }
+  @keyframes respira { 50% { transform: scale(1.012, 1.018); } }
+  @keyframes salta { from { transform: translateY(0) } to { transform: translateY(-18px) } }
+  .confeti rect, .confeti circle { animation: cae 1.4s linear infinite; }
+  @keyframes cae { from { transform: translateY(-20px) } to { transform: translateY(40px); opacity: 0 } }
+  .gota { animation: gotea 1.6s ease-in infinite; }
+  @keyframes gotea { from { transform: translateY(0); opacity: 1 } to { transform: translateY(14px); opacity: 0 } }
+  @media (prefers-reduced-motion: reduce) { #tano, .confeti *, .gota { animation: none !important; } }
+</style>
+
+<main class="escenario">
+  <svg id="dibujo" viewBox="0 0 400 600" preserveAspectRatio="xMidYMax meet" role="img" aria-labelledby="dibujo-t">
+    <title id="dibujo-t">El Tano</title>
+    <g id="fondo"></g>
+    <g id="tano"></g>
+  </svg>
+</main>
+
+<section class="panel" aria-label="Controles del personaje">
+  <div class="cabecera">
+    <h1>El Tano</h1>
+    <span class="etapa" id="etapa">Muy gordo</span>
+    <span class="kilos" id="kilos">98,0 kg</span>
+  </div>
+  <div class="fila">
+    <label for="progreso">Progreso hacia la meta</label>
+    <input id="progreso" type="range" min="0" max="100" step="1" value="0">
+    <div class="marcas" aria-hidden="true"><span>Arranque</span><span>Mitad</span><span>Meta</span></div>
+  </div>
+  <div class="fila">
+    <span class="rotulo" id="r-animo">Cómo le fue hoy</span>
+    <div class="chips" role="group" aria-labelledby="r-animo" id="animos">
+      <button data-animo="contento" aria-pressed="true">Contento</button>
+      <button data-animo="lleno" aria-pressed="false">Se pasó</button>
+      <button data-animo="cansado" aria-pressed="false">Cansado</button>
+      <button data-animo="entreno" aria-pressed="false">Entrenó</button>
+      <button data-animo="festeja" aria-pressed="false">Festeja</button>
+    </div>
+  </div>
+</section>
+
+<script>
+const C = { piel: '#fed90f', linea: '#1b1410', musculosa: '#ffffff', short: '#3c6fc4', ojota: '#e0412f', tira: '#2e7fd8',
+  pelo: '#2a1a10', bigote: '#4a2e1a', boca: '#6e1c1c', lengua: '#ec7a80', tuco: '#c8372d', rubor: '#ff8a7a', gota: '#bfe9ff', vincha: '#e0412f' };
+const T = 3.5;                       // grosor del contorno
+const L = (a, b, t) => a + (b - a) * t;
+const cx = 200;
+
+// Interpolación suave entre anclas [y, valor]
+function suave(an, y) {
+  const n = an.length;
+  if (y <= an[0][0]) return an[0][1];
+  if (y >= an[n - 1][0]) return an[n - 1][1];
+  let i = 0; while (y > an[i + 1][0]) i++;
+  const t = (y - an[i][0]) / (an[i + 1][0] - an[i][0]);
+  const p0 = an[Math.max(0, i - 1)][1], p1 = an[i][1], p2 = an[i + 1][1], p3 = an[Math.min(n - 1, i + 2)][1];
+  return Math.max(0, 0.5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (-p0 + 3 * p1 - 3 * p2 + p3) * t * t * t));
+}
+const pts = arr => arr.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+const trazo = (extra = '', ancho = T) => `stroke="${C.linea}" stroke-width="${ancho}" stroke-linejoin="round" stroke-linecap="round" ${extra}`;
+
+// f: 1 = muy gordo, 0 = en forma · a: ánimo
+function dibujar(f, a) {
+  const lleno = a === 'lleno' ? 1 : 0;
+  // --- Medidas del cuerpo ---
+  const sh = L(60, 72, f), ch = L(66, 92, f), bw = L(66, 134, f) + lleno * 16, hw = L(60, 106, f);
+  const yb = L(440, 478, f) + lleno * 10;          // parte más baja de la panza
+  const anclas = [[252, sh * 0.82], [264, sh], [298, ch], [345, L(66, bw * 0.95, f)], [388, bw], [428, L(hw, bw * 0.9, f)], [yb - 16, L(hw * 0.92, bw * 0.6, f)], [yb, 0]];
+  const N = 70, izq = [], der = [];
+  for (let k = 0; k <= N; k++) { const y = 252 + (yb - 252) * k / N; const h = suave(anclas, y); izq.push([cx - h, y]); der.push([cx + h, y]); }
+  const torso = [...izq, ...der.reverse()];
+  der.reverse();
+  const dobladillo = L(436, 392, f) - lleno * 14;
+  const lado = arr => arr.filter(([, y]) => y >= 262 && y <= dobladillo);
+  const hwD = suave(anclas, dobladillo);
+  const musculosa = [
+    [cx - sh * 0.82, 254], ...lado(izq), [cx - hwD, dobladillo], [cx, dobladillo + 6], [cx + hwD, dobladillo], ...lado(der).reverse(), [cx + sh * 0.82, 254],
+    [cx + sh * 0.42, 252], [cx + sh * 0.2, 284], [cx, 292], [cx - sh * 0.2, 284], [cx - sh * 0.42, 252],
+  ];
+  const lx = L(28, 46, f), lw = L(26, 40, f), cintura = L(420, 438, f), hs = L(62, 100, f);
+
+  let s = '';
+  // Sombra en el piso
+  s += `<ellipse cx="${cx}" cy="566" rx="${L(78, 118, f)}" ry="10" fill="#000" opacity=".12"/>`;
+  // Piernas y ojotas
+  for (const k of [-1, 1]) {
+    const x = cx + k * lx;
+    s += `<rect x="${x - lw / 2}" y="${cintura + 40}" width="${lw}" height="${548 - cintura - 40}" fill="${C.piel}" ${trazo()}/>`;
+    s += `<ellipse cx="${x + k * 4}" cy="561" rx="${L(26, 30, f)}" ry="6" fill="${C.ojota}" ${trazo()}/>`;
+    s += `<ellipse cx="${x + k * 4}" cy="553" rx="${L(22, 26, f)}" ry="9" fill="${C.piel}" ${trazo()}/>`;
+    s += `<path d="M${x - 12 + k * 4} 556 L${x + k * 4} 546 L${x + 12 + k * 4} 556" fill="none" stroke="${C.tira}" stroke-width="4" stroke-linecap="round"/>`;
+  }
+  // Short (abajo de la panza, que le cuelga encima)
+  s += `<path d="M${cx - hs} ${cintura} L${cx + hs} ${cintura} L${cx + hs + 6} ${cintura + 62} L${cx + 8} ${cintura + 62} L${cx} ${cintura + 44} L${cx - 8} ${cintura + 62} L${cx - hs - 6} ${cintura + 62} Z" fill="${C.short}" ${trazo()}/>`;
+  // Torso (piel) y musculosa
+  s += `<polygon points="${pts(torso)}" fill="${C.piel}" ${trazo()}/>`;
+  if (dobladillo < yb - 22) {
+    const yo = (dobladillo + yb) / 2 + 4;
+    s += `<path d="M${cx - 4} ${yo} q4 6 8 0" fill="none" ${trazo()}/>`;                          // ombligo
+    if (f > 0.45) s += `<path d="M${cx - bw * 0.55} ${yb - 30} q${bw * 0.55} 22 ${bw * 1.1} 0" fill="none" stroke="${C.linea}" stroke-width="2" opacity=".5"/>`;
+  }
+  s += `<polygon points="${pts(musculosa)}" fill="${C.musculosa}" ${trazo()}/>`;
+  s += `<path d="M${cx + 26} ${L(330, 350, f)} c8 -6 20 -2 18 8 c6 6 -4 14 -10 10 c-8 6 -16 -4 -10 -8 c-8 -2 -6 -12 2 -10z" fill="${C.tuco}"/>`;
+  s += `<circle cx="${cx - 22}" cy="${L(312, 318, f)}" r="4" fill="${C.tuco}"/>`;
+
+  // Brazos
+  const aw = L(22, 32, f), rm = L(14, 18, f);
+  const pose = (k) => {
+    const hx = cx + k * (sh + 2), hy = 270;
+    if (a === 'festeja') return [[hx, hy], [hx + k * 40, 220], [hx + k * 28, 152]];
+    if (a === 'entreno' && k === 1) return [[hx, hy], [hx + 50, 300], [hx + 40, 236]];
+    if (a === 'lleno' && k === 1) return [[hx, hy], [hx + L(24, 40, f), 336], [cx + bw * 0.42, 392]];
+    if (a === 'cansado') return [[hx, hy], [hx + k * L(10, 30, f), 340], [hx + k * L(8, 30, f), 404]];
+    return [[hx, hy], [hx + k * L(18, 36, f), 332], [hx + k * L(16, 38, f), 390]];
+  };
+  for (const k of [-1, 1]) {
+    const [p0, p1, p2] = pose(k);
+    const d = `M${p0[0]} ${p0[1]} Q${p1[0]} ${p1[1]} ${p2[0]} ${p2[1]}`;
+    s += `<path d="${d}" fill="none" stroke="${C.linea}" stroke-width="${aw + T * 2}" stroke-linecap="round"/>`;
+    s += `<path d="${d}" fill="none" stroke="${C.piel}" stroke-width="${aw}" stroke-linecap="round"/>`;
+    s += `<circle cx="${p2[0]}" cy="${p2[1]}" r="${rm}" fill="${C.piel}" ${trazo()}/>`;
+    s += `<path d="M${p2[0] - rm * 0.5} ${p2[1] + rm * 0.2} v${rm * 0.6} M${p2[0]} ${p2[1] + rm * 0.3} v${rm * 0.6} M${p2[0] + rm * 0.5} ${p2[1] + rm * 0.2} v${rm * 0.6}" ${trazo('fill="none"', 2)}/>`;
+  }
+  // Tiras de la musculosa sobre los hombros (encima de los brazos)
+  for (const k of [-1, 1]) s += `<path d="M${cx + k * sh * 0.42} 252 L${cx + k * sh * 0.82} 254 L${cx + k * sh * 0.86} 266 L${cx + k * sh * 0.5} 268 Z" fill="${C.musculosa}" ${trazo()}/>`;
+
+  // --- Cabeza ---
+  const baja = a === 'cansado' ? 6 : 0;
+  const jw = L(46, 66, f) + lleno * 6, cb = L(250, 264, f) + baja;
+  let h = '';
+  if (f > 0.2) h += `<path d="M${cx - jw * 0.62} ${cb - 8} Q${cx} ${cb + 20 * f} ${cx + jw * 0.62} ${cb - 8} Z" fill="${C.piel}" ${trazo()}/>`;    // papada
+  for (const k of [-1, 1]) h += `<ellipse cx="${cx + k * 47}" cy="${182 + baja}" rx="10" ry="14" fill="${C.piel}" ${trazo()}/><path d="M${cx + k * 49} ${176 + baja} q${-k * 6} 6 0 12" fill="none" ${trazo('', 2.5)}/>`;
+  h += `<path d="M${cx - 46} ${198 + baja} C${cx - 50} ${140 + baja} ${cx - 48} ${98 + baja} ${cx} ${96 + baja} C${cx + 48} ${98 + baja} ${cx + 50} ${140 + baja} ${cx + 46} ${198 + baja}
+        C${cx + jw} ${214 + baja} ${cx + jw * 0.92} ${cb - 6} ${cx} ${cb} C${cx - jw * 0.92} ${cb - 6} ${cx - jw} ${214 + baja} ${cx - 46} ${198 + baja} Z" fill="${C.piel}" ${trazo()}/>`;
+  // Pelo: costados en zigzag y peinado de tres pelos cruzados
+  for (const k of [-1, 1]) h += `<path d="M${cx + k * 46} ${146 + baja} l${k * 8} 7 l${-k * 5} 6 l${k * 8} 7 l${-k * 5} 6 l${k * 7} 8 l${-k * 12} 4 Z" fill="${C.pelo}" ${trazo('', 2)}/>`;
+  h += `<path d="M${cx - 30} ${110 + baja} Q${cx} ${92 + baja} ${cx + 28} ${106 + baja} M${cx - 26} ${116 + baja} Q${cx + 2} ${100 + baja} ${cx + 30} ${114 + baja} M${cx - 20} ${122 + baja} Q${cx + 4} ${108 + baja} ${cx + 32} ${122 + baja}" fill="none" stroke="${C.pelo}" stroke-width="2.5" stroke-linecap="round"/>`;
+  // Cachetes colorados (entrenó, festeja, se pasó)
+  if (a === 'entreno' || a === 'festeja' || lleno) for (const k of [-1, 1]) h += `<ellipse cx="${cx + k * 36}" cy="${214 + baja}" rx="11" ry="7" fill="${C.rubor}" opacity=".7"/>`;
+  // Bigote, nariz y ojos
+  h += `<path d="M${cx - 38} ${215 + baja} C${cx - 32} ${198 + baja} ${cx - 8} ${196 + baja} ${cx + 4} ${202 + baja} C${cx + 16} ${196 + baja} ${cx + 40} ${198 + baja} ${cx + 46} ${215 + baja}
+        C${cx + 32} ${212 + baja} ${cx + 26} ${222 + baja} ${cx + 14} ${215 + baja} C${cx + 6} ${223 + baja} ${cx - 4} ${223 + baja} ${cx - 10} ${215 + baja} C${cx - 18} ${222 + baja} ${cx - 30} ${218 + baja} ${cx - 38} ${215 + baja} Z" fill="${C.bigote}" ${trazo('', 2.5)}/>`;
+  h += `<path d="M${cx - 6} ${168 + baja} C${cx - 9} ${192 + baja} ${cx} ${206 + baja} ${cx + 13} ${202 + baja} C${cx + 25} ${198 + baja} ${cx + 22} ${176 + baja} ${cx + 13} ${168 + baja}" fill="${C.piel}" ${trazo()}/>`;
+  const ojo = (x, y, px, py) => `<circle cx="${x}" cy="${y}" r="21" fill="#fff" ${trazo()}/><circle cx="${x + px}" cy="${y + py}" r="3.8" fill="${C.linea}"/>`;
+  const mira = a === 'festeja' ? [0, -9] : a === 'cansado' ? [1, 5] : [3, 1];
+  h += ojo(cx - 20, 156 + baja, mira[0], mira[1]) + ojo(cx + 23, 158 + baja, mira[0], mira[1]);
+  // Párpados: medio cerrados si está cansado; el parpadeo los cierra del todo
+  // Párpado: tapa el ojo desde arriba hasta `hasta` px, recortado al círculo del ojo
+  let nTapa = 0;
+  const tapa = (x, y, hasta) => { const id = `tapa${++nTapa}`; return `<clipPath id="${id}"><circle cx="${x}" cy="${y}" r="21"/></clipPath>
+      <rect x="${x - 23}" y="${y - 23}" width="46" height="${hasta}" fill="${C.piel}" clip-path="url(#${id})"/>
+      <path d="M${x - 21} ${y - 23 + hasta} L${x + 21} ${y - 23 + hasta}" ${trazo(`clip-path="url(#${id})"`)}/>
+      <circle cx="${x}" cy="${y}" r="21" fill="none" ${trazo()}/>`; };
+  if (a === 'cansado') {
+    h += tapa(cx - 20, 156 + baja, 24) + tapa(cx + 23, 158 + baja, 24);
+    h += `<path d="M${cx - 34} ${182 + baja} q14 7 26 0 M${cx + 9} ${184 + baja} q14 7 26 0" fill="none" ${trazo('', 2)}/>`;
+  }
+  h += `<g id="parpadeo" visibility="hidden">${tapa(cx - 20, 156 + baja, 46)}${tapa(cx + 23, 158 + baja, 46)}</g>`;
+  // Cejas
+  const cejas = { contento: [-4, 0], lleno: [-10, 6], cansado: [2, -6], entreno: [4, -10], festeja: [-12, 4] }[a];
+  for (const [k, x] of [[-1, cx - 20], [1, cx + 23]]) {
+    const yi = 128 + baja + cejas[0], inc = cejas[1] * -k;
+    h += `<path d="M${x - 15} ${yi + inc} Q${x} ${yi - 6} ${x + 15} ${yi - inc}" fill="none" stroke="${C.pelo}" stroke-width="6" stroke-linecap="round"/>`;
+  }
+  // Boca
+  if (a === 'festeja') {
+    h += `<path d="M${cx - 24} ${226 + baja} Q${cx + 2} ${266 + baja} ${cx + 28} ${226 + baja} Q${cx + 2} ${232 + baja} ${cx - 24} ${226 + baja} Z" fill="${C.boca}" ${trazo()}/>`;
+    h += `<ellipse cx="${cx + 2}" cy="${246 + baja}" rx="11" ry="6" fill="${C.lengua}"/>`;
+  } else if (lleno) {
+    h += `<path d="M${cx - 18} ${232} q6 -5 12 0 q6 5 12 0 q6 -5 12 0" fill="none" ${trazo()}/>`;
+  } else {
+    const curva = { contento: 12, cansado: -3, entreno: 16 }[a];
+    h += `<path d="M${cx - 20} ${229 + baja} Q${cx + 2} ${229 + baja + curva} ${cx + 24} ${228 + baja}" fill="none" ${trazo()}/>`;
+  }
+  // Extras: vincha y gotas (entrenó), globo (se pasó), confeti (festeja)
+  if (a === 'entreno') {
+    h += `<path d="M${cx - 49} ${128} Q${cx} ${116} ${cx + 49} ${128} L${cx + 50} ${142} Q${cx} ${130} ${cx - 50} ${142} Z" fill="${C.vincha}" ${trazo()}/>`;
+    h += `<path d="M${cx + 50} 134 l18 -8 l-4 14 l14 4" fill="${C.vincha}" ${trazo()}/>`;
+    for (const [x, y, d] of [[cx + 42, 150, 0], [cx - 46, 160, .5], [cx + 50, 196, 1]])
+      h += `<path class="gota" style="animation-delay:${d}s" d="M${x} ${y} q-6 10 0 13 q6 -3 0 -13 z" fill="${C.gota}" ${trazo('', 2)}/>`;
+  }
+  if (lleno) h += `<g><path d="M${cx + 62} 140 h66 a12 12 0 0 1 12 12 v20 a12 12 0 0 1 -12 12 h-48 l-12 12 l2 -12 h-8 a12 12 0 0 1 -12 -12 v-20 a12 12 0 0 1 12 -12z" fill="#fff" ${trazo()}/>
+      <text x="${cx + 96}" y="174" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="700" font-size="20" fill="${C.linea}">¡Uf!</text></g>`;
+  if (a === 'festeja') {
+    const colores = ['#e0412f', '#2e7fd8', '#fed90f', '#3cbf6a'];
+    h += `<g class="confeti">${[[90, 70], [140, 40], [260, 50], [310, 80], [70, 130], [330, 140]].map(([x, y], i) =>
+      `<rect x="${x}" y="${y}" width="10" height="6" rx="2" fill="${colores[i % 4]}" style="animation-delay:${i * 0.2}s" transform="rotate(${i * 37} ${x} ${y})"/>`).join('')}</g>`;
+  }
+  return s + h;
+}
+
+// Fondo: nubes planas
+document.getElementById('fondo').innerHTML = [[60, 80, 1], [300, 50, 0.8], [330, 190, 0.6]].map(([x, y, k]) =>
+  `<g transform="translate(${x} ${y}) scale(${k})" fill="#fff" opacity=".95"><ellipse cx="0" cy="12" rx="44" ry="14"/><circle cx="-16" cy="2" r="16"/><circle cx="10" cy="-4" r="22"/><circle cx="30" cy="6" r="14"/></g>`).join('');
+
+// --- Estado y controles ---
+const ETAPAS = [[20, 'Muy gordo'], [40, 'Gordo'], [60, 'A mitad de camino'], [80, 'Casi en la meta'], [101, 'En su meta']];
+const KG_INICIO = 98, KG_META = 78;
+const tano = document.getElementById('tano');
+const deslizador = document.getElementById('progreso');
+let animo = 'contento';
+let fActual = 1, fObjetivo = 1;
+
+function pintar() {
+  tano.innerHTML = dibujar(fActual, animo);
+  tano.setAttribute('class', animo);
+}
+function alMover() {
+  const p = Number(deslizador.value);
+  fObjetivo = 1 - p / 100;
+  document.getElementById('etapa').textContent = ETAPAS.find(([hasta]) => p < hasta)[1];
+  const kg = KG_INICIO - (KG_INICIO - KG_META) * p / 100;
+  document.getElementById('kilos').textContent = `${kg.toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kg`;
+  deslizador.setAttribute('aria-valuetext', `${p} %, ${kg.toFixed(1)} kilos`);
+  document.getElementById('dibujo-t').textContent = `El Tano, ${document.getElementById('etapa').textContent.toLowerCase()}, ${animoTexto()}`;
+}
+const animoTexto = () => ({ contento: 'contento', lleno: 'se pasó de comida', cansado: 'cansado', entreno: 'entrenó', festeja: 'festejando' })[animo];
+deslizador.addEventListener('input', alMover);
+document.getElementById('animos').addEventListener('click', e => {
+  const b = e.target.closest('[data-animo]'); if (!b) return;
+  animo = b.dataset.animo;
+  document.querySelectorAll('[data-animo]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  alMover(); pintar();
+});
+
+// El cuerpo cambia de a poco hasta el valor elegido; parpadea cada tanto.
+const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let proximo = performance.now() + 2500, cerradoHasta = 0;
+function cuadro(t) {
+  if (Math.abs(fObjetivo - fActual) > 0.002) { fActual += (fObjetivo - fActual) * (quieto ? 1 : 0.15); pintar(); }
+  if (!quieto && animo !== 'festeja' && t > proximo) { cerradoHasta = t + 130; proximo = t + 2500 + Math.random() * 3000; }
+  const p = document.getElementById('parpadeo');
+  if (p) p.setAttribute('visibility', t < cerradoHasta ? 'visible' : 'hidden');
+  requestAnimationFrame(cuadro);
+}
+alMover(); pintar(); requestAnimationFrame(cuadro);
+</script>

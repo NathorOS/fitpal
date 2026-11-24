@@ -1,0 +1,216 @@
+<title>Pedidos para Gemini</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+  /* Un solo look, a propósito: cuarto de noche iluminado por la tele. Lista de pasos en una columna, tarjetas por imagen. */
+  :root {
+    --fondo: #1b2130; --tarjeta: #252c3d; --borde: #39415a; --texto: #efe6d0; --suave: #aaa18b;
+    --mostaza: #f2b61b; --sobre-mostaza: #1b2130; --hecho: #5fbf7a;
+    --display: 'Fredoka', ui-rounded, system-ui, sans-serif; --cuerpo: 'Nunito Sans', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+    color-scheme: dark;
+  }
+  body { background: var(--fondo); color: var(--texto); font: 400 16px/1.55 var(--cuerpo); }
+  .pagina { max-width: 760px; margin: 0 auto; padding-block: 28px 64px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    display: grid; gap: 28px; }
+  h1 { font: 700 34px/1.1 var(--display); margin: 0; text-wrap: balance; }
+  h2 { font: 600 22px/1.2 var(--display); margin: 0; text-wrap: balance; }
+  h3 { font: 600 17px/1.3 var(--display); margin: 0; }
+  p { margin: 0; }
+  .intro { display: grid; gap: 12px; }
+  .intro p { color: var(--suave); max-width: 62ch; }
+  .avance { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--fondo); padding-block: 10px;
+    display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--borde); }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--fondo); }
+  .avance b { font: 600 16px/1 var(--display); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .barra { flex: 1; height: 10px; border-radius: 99px; background: var(--tarjeta); overflow: hidden; }
+  .barra i { display: block; height: 100%; width: 0; background: var(--mostaza); transition: width .3s; }
+  .seccion { display: grid; gap: 12px; }
+  .seccion > header { display: grid; gap: 4px; }
+  .seccion > header p { color: var(--suave); }
+  .paso { font: 800 12px/1 var(--cuerpo); text-transform: uppercase; letter-spacing: 1px; color: var(--mostaza); }
+  .lista { display: grid; gap: 10px; }
+  .tarjeta { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 14px; padding: 14px; display: grid; gap: 10px; min-width: 0; }
+  .tarjeta.hecha { border-color: var(--hecho); }
+  .tarjeta.hecha .pedido { opacity: .55; }
+  .fila { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .archivo { font: 500 13px/1 var(--mono); color: var(--mostaza); background: rgba(242, 182, 27, .12); padding: 5px 8px; border-radius: 6px; }
+  .num { color: var(--mostaza); font-variant-numeric: tabular-nums; }
+  .opcional { font: 800 11px/1 var(--cuerpo); text-transform: uppercase; letter-spacing: .8px; color: var(--suave); border: 1px solid var(--borde); padding: 4px 7px; border-radius: 99px; }
+  .pedido { font: 400 14px/1.55 var(--cuerpo); white-space: pre-wrap; background: var(--fondo); border-radius: 10px; padding: 12px; margin: 0; overflow-wrap: anywhere; }
+  .acciones { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  button.copiar { font: 600 15px/1 var(--display); background: var(--mostaza); color: var(--sobre-mostaza); border: 0; border-radius: 99px; padding: 11px 16px; cursor: pointer; min-height: 44px; }
+  button.copiar:active { transform: translateY(1px); }
+  label.marca { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; min-height: 44px; }
+  label.marca input { width: 22px; height: 22px; accent-color: var(--hecho); }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--mostaza); outline-offset: 2px; }
+  .consejos { background: var(--tarjeta); border: 1px dashed var(--borde); border-radius: 14px; padding: 16px; display: grid; gap: 10px; }
+  .consejos ul, .pasos-previos { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+  code { font: 500 13px/1 var(--mono); color: var(--mostaza); }
+  .aviso { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+    background: var(--texto); color: var(--fondo); font-weight: 800; padding: 10px 16px; border-radius: 99px; }
+</style>
+
+<main class="pagina">
+  <section class="intro">
+    <h1>Pedidos para Gemini</h1>
+    <p>Son 31 imágenes: la ficha, el personaje en 3 etapas de peso con 5 poses cada una, el cuarto en 3 estados, 3 hojas de objetos sueltos y la versión limpia de las poses de días buenos. El parpadeo no hace falta: lo dibujo yo. Con eso la app arma la escena según lo que hagas cada día.</p>
+  </section>
+
+  <div class="avance" aria-live="polite"><b id="cuenta">0 de 31 hechas</b><div class="barra" aria-hidden="true"><i id="relleno"></i></div></div>
+
+  <section class="seccion">
+    <header><span class="paso">Antes de empezar</span><h2>Preparar el chat</h2></header>
+    <ol class="pasos-previos">
+      <li>Entrá a <b>gemini.google.com</b> y abrí un chat nuevo. Si te deja elegir modelo o herramienta, elegí la de <b>crear imágenes</b>.</li>
+      <li><b>No subas tu imagen del sillón:</b> tiene el escudo de Boca y la cara de Maradona, y lo más probable es que Gemini la rechace por eso. Los pedidos describen todo con palabras; la ficha del paso 1 pasa a ser la referencia de lo demás.</li>
+      <li>Hacé <b>todas</b> las imágenes en ese mismo chat y en el orden de esta página: así Gemini mantiene la misma cara.</li>
+      <li><b>La camiseta va verde chillón a propósito:</b> la app la pinta después con los colores del equipo que elijas (River, Boca o al azar). Que no tenga franjas, números ni manchas.</li>
+      <li><b>Mandame primero la ficha</b> (paso 1) y esperá mi OK: pruebo que la camiseta se pinte bien antes de que hagas las otras 23.</li>
+      <li>Descargá cada imagen en máxima calidad y renombrala como dice la etiqueta amarilla de cada tarjeta.</li>
+      <li>Subilas a tu Drive, a una carpeta <b>NATHOR FIT › Personaje</b>, y avisame: yo las bajo, les saco el fondo y las meto en la app.</li>
+    </ol>
+  </section>
+
+  <div id="secciones"></div>
+
+  <section class="consejos">
+    <h2>Si algo sale mal</h2>
+    <ul>
+      <li><b>Dice que no puede “por intereses de proveedores de contenido de terceros”:</b> no nombres series, personajes, equipos ni marcas, y no subas imágenes que los tengan. Si igual lo rechaza, abrí un chat nuevo y empezá de nuevo por la ficha.</li>
+      <li><b>Todos los pedidos editan una imagen anterior</b> (dice cuál al principio). Si Gemini ya no la tiene presente, subí ese archivo antes de pegar el pedido.</li>
+      <li><b>Rechaza una imagen nueva pero las anteriores salieron:</b> subí la imagen anterior más parecida (por ejemplo <code>e3-contento.png</code>) y pedile que la <b>edite</b> cambiando solo lo necesario. Editar algo que ya aceptó casi siempre pasa.</li>
+      <li><b>Rechazó una imagen que antes salió parecida:</b> a veces es solo mala suerte. Probá “intentá de nuevo” una o dos veces antes de cambiar el pedido.</li>
+      <li><b>Escenas muy conocidas de series</b> (un gordo amarillo en el sillón frente a la tele, por ejemplo) las frena aunque no las nombres: por eso la pose de fiaca es en una silla de plástico con el celular.</li>
+      <li><b>Salió otro personaje</b> (otra cara, otra piel, otro trazo): no sirve. Volvé a pedirlo subiendo la imagen original en el mismo mensaje y agregando “no lo redibujes, cambiá solo lo que te pido”.</li>
+      <li><b>Le cambió la cara:</b> pedile “Mantené exactamente la misma cara que en la ficha del personaje” y que la haga de nuevo.</li>
+      <li><b>No usó el fondo magenta:</b> repetile “el fondo tiene que ser magenta puro, liso, sin sombras”. Yo después saco ese color, por eso tiene que ser parejo.</li>
+      <li><b>Agregó logos o letras:</b> pedile “sin escudos, sin marcas y sin textos”.</li>
+      <li><b>La camiseta no salió verde chillón parejo</b> (o le puso franjas o manchas): pedile “la camiseta tiene que ser verde chillón #00FF00 lisa, sin franjas, sin números y sin manchas”.</li>
+      <li><b>Te frenó por el límite del día:</b> seguí al día siguiente en el mismo chat.</li>
+      <li>No hace falta que salga perfecta: los detalles chicos no importan. Lo importante es que la cara, la ropa y el estilo sean siempre los mismos.</li>
+    </ul>
+  </section>
+</main>
+<p class="aviso" id="aviso" role="status" hidden></p>
+
+<script>
+const ESTILO = 'Estilo: ilustración original de dibujo animado satírico para adultos, con contorno negro grueso, piel de color amarillo intenso, ojos grandes, redondos y saltones con pupilas chiquitas, nariz grande y redondeada, colores algo apagados, sombras suaves, texturas de mugre y detalles desprolijos.';
+const PERSONAJE = 'El personaje: hombre argentino de unos 40 años, cara redonda, pelo negro largo y desordenado, barba de varios días, ojeras marcadas, expresión de cansado. Ropa: camiseta de fútbol de un solo color VERDE CHILLÓN puro (#00FF00), lisa, SIN franjas, SIN número, SIN escudo, SIN letras y SIN manchas (después la pintamos con los colores de cada equipo; las arrugas y sombras de la camiseta, en verdes más oscuros); jogging azul oscuro con manchas; zapatillas viejas.';
+const ENCUADRE = 'Formato vertical 3:4. Cuerpo entero, de frente, centrado, ocupando el 85 % del alto de la imagen, con los pies cerca del borde de abajo. Mismo tamaño y misma escala que las otras imágenes del personaje.';
+const FONDO = 'Fondo de un solo color magenta puro (#FF00FF), plano, sin sombras, sin piso, sin degradé y sin ningún otro objeto. Que el magenta no aparezca en el personaje.';
+
+const ETAPAS = [
+  { n: 1, titulo: 'Etapa 1: muy gordo', cuerpo: 'Está muy gordo, igual que en la ficha: panza enorme que desborda la camiseta, papada, brazos gruesos.' },
+  { n: 3, titulo: 'Etapa 3: a mitad de camino', cuerpo: 'Bajó bastante de peso: todavía tiene panza pero mucho más chica, la camiseta le queda bien, menos papada, la cara un poco más fina y la barba más corta. Sigue siendo claramente el mismo hombre.' },
+  { n: 5, titulo: 'Etapa 5: en su meta', desde: 3, cuerpo: 'Bajó un poco más de peso que en la imagen anterior: sigue siendo rellenito y con la cara redonda, pero la panza ya es chica y casi no sale de la camiseta, y los brazos están más firmes. Todo lo demás exactamente igual: mismo hombre, misma cara, mismo pelo largo, misma piel, mismo trazo.' },
+];
+const POSES = [
+  { id: 'contento', titulo: 'Contento', pose: 'De pie, sonriendo, con el pulgar arriba.' },
+  { id: 'fiaca', titulo: 'De fiaca', desdeContento: true, pose: 'Sentado y desparramado en una silla de plástico blanca de jardín (dibujá también la silla, entera), encorvado, mirando el celular con cara de fiaca y aburrimiento.' },
+  { id: 'empachado', titulo: 'Se pasó de comida', pose: 'De pie, agarrándose la panza con las dos manos, cara de empachado, la camiseta se le sube y le asoma la panza, con migas en la ropa.' },
+  { id: 'entrenando', titulo: 'Entrenando', pose: 'De pie, levantando una mancuerna con un brazo, transpirando mucho, con una vincha roja y cara de esfuerzo.' },
+  { id: 'festejando', titulo: 'Festejando', pose: 'Saltando con los dos brazos arriba, gritando de alegría, con la boca abierta.' },
+];
+
+const secciones = [
+  { paso: 'Paso 1', titulo: 'La ficha del personaje', texto: 'Es la base de todo: de acá Gemini toma la cara para el resto.', items: [{
+    archivo: 'personaje-ficha.png', titulo: 'Ficha de pie, cara neutra',
+    pedido: `Creá un personaje original de dibujo animado, solo, de pie, con los brazos a los costados y cara neutra.\n\n${PERSONAJE}\nEstá muy gordo: panza enorme que desborda la camiseta, papada y brazos gruesos.\n\n${ESTILO}\n${ENCUADRE}\n${FONDO}` }] },
+  // Todo se hace EDITANDO una imagen que Gemini ya aceptó: si dibuja de cero, su filtro de parecidos lo frena seguido.
+  ...ETAPAS.map((e, i) => {
+    const anterior = ETAPAS[i - 1];
+    const igual = 'Mantené igual la cara, la ropa con la camiseta verde chillón lisa, el estilo de dibujo, el encuadre y el fondo magenta.';
+    return {
+      paso: `Paso ${i + 2}`, titulo: e.titulo,
+      texto: i === 0
+        ? 'Primero editás la ficha para que quede contento; las otras poses salen de editar esa imagen.'
+        : `Primero editás e${anterior.n}-contento para cambiarle el cuerpo; las otras poses salen de editar la nueva.`,
+      items: POSES.map(p => {
+        let pedido;
+        if (p.id === 'contento' && i === 0) pedido = `Editá la ficha del personaje que hiciste antes (personaje-ficha). ${igual} Mantené igual el cuerpo. Lo único que cambia es la pose:\n${p.pose}`;
+        else if (p.id === 'contento') pedido = `Editá la imagen e${anterior.n}-contento que hiciste antes. ${igual} Mantené igual la pose. Lo único que cambia es el cuerpo:\n${e.cuerpo}`;
+        else pedido = `Editá la imagen e${e.n}-contento que hiciste antes. ${igual} Mantené igual el cuerpo. Lo único que cambia es la pose:\n${p.pose}`;
+        return { archivo: `e${e.n}-${p.id}.png`, titulo: p.titulo, pedido };
+      }),
+    };
+  }),
+  { paso: 'Paso 5', titulo: 'El cuarto', texto: 'Tres versiones del mismo cuarto, sin el personaje y sin el sillón: el centro queda libre para ponerlo encima.', items: [
+    ['desastre', 'Hecho un desastre', 'Hecho un desastre: botellas vacías, cajas de pizza y de alfajores, ropa tirada, un cenicero lleno, paredes con manchas y la luz apagada.'],
+    ['normal', 'Medio ordenado', 'Medio ordenado: algunas cosas tiradas pero se ve el piso, la ventana abierta y entra un poco de luz.'],
+    ['ordenado', 'Limpio y ordenado', 'Limpio y ordenado: luminoso, con sol entrando por la ventana, una planta, unas mancuernas en un rincón y un mate con termo sobre la mesa.'],
+  ].map(([id, titulo, estado]) => ({
+    archivo: `cuarto-${id}.png`, titulo,
+    pedido: `Dibujá el cuarto donde vive este personaje, en el mismo estilo de dibujo: un living-dormitorio argentino humilde, paredes con humedad, una ventana con cortinas azules, una radio vieja sobre un mueble, una mesa ratona, una silla de plástico a un costado, un escritorio con una computadora vieja y un estante con un mate. Visto de frente, formato horizontal 4:3, SIN ninguna persona: dejá libre el centro del piso, porque ahí va a ir el personaje.\nEstado del cuarto: ${estado}\nSin logos, marcas ni caras de personas reales: la bandera de fútbol de la pared es de un solo color VERDE CHILLÓN puro (#00FF00), lisa y sin escudo (después la pintamos con los colores del equipo), el póster es de un jugador genérico, y las botellas y cajas tienen etiquetas inventadas.\n\n${ESTILO}`,
+  })) },
+  { paso: 'Paso 6', titulo: 'Objetos sueltos', texto: 'Tres hojas con 9 cosas cada una. Yo las recorto una por una, por eso tienen que estar separadas. Las manchas se pegan encima del personaje: más o menos según cómo venís.', items: [
+    ['vicios', 'Vicios', 'una botella de cerveza, una botella de fernet, un vaso de vino, una caja de alfajores, una caja de pizza abierta, un choripán, un cenicero con colillas, un paquete de papas fritas y una lata de gaseosa'],
+    ['sanos', 'Cosas sanas', 'una botella de agua, un mate con termo, una mancuerna, unas zapatillas de correr, un plato de ensalada, una manzana, una balanza de baño, una toalla y una banana'],
+    ['mugre', 'Manchas y suciedad', 'una mancha de salsa de tomate, una mancha de grasa, una mancha de café, un puñado de migas, tres moscas, unas líneas onduladas verdes de mal olor, una mancha de transpiración, una salpicadura de mostaza y una mancha de barro (todas planas, como para pegar encima de la ropa, ninguna de color magenta)'],
+  ].map(([id, titulo, cosas]) => ({
+    archivo: `objetos-${id}.png`, titulo,
+    pedido: `Hoja de objetos sueltos, formato cuadrado 1:1, en una grilla de 3 por 3: ${cosas}.\nCada objeto bien separado de los demás, sin tocarse ni superponerse, todos más o menos del mismo tamaño. Etiquetas inventadas, sin marcas reales.\n\n${ESTILO}\n${FONDO}`,
+  })) },
+  { paso: 'Paso 7', titulo: 'Versión limpia', texto: 'Las poses de días buenos, pero sin mugre: se usan cuando venís haciendo las cosas bien. Subí la imagen original EN EL MISMO MENSAJE que el pedido: si no, Gemini la redibuja y sale otro personaje.', items:
+    ETAPAS.flatMap(e => ['contento', 'entrenando', 'festejando'].map(id => ({
+      archivo: `e${e.n}-${id}-limpio.png`, titulo: `Etapa ${e.n}: ${POSES.find(p => p.id === id).titulo.toLowerCase()}, limpio`,
+      pedido: `(Subí la imagen e${e.n}-${id} junto con este mensaje.)\nEditá esta imagen cambiando lo mínimo posible. Mantené EXACTAMENTE el mismo dibujo: misma cara, misma piel amarilla, mismo pelo largo, mismo cuerpo, misma pose, mismo trazo, mismos colores, mismo encuadre, mismo fondo magenta y la camiseta verde chillón. Lo único que cambia: sacale todas las manchas de mugre de la piel, de la camiseta, del jogging y de las zapatillas, y dejale el pelo un poco más prolijo. No lo redibujes.`,
+    }))) },
+];
+
+// --- Pintar ---
+const total = secciones.reduce((a, s) => a + s.items.length, 0);
+let n = 0; secciones.forEach(s => s.items.forEach(it => { it.num = ++n; }));
+const CLAVE = 'pedidos-gemini-hechas';
+let hechas = new Set();
+try { hechas = new Set(JSON.parse(localStorage.getItem(CLAVE) || '[]')); } catch { /* sin almacenamiento */ }
+// Olvida las que ya no están en la guía (p. ej. las de ojos cerrados, que se quitaron)
+const vigentes = new Set(secciones.flatMap(s => s.items.map(i => i.archivo)));
+hechas = new Set([...hechas].filter(a => vigentes.has(a)));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+document.getElementById('secciones').innerHTML = secciones.map(s => `
+  <section class="seccion">
+    <header><span class="paso">${s.paso}</span><h2>${esc(s.titulo)}</h2><p>${esc(s.texto)}</p></header>
+    <div class="lista">${s.items.map(it => `
+      <article class="tarjeta ${hechas.has(it.archivo) ? 'hecha' : ''}" data-archivo="${it.archivo}">
+        <div class="fila"><h3><span class="num">${it.num}.</span> ${esc(it.titulo)}</h3><span class="archivo">${it.archivo}</span></div>
+        ${it.opcional ? '<span class="opcional">Opcional: sirve para que parpadee</span>' : ''}
+        <pre class="pedido">${esc(it.pedido)}</pre>
+        <div class="acciones">
+          <button class="copiar" type="button">Copiar pedido</button>
+          <label class="marca"><input type="checkbox" id="hecha-${it.archivo}" ${hechas.has(it.archivo) ? 'checked' : ''}> Hecha</label>
+        </div>
+      </article>`).join('')}</div>
+  </section>`).join('');
+
+function actualizar() {
+  document.getElementById('cuenta').textContent = `${hechas.size} de ${total} hechas`;
+  document.getElementById('relleno').style.width = `${(hechas.size / total) * 100}%`;
+}
+actualizar();
+
+const aviso = document.getElementById('aviso');
+let reloj;
+function avisar(t) { aviso.textContent = t; aviso.hidden = false; clearTimeout(reloj); reloj = setTimeout(() => { aviso.hidden = true; }, 1800); }
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button.copiar'); if (!b) return;
+  const pre = b.closest('.tarjeta').querySelector('.pedido');
+  navigator.clipboard.writeText(pre.textContent).then(() => avisar('Copiado. Pegalo en Gemini.')).catch(() => {
+    const r = document.createRange(); r.selectNodeContents(pre);
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    avisar('Texto seleccionado: copialo a mano.');
+  });
+});
+document.addEventListener('change', e => {
+  if (!e.target.matches('label.marca input')) return;
+  const t = e.target.closest('.tarjeta'), a = t.dataset.archivo;
+  e.target.checked ? hechas.add(a) : hechas.delete(a);
+  t.classList.toggle('hecha', e.target.checked);
+  try { localStorage.setItem(CLAVE, JSON.stringify([...hechas])); } catch { /* sin almacenamiento */ }
+  actualizar();
+});
+</script>
