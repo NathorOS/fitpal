@@ -236,9 +236,9 @@ Reemplazan a los emojis. Mapeo con lo que ya existe en la app:
 | Hablar | `burbuja-dialogo` con una frase corta, se va a los 4 s | Al abrir Hoy y al anotar algo |
 
 - **Respetar `prefers-reduced-motion`**: sin respiración, sin partículas; solo cambios de imagen.
-- **El personaje habla** (decidido por el dueño), con frases **picantes y bien argentinas** que te empujen a
+- **El personaje habla** (decidido por el dueño), con frases **crudas y bien argentinas** que te empujen a
   hacer las cosas. El banco completo y sus reglas están en [`FRASES.md`](FRASES.md). Reemplaza a `FRASES` de
-  `hoy.js`, que habla "del gatito" y tiene la regla "nunca retan": ahora sí chicanea, pero **nunca del cuerpo**.
+  `hoy.js`, que habla "del gatito" y tiene la regla "nunca retan": ahora bardea, se burla y te dice qué no comer (nunca "no comas").
 
 ---
 
@@ -324,6 +324,6 @@ Ya respondidas:
 
 1. **Equipo:** se elige en el onboarding (y se cambia en Perfil). Ver §4.
 2. **Monedas:** no; sin tienda no sirven. Queda el cofre semanal que da premios para el cuarto. Ver §6.
-3. **Habla:** sí, con frases picantes bien argentinas. Ver [`FRASES.md`](FRASES.md).
+3. **Habla:** sí, con frases crudas bien argentinas: se burla y te dice qué no comer. Ver [`FRASES.md`](FRASES.md).
 4. **Cortes de etapa:** 34 % y 75 %, aprobados.
 5. **Agregado por el dueño:** el cuerpo arranca según el peso real (IMC). Ver §2.1.
