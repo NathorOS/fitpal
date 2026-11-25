@@ -1,8 +1,7 @@
 // Fase 6 — Anotar con IA: sacar una foto o describir la comida (escribiendo o hablando).
 // El resultado no se guarda solo: pasa al carrito de "Agregar comida" para revisarlo y corregirlo.
 // Parámetros: modo=foto|texto · fecha=YYYY-MM-DD
-import { obtener } from '../db.js';
-import { pjHTML } from './pj.js';
+import { ayudanteHTML } from './ayudante.js';
 import { analizar, obtenerClave, prepararFoto } from '../ia.js';
 import { sumar } from '../registro.js';
 
@@ -14,8 +13,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
   contenedor.replaceChildren(c);
   const modo = params.get('modo') === 'texto' ? 'texto' : 'foto';
   const fecha = params.get('fecha');
-  const perfil = await obtener('perfil', 'main');
-  const gato = perfil?.gato?.nombre || 'Tu personaje';
+
   const volver = fecha ? `#/hoy?fecha=${fecha}` : '#/hoy';
   // Si viene de la búsqueda ("no lo encontré"), el texto ya llega escrito.
   const st = { foto: null, texto: params.get('q') ?? '' };
@@ -25,8 +23,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
 
   if (!(await obtenerClave())) {
     c.innerHTML = `<section class="reg">${cabecera(modo === 'foto' ? 'Foto con IA' : 'Describir')}
-      <div class="pregunta"><div>${pjHTML('saluda', { titulo: gato })}</div>
-        <p class="burbuja">Para usar la IA necesito tu clave de Gemini. Es gratis y se carga una sola vez.</p></div>
+      ${ayudanteHTML('chef', 'saludo', { tam: 'grande', texto: 'Para usar la IA necesito tu clave de Gemini. Es gratis y se carga una sola vez.' })}
       <a class="btn" href="#/perfil">Cargar mi clave en Perfil</a>
       <a class="btn btn--secundario" href="#/registrar${fecha ? `?fecha=${fecha}` : ''}">Mientras tanto, buscar a mano</a>
     </section>`;
@@ -39,8 +36,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
       ${cabecera(modo === 'foto' ? 'Foto con IA' : 'Describir tu comida')}
       ${modo === 'foto' ? `
         ${st.foto ? `<img class="ia__foto" src="${st.foto.url}" alt="La foto que elegiste">` : `
-          <div class="pregunta"><div>${pjHTML('feliz', { titulo: gato })}</div>
-            <p class="burbuja">Sacale una foto a tu plato y te digo qué tiene.</p></div>`}
+          ${ayudanteHTML('chef', 'saludo', { tam: 'grande', texto: 'Sacale una foto a tu plato y te digo qué tiene.' })}`}
         <div class="campos-2">
           <label class="btn ${st.foto ? 'btn--secundario' : ''}">📷 ${st.foto ? 'Otra foto' : 'Sacar foto'}
             <input type="file" accept="image/*" capture="environment" data-foto hidden></label>
@@ -49,8 +45,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
         <label class="campo">¿Algo que la foto no muestra? <span class="suave">(opcional)</span>
           <input id="aclaracion" class="campo-texto" maxlength="120" placeholder="Ej.: frito, con 2 cucharadas de aceite" value="${esc(st.texto)}"></label>`
       : `
-        <div class="pregunta"><div>${pjHTML('feliz', { titulo: gato })}</div>
-          <p class="burbuja">Contame qué comiste, como se lo dirías a alguien.</p></div>
+        ${ayudanteHTML('chef', 'saludo', { tam: 'grande', texto: 'Contame qué comiste, como se lo dirías a alguien.' })}
         <label class="campo">Qué comiste
           <textarea id="aclaracion" class="campo-texto campo-texto--area" maxlength="300" placeholder="Ej.: 2 empanadas de carne, una de humita y una coca chica">${esc(st.texto)}</textarea></label>
         ${hayVoz ? '<button class="btn btn--secundario" data-a="voz">🎤 Dictar</button>' : ''}`}
@@ -64,8 +59,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
   function pintarAnalizando() {
     c.innerHTML = `<section class="reg ia__cargando" role="status">
       ${st.foto ? `<div class="ia__escaneo"><img src="${st.foto.url}" alt=""><span></span></div>` : ''}
-      <div class="pregunta"><div>${pjHTML('normal', { titulo: gato })}</div>
-        <p class="burbuja">${modo === 'foto' ? 'Mirando tu comida…' : 'Leyendo lo que comiste…'}</p></div>
+      ${ayudanteHTML('chef', 'pensando', { tam: 'grande', texto: modo === 'foto' ? 'Mirando tu comida… bancame un toque.' : 'Leyendo lo que comiste…' })}
       <p class="ayuda" style="text-align:center">Revisando la base de alimentos…</p>
     </section>`;
   }
@@ -80,7 +74,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
     c.innerHTML = `<section class="reg">
       ${cabecera('Esto encontré')}
       ${st.foto ? `<img class="ia__foto ia__foto--chica" src="${st.foto.url}" alt="Tu foto">` : ''}
-      ${res.comentario ? `<div class="pregunta"><div>${pjHTML('feliz', { titulo: gato })}</div><p class="burbuja">${esc(res.comentario)}</p></div>` : ''}
+      ${res.comentario ? ayudanteHTML('chef', 'consejo', { texto: res.comentario }) : ''}
       <ul class="filas">${res.items.map(it => `<li class="fila"><span class="fila__principal" style="cursor:default">
         <span class="fila__emoji" aria-hidden="true">${it.emoji}</span>
         <span class="fila__texto"><b>${esc(it.nombre)}</b>

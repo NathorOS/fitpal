@@ -17,6 +17,8 @@ import { revisarMeta, aplicarAjuste, posponerAjuste } from '../adaptativo.js';
 import { sugerencias } from '../sugerencias.js';
 import { obtenerClave } from '../ia.js';
 import { consejoGuardado, consejoDelDia } from '../entrenador.js';
+import { ayudanteHTML } from './ayudante.js';
+import { situacionEntrenador, situacionChef } from '../ayudantes.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const num = (n, d = 0) => Number(n).toLocaleString('es-AR', { maximumFractionDigits: d });
@@ -126,6 +128,16 @@ export async function montar(c, params = new URLSearchParams()) {
         <span class="tarjeta--logro__ver" aria-hidden="true">Ver ›</span>
       </a>` : ''}
 
+      ${esHoy ? `<section class="ayudantes" aria-label="Tu equipo">
+        ${ayudanteHTML('entrenador', situacionEntrenador({ minutosActividad: minutosAct, hora: new Date().getHours() }), {
+          href: '#/entrenador', id: 'consejo-coach',
+          texto: conClave ? (consejo ?? 'Pensando qué decirte hoy…') : 'Te armo la rutina, te digo qué cocinar y cómo venís. Tocá para activarlo.',
+        })}
+        ${ayudanteHTML('chef', situacionChef({ kcal: total.kcal, kcalMeta: objetivo, comidasHoy: comidas.length, hora: new Date().getHours() }), {
+          href: '#/entrenador?tab=cocinar', clase: 'ayu--derecha',
+        })}
+      </section>` : ''}
+
       <section class="tarjeta" aria-labelledby="t-kcal">
         <div class="metrica__fila">
           <div>
@@ -163,11 +175,7 @@ export async function montar(c, params = new URLSearchParams()) {
         </div>
       </section>` : ''}
 
-      ${esHoy ? `<a class="tarjeta tarjeta--coach" href="#/entrenador">
-        ${pjHTML('saluda', { titulo: nombrePj })}
-        <span><small>Tu entrenador${conClave ? '' : ' · con IA'}</small>
-          <p id="consejo-coach">${conClave ? esc(consejo ?? 'Pensando qué decirte hoy…') : 'Te arma la rutina, te dice qué cocinar y cómo venís. Tocá para activarlo.'}</p></span>
-      </a>` : ''}
+
 
       ${ideas.length ? `<section class="tarjeta" aria-labelledby="t-ideas">
         <h2 class="metrica__titulo" id="t-ideas">Ideas para cerrar el día</h2>

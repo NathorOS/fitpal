@@ -1,6 +1,7 @@
 // Fase 4 — Entrenar: elegir equipo y nivel, ver las rutinas y el historial.
-import { obtener, guardar } from '../db.js';
-import { pjHTML } from './pj.js';
+import { obtener, guardar, hoy as fechaHoy } from '../db.js';
+import { ayudanteHTML } from './ayudante.js';
+import { decir } from '../ayudantes.js';
 import { GRUPOS } from '../datos/ejercicios.js';
 import {
   NIVELES, rutinasPara, minutosEstimados, ejercicio, sesionesEntreno, nivelPreferido, guardarNivel,
@@ -15,17 +16,20 @@ export async function montar(contenedor) {
   const perfil = await obtener('perfil', 'main');
   const s = { equipo: perfil?.equipo ?? 'ninguno', nivel: await nivelPreferido(perfil) };
   const historial = (await sesionesEntreno()).slice(0, 5);
+  // del Giudice: si ya entrenaste hoy te aplaude; si no, te apura (una frase por visita)
+  const dicho = decir('entrenador', historial.some(h => h.fecha === fechaHoy()) ? 'entreno' : 'saludo');
 
   function pintar() {
     const rutinas = rutinasPara(s.equipo, s.nivel);
     c.innerHTML = `
       <div class="pila">
-        <div class="retos__cabecera">
-          <div class="retos__gato">${pjHTML('entrenando', { titulo: perfil?.gato?.nombre })}</div>
+        <div class="pila-chica">
           <div>
             <h1 tabindex="-1">Entrenar</h1>
-            <p>Rutinas guiadas con descanso. Lo que quemás se suma a tu día.</p>
+            <p class="suave">Rutinas guiadas con descanso. Lo que quemás se suma a tu día.</p>
           </div>
+          ${ayudanteHTML('entrenador', dicho, { tam: 'grande' })}
+          <a class="btn btn--secundario" href="#/entrenador">✨ Que del Giudice me arme una rutina</a>
         </div>
         <section class="tarjeta">
           <h2 class="metrica__titulo">¿Con qué entrenás?</h2>

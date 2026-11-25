@@ -1,6 +1,7 @@
 // Fase 2 — Registrar una comida: buscar, elegir cantidad, armar la comida y anotarla.
 // Parámetros del hash: fecha=YYYY-MM-DD · modo=rapido|nuevo · tab=mias · editar=<id de comida>
 import { hoy as fechaHoy } from '../db.js';
+import { ayudanteHTML } from './ayudante.js';
 import { metaVigente } from '../objetivo.js';
 import {
   MOMENTOS, momentoPorHora, buscar, calcularItem, itemRapido, sumar, textoCantidad,
@@ -60,6 +61,7 @@ export async function montar(c, params = new URLSearchParams()) {
           <label>Hora <input type="time" id="in-hora" class="campo-texto"></label>
         </div>
       </div>
+      ${!estado.id && !desdeIA ? ayudanteHTML('chef', Math.random() < 0.5 ? 'saludo' : 'consejo', { tam: 'chico' }) : ''}
       ${desdeIA ? '<p class="aviso-ia">✨ Revisá lo que encontró la IA: tocá cada alimento para corregir la cantidad o las calorías, o sacalo con ✕.</p>' : ''}
       <div class="reg__buscar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>

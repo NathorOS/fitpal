@@ -1,7 +1,8 @@
 // Fase 4 — Sesión guiada: serie por serie, con descanso en cuenta regresiva y resumen al final.
 // Parámetros: rutina=<id> · equipo · nivel (rutina=ia: la que armó el entrenador con IA, guardada en config)
 import { obtener, hoy as fechaHoy } from '../db.js';
-import { pjHTML } from './pj.js';
+import { ayudanteHTML } from './ayudante.js';
+import { decir } from '../ayudantes.js';
 import { GRUPOS } from '../datos/ejercicios.js';
 import { pesoActual } from '../objetivo.js';
 import { factorActividad } from '../actividad.js';
@@ -29,6 +30,9 @@ export async function montar(contenedor, params = new URLSearchParams()) {
   const registro = rutina.ejercicios.map(x => ({ id: x.id, objetivo: x.objetivo, series: [] }));
   const st = { i: 0, serie: 1, fase: 'trabajo', restan: 0, corriendo: false, valor: null, kg: null, guardado: false };
   let timer = null;
+  // Lo que dice del Giudice: una frase por serie/descanso, que no cambia si la pantalla se vuelve a pintar
+  const dichos = {};
+  const dicho = (clave, sit) => (dichos[clave] ??= decir('entrenador', sit));
 
   const actual = () => rutina.ejercicios[st.i];
   const hechas = () => registro.reduce((a, r) => a + r.series.length, 0);
@@ -72,6 +76,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
           <span class="chip">${GRUPOS[e.grupo]}</span>
           <p class="sesion__indic">${esc(e.indicaciones)}</p>
         </div>
+        ${ayudanteHTML('entrenador', dicho(`serie|${st.i}|${st.serie}`, 'serie'), { tam: 'chico' })}
         <p class="sesion__serie">Serie ${st.serie} de ${x.series}</p>
         ${st.sug.subio && st.serie === 1 ? `<p class="sesion__sube">⬆️ La vez pasada completaste todo: hoy subimos un poco.</p>` : ''}
         ${tiempo ? `
@@ -148,8 +153,8 @@ export async function montar(contenedor, params = new URLSearchParams()) {
     c.innerHTML = `
       <section class="reg sesion sesion--descanso">
         ${cabecera()}
-        <div class="sesion__gato">${pjHTML('entrenando', { titulo: perfil?.gato?.nombre })}</div>
         <h1 tabindex="-1">Descanso</h1>
+        ${ayudanteHTML('entrenador', dicho(`descanso|${st.i}|${st.serie}`, 'descanso'))}
         <div class="sesion__reloj" role="timer" aria-live="off"><span id="cuenta">${mmss(restan)}</span></div>
         <div class="campos-2">
           <button class="btn btn--secundario" data-a="mas15">+15 s</button>
@@ -185,8 +190,8 @@ export async function montar(contenedor, params = new URLSearchParams()) {
     const proximas = hechos.map(r => ({ r, s: sugerir(r.id, r.objetivo, r) })).filter(x => x.s.subio).slice(0, 4);
     c.innerHTML = `
       <section class="reg sesion sesion--fin">
-        <div class="sesion__gato">${pjHTML(hechos.length ? 'festeja' : 'normal', { titulo: perfil?.gato?.nombre })}</div>
         <h1 tabindex="-1">${hechos.length ? '¡Entrenamiento completo!' : 'Lo dejamos para otro día'}</h1>
+        ${ayudanteHTML('entrenador', dicho('fin', hechos.length ? 'fin' : 'abandono'), { tam: 'grande' })}
         ${hechos.length ? `
           <div class="fichas">
             <div class="ficha"><span class="ficha__num">${minutos}</span><span class="ficha__txt">minutos</span></div>
