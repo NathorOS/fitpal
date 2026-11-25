@@ -309,7 +309,7 @@ export function pedidoChat(r, historial, mensaje) {
   return {
     systemInstruction: { parts: [{ text: `${instrucciones(r)}\nEstás chateando: contestá corto (máximo 120 palabras), sin títulos ni markdown.` }] },
     contents: [...previos, { role: 'user', parts: [{ text: corto(mensaje, 1000) }] }],
-    generationConfig: { temperature: 0.8, maxOutputTokens: 700 },
+    generationConfig: { temperature: 0.8, maxOutputTokens: 2048 },
   };
 }
 
@@ -379,6 +379,8 @@ export async function analisisGuardado() {
   return g?.datos ? { ...g.datos, fecha: g.fecha } : null;
 }
 
+export const ESPERA_TRAS_FALLO = 30 * 60e3;
+
 /**
  * Consejo del día para Hoy: se pide una sola vez por día y se guarda (cuida la cuota gratuita).
  * Sin clave o sin internet devuelve null sin error.
@@ -387,13 +389,20 @@ export async function consejoDelDia({ forzar = false } = {}) {
   const { obtenerClave } = await import('./ia.js');
   const guardado = await leerConfig('coach_consejo');
   const hoy = (await db()).hoy();
-  if (!forzar && guardado?.fecha === hoy) return guardado.texto;
+  if (!forzar && guardado?.fecha === hoy && guardado.texto) return guardado.texto;
+  // Si falló hace poco (sin cuota, saturado), no se vuelve a pedir en cada pantalla: cuida la cuota gratuita.
+  if (!forzar && guardado?.fecha === hoy && Date.now() - (guardado.fallo ?? 0) < ESPERA_TRAS_FALLO) return null;
   if (!(await obtenerClave()) || !navigator.onLine) return null;
-  const r = await contexto();
-  const texto = corto(jsonDe(await llamar(pedidoConsejo(r))).consejo, 220);
-  if (!texto) return null;
-  await guardarConfig('coach_consejo', { fecha: hoy, texto });
-  return texto;
+  try {
+    const r = await contexto();
+    const texto = corto(jsonDe(await llamar(pedidoConsejo(r))).consejo, 220);
+    if (!texto) throw new Error('Consejo vacío');
+    await guardarConfig('coach_consejo', { fecha: hoy, texto });
+    return texto;
+  } catch (err) {
+    await guardarConfig('coach_consejo', { fecha: hoy, texto: null, fallo: Date.now() });
+    throw err;
+  }
 }
 export async function consejoGuardado() {
   const g = await leerConfig('coach_consejo');

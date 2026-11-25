@@ -8,6 +8,7 @@ const resp = obj => ({ json: { candidates: [{ content: { parts: [{ text: typeof 
 async function geminiFalso(page) {
   const pedidos = [];
   await page.route('https://generativelanguage.googleapis.com/**', async r => {
+    if (r.request().method() === 'GET') return r.fulfill({ json: { models: [{ name: 'models/gemini-3.8-flash', supportedGenerationMethods: ['generateContent'] }] } });
     const b = r.request().postDataJSON();
     pedidos.push({ url: r.request().url(), headers: r.request().headers(), body: b });
     const t = JSON.stringify(b.contents.at(-1));

@@ -2,7 +2,7 @@
 import { obtener, guardar, exportarTodo, importarTodo, leerRespaldo, borrarTodo, hoy as fechaHoy } from '../db.js';
 import { pjHTML } from './pj.js';
 import { metaVigente, pesoActual } from '../objetivo.js';
-import { obtenerClave, guardarClave, borrarClave, probarClave } from '../ia.js';
+import { obtenerClave, guardarClave, borrarClave, probarClave, medirIA } from '../ia.js';
 import { revisarMeta } from '../adaptativo.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -181,8 +181,12 @@ export async function montar(contenedor) {
       }
     }
     if (b.dataset.a === 'probar') {
-      b.disabled = true; msg('Probando…');
-      try { await probarClave(await obtenerClave()); msg('✅ Funciona.'); } catch (err) { msg(err.message); }
+      b.disabled = true; msg('Probando con una respuesta de verdad…');
+      try {
+        const { modelo, segundos, saltados } = await medirIA(await obtenerClave());
+        msg(`✅ Funciona con ${modelo}: contestó en ${String(segundos).replace('.', ',')} s.`
+          + (saltados.length ? ` Salteé ${saltados.map(x => `${x.modelo} (${x.status === 429 ? 'sin cuota' : x.status === 404 ? 'no existe' : 'saturado'})`).join(', ')}.` : ''));
+      } catch (err) { msg(err.detalle ? `${err.message} Detalle: ${err.detalle}` : err.message); }
       b.disabled = false;
     }
     if (b.dataset.a === 'borrar' && confirm('¿Borrar la clave de Gemini de este teléfono?')) {
