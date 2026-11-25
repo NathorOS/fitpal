@@ -52,7 +52,9 @@ async function navegar() {
   // todavía carga, lo que termine de dibujar tarde queda en un contenedor que ya no está a la vista
   // y no puede tapar a la pantalla nueva.
   const lugar = document.createElement('div');
-  lugar.className = 'pantalla';
+  // "entra": las tarjetas suben una atrás de otra al llegar (no cuando la pantalla se repinta sola)
+  lugar.className = 'pantalla entra';
+  setTimeout(() => lugar.classList.remove('entra'), 1200);
   cont.replaceChildren(lugar);
   for (const clase of new Set(Object.values(COMPLETAS))) document.body.classList.toggle(clase, COMPLETAS[ruta] === clase);
   tabs.hidden = Boolean(COMPLETAS[ruta]);

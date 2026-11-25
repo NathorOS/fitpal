@@ -3,6 +3,7 @@
 import { obtener, hoy as fechaHoy } from '../db.js';
 import { metaVigente, pesoActual } from '../objetivo.js';
 import { pjHTML } from './pj.js';
+import { confeti } from './festejo.js';
 import { ayudanteHTML } from './ayudante.js';
 import { elegirFrase, esPesado } from '../frases.js';
 import { obtenerComida, comidasDelDia, sumar, textoCantidad, MOMENTOS } from '../registro.js';
@@ -112,4 +113,5 @@ export async function montar(c, params = new URLSearchParams()) {
       </div>
     </section>`;
   c.querySelector('h1').focus({ preventScroll: true });
+  if (!chicana && nivel === 'alto') setTimeout(() => confeti(c.querySelector('.resultado__gato'), { cantidad: 28 }), 350);
 }

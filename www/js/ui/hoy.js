@@ -11,7 +11,8 @@ import { elegirFrase } from '../frases.js';
 import { LOGROS } from './logro.js';
 import { MOMENTOS, comidasDelDia, sumar } from '../registro.js';
 import { ayunoEnCurso, progresoAyuno, reloj, metaAyunoPreferida } from '../ayuno.js';
-import { puntajeDelDia, etiquetaPuntaje } from '../puntaje.js';
+import { puntajeDelDia, etiquetaPuntaje, misionesDelDia } from '../puntaje.js';
+import { confeti, contar } from './festejo.js';
 import { racha } from '../estadisticas.js';
 import { revisarMeta, aplicarAjuste, posponerAjuste } from '../adaptativo.js';
 import { sugerencias } from '../sugerencias.js';
@@ -51,6 +52,11 @@ export async function montar(c, params = new URLSearchParams()) {
     kcal: total.kcal, kcalMeta: objetivo, prot: total.prot, protMeta: meta.prot,
     aguaMl: agua, aguaMeta, minutosActividad: minutosAct, pasos, fibra: total.fibra,
   }) : null;
+  const misiones = misionesDelDia({
+    kcal: total.kcal, kcalMeta: objetivo, prot: total.prot, protMeta: meta?.prot,
+    aguaMl: agua, aguaMeta, minutosActividad: minutosAct, pasos, fibra: total.fibra,
+  });
+  const hechas = misiones.filter(m => m.hecha).length;
   const pct = objetivo ? Math.min(1, total.kcal / objetivo) : 0;
   // Entrenador con IA: el consejo del día (se pide una vez por día; mientras tanto, un texto fijo)
   const conClave = esHoy && Boolean(await obtenerClave());
@@ -87,6 +93,11 @@ export async function montar(c, params = new URLSearchParams()) {
   const sumarHref = `#/registrar${esHoy ? '' : `?fecha=${fecha}`}`;
 
   const R = 27, CIRC = 2 * Math.PI * R;
+  const RG = 52, CIRCG = 2 * Math.PI * RG;
+  // Vasos: el último que se sumó entra con un saltito
+  const vasos = Math.floor(agua / 250);
+  let vasosAntes = vasos;
+  try { vasosAntes = Number(sessionStorage.getItem(`nathorfit-vasos-${fecha}`) ?? vasos); sessionStorage.setItem(`nathorfit-vasos-${fecha}`, vasos); } catch { /* nada */ }
   const macro = (nombre, g, obj, color) => `
     <div><div class="macro__nombre">${nombre}</div>
       <div class="macro__pista"><i style="width:${obj ? Math.min(100, (g / obj) * 100) : 0}%;background:var(${color})"></i></div>
@@ -118,7 +129,7 @@ export async function montar(c, params = new URLSearchParams()) {
         <nav class="hoy__dias" aria-label="Cambiar de día">
           <a class="icono-btn" href="${hrefDia(dia(-1))}" aria-label="Día anterior">‹</a>
           <span class="hoy__dia">${esc(etiquetaDia(fecha, hoyStr))}</span>
-          ${esHoy ? `<a class="chip chip--racha" href="#/racha" aria-label="Racha: ${laRacha} ${laRacha === 1 ? 'día' : 'días'}">${llama ? `<img src="img/insignias/racha-${llama}.webp" alt="" width="22" height="22">` : '🔥'} ${laRacha}</a>`
+          ${esHoy ? `<a class="chip chip--racha" href="#/racha" aria-label="Racha: ${laRacha} ${laRacha === 1 ? 'día' : 'días'}">${llama ? `<img src="img/insignias/racha-${llama}.webp" alt="" width="22" height="22">` : '<span class="llama">🔥</span>'} ${laRacha}</a>`
             : `<a class="icono-btn" href="${hrefDia(dia(1))}" aria-label="Día siguiente">›</a>`}
         </nav>
       </div>
@@ -129,33 +140,23 @@ export async function montar(c, params = new URLSearchParams()) {
         <span class="tarjeta--logro__ver" aria-hidden="true">Ver ›</span>
       </a>` : ''}
 
-      ${esHoy ? `<section class="ayudantes" aria-label="Tu equipo">
-        ${ayudanteHTML('entrenador', situacionEntrenador({ minutosActividad: minutosAct, hora: new Date().getHours() }), {
-          href: '#/entrenador', id: 'consejo-coach',
-          texto: conClave ? (consejo ?? 'Pensando qué decirte hoy…') : 'Te armo la rutina, te digo qué cocinar y cómo venís. Tocá para activarlo.',
-        })}
-        ${ayudanteHTML('chef', situacionChef({ kcal: total.kcal, kcalMeta: objetivo, comidasHoy: comidas.length, hora: new Date().getHours() }), {
-          href: '#/entrenador?tab=cocinar', clase: 'ayu--derecha',
-        })}
-      </section>` : ''}
-
       <section class="tarjeta" aria-labelledby="t-kcal">
-        <div class="metrica__fila">
-          <div>
-            <h2 class="metrica__titulo" id="t-kcal">Calorías ${esHoy ? 'de hoy' : 'del día'}</h2>
-            <div class="metrica__numero">${num(total.kcal)}</div>
-            <p class="hoy__resto">${!objetivo ? ''
-              : quedan >= 0 ? `de ${num(objetivo)} · te quedan <b class="acento-txt">${num(quedan)}</b>`
-              : `de ${num(objetivo)} · ${num(-quedan)} por encima`}</p>
-            ${extra.suma ? `<p class="hoy__extra">🏃 Meta ${num(metaBase)} + ${num(extra.suma)} por actividad</p>` : ''}
-          </div>
-          <div class="anillo">
-            <svg viewBox="0 0 64 64" aria-hidden="true">
-              <circle cx="32" cy="32" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="6"/>
-              <circle cx="32" cy="32" r="${R}" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"
-                stroke-dasharray="${CIRC}" stroke-dashoffset="${CIRC * (1 - pct)}" class="anillo__progreso"/>
+        <div class="resumen">
+          <div class="resumen__anillo">
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="60" r="${RG}" fill="none" stroke="var(--surface-2)" stroke-width="13"/>
+              <circle cx="60" cy="60" r="${RG}" fill="none" stroke="${quedan < 0 ? 'var(--naranja)' : 'var(--accent)'}" stroke-width="13" stroke-linecap="round"
+                stroke-dasharray="${CIRCG}" stroke-dashoffset="${CIRCG * (1 - pct)}" style="--desde:${CIRCG}" class="anillo__progreso"/>
             </svg>
-            <a class="icono-btn" href="${sumarHref}" aria-label="Anotar comida">+</a>
+            <div class="resumen__centro"><b class="metrica__numero-chico" data-contar="${Math.round(total.kcal)}">${num(total.kcal)}</b><small>${objetivo ? `de ${num(objetivo)}` : 'kcal'}</small></div>
+          </div>
+          <div class="resumen__lado">
+            <h2 class="metrica__titulo" id="t-kcal">Calorías ${esHoy ? 'de hoy' : 'del día'}</h2>
+            <p class="resumen__quedan">${!objetivo ? 'Anotá lo que comés y te muestro cómo venís.'
+              : quedan >= 0 ? `Te quedan <b>${num(quedan)}</b>`
+              : `<b class="pasado">${num(-quedan)}</b> por encima`}</p>
+            ${extra.suma ? `<p class="hoy__extra">🏃 Meta ${num(metaBase)} + ${num(extra.suma)} por actividad</p>` : ''}
+            <a class="btn btn--acento btn--chico resumen__mas" href="${sumarHref}">+ Anotar comida</a>
           </div>
         </div>
         ${meta ? `<div class="macros">
@@ -165,6 +166,39 @@ export async function montar(c, params = new URLSearchParams()) {
         </div>` : ''}
         ${quedan < 0 ? '<p class="hoy__nota">Un día por encima no cambia nada: lo que cuenta es el promedio de la semana.</p>' : ''}
       </section>
+
+      ${meta ? `<section class="tarjeta" aria-labelledby="t-puntaje">
+        <div class="metrica__fila">
+          <div>
+            <h2 class="metrica__titulo" id="t-puntaje">Misiones de hoy</h2>
+            <p class="hoy__agua">${hechas} de ${misiones.length} cumplidas${puntajeDia != null ? ` · ${esc(etiquetaPuntaje(puntajeDia))}` : ''}</p>
+          </div>
+          <div class="puntaje-anillo" role="img" aria-label="${puntajeDia != null ? `Puntaje ${puntajeDia} de 100` : 'Sin puntaje todavía'}">
+            <svg viewBox="0 0 64 64" aria-hidden="true">
+              <circle cx="32" cy="32" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="6"/>
+              <circle cx="32" cy="32" r="${R}" fill="none" stroke="var(--amarillo)" stroke-width="6" stroke-linecap="round"
+                stroke-dasharray="${CIRC}" stroke-dashoffset="${CIRC * (1 - (puntajeDia ?? 0) / 100)}" style="--desde:${CIRC}" class="anillo__progreso" transform="rotate(-90 32 32)"/>
+            </svg>
+            <span>${puntajeDia ?? '–'}</span>
+          </div>
+        </div>
+        <ul class="misiones">${misiones.map(m => `<li class="mision${m.hecha ? ' mision--hecha' : ''}">
+          <span class="mision__tilde" aria-hidden="true">${m.hecha ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>' : ''}</span>
+          <span class="mision__texto"><span>${esc(m.nombre)}${m.hecha ? '<span class="visualmente-oculto"> (cumplida)</span>' : ''}</span>
+            ${m.hecha ? '' : `<span class="mision__pista"><i style="width:${Math.round(m.avance * 100)}%"></i></span>`}</span>
+          <span class="mision__pts">+${m.peso}</span>
+        </li>`).join('')}</ul>
+      </section>` : ''}
+
+      ${esHoy ? `<section class="ayudantes" aria-label="Tu equipo">
+        ${ayudanteHTML('entrenador', situacionEntrenador({ minutosActividad: minutosAct, hora: new Date().getHours() }), {
+          href: '#/entrenador', id: 'consejo-coach',
+          texto: conClave ? (consejo ?? 'Pensando qué decirte hoy…') : 'Te armo la rutina, te digo qué cocinar y cómo venís. Tocá para activarlo.',
+        })}
+        ${ayudanteHTML('chef', situacionChef({ kcal: total.kcal, kcalMeta: objetivo, comidasHoy: comidas.length, hora: new Date().getHours() }), {
+          href: '#/entrenador?tab=cocinar', clase: 'ayu--derecha',
+        })}
+      </section>` : ''}
 
       ${ajuste.listo ? `<section class="tarjeta tarjeta--ajuste" aria-labelledby="t-ajuste">
         <h2 class="metrica__titulo" id="t-ajuste">📊 Podemos ajustar tu meta</h2>
@@ -218,7 +252,7 @@ export async function montar(c, params = new URLSearchParams()) {
           </div>
         </div>
         <div class="vasos" aria-hidden="true">${Array.from({ length: aguaMeta / 250 }, (_, k) =>
-          `<span class="vaso${k < Math.floor(agua / 250) ? ' vaso--lleno' : ''}"></span>`).join('')}</div>
+          `<span class="vaso${k < vasos ? ' vaso--lleno' : ''}${k < vasos && k >= vasosAntes ? ' vaso--nuevo' : ''}"></span>`).join('')}</div>
       </section>
 
 
@@ -235,28 +269,18 @@ export async function montar(c, params = new URLSearchParams()) {
         ${curso ? `<div class="macro__pista" style="margin-top:12px"><i id="barra-ayuno" style="width:${progresoAyuno(curso).pct * 100}%;background:var(--accent)"></i></div>`
           : '<p class="hoy__vacio">Opcional. Podés empezarlo desde tu última comida.</p>'}
       </section>
-
-      <section class="tarjeta" aria-labelledby="t-puntaje">
-        <div class="metrica__fila">
-          <div>
-            <h2 class="metrica__titulo" id="t-puntaje">${puntajeDia != null ? `<img class="ico" src="img/iconos/puntaje-${puntajeDia > 85 ? 'excelente' : puntajeDia > 65 ? 'bueno' : puntajeDia > 40 ? 'regular' : 'malo'}.webp" alt="">` : ''} Puntaje del día</h2>
-            <p class="hoy__agua">${puntajeDia != null ? esc(etiquetaPuntaje(puntajeDia)) : 'Anotá una comida para verlo'}</p>
-          </div>
-          <div class="puntaje-anillo" role="img" aria-label="${puntajeDia != null ? `Puntaje ${puntajeDia} de 100` : 'Sin puntaje todavía'}">
-            <svg viewBox="0 0 64 64" aria-hidden="true">
-              <circle cx="32" cy="32" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="6"/>
-              <circle cx="32" cy="32" r="${R}" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"
-                stroke-dasharray="${CIRC}" stroke-dashoffset="${CIRC * (1 - (puntajeDia ?? 0) / 100)}" transform="rotate(-90 32 32)"/>
-            </svg>
-            <span>${puntajeDia ?? '–'}</span>
-          </div>
-        </div>
-        <p class="hoy__vacio">Suma estar cerca de tu meta, la proteína, el agua, moverte y la fibra.</p>
-      </section>
     </div>
     <p class="aviso-flotante" role="status" hidden></p>`;
 
   hidratar(c);
+  contar(c);
+  // Confeti cuando se cumple una misión nueva (se recuerda cuántas había en este teléfono)
+  if (esHoy && meta) {
+    let antes = hechas;
+    try { antes = Number(localStorage.getItem(`nathorfit-misiones-${fecha}`) ?? hechas); localStorage.setItem(`nathorfit-misiones-${fecha}`, hechas); } catch { /* nada */ }
+    if (hechas > antes) setTimeout(() => confeti(c.querySelector('.mision--hecha .mision__tilde'), { cantidad: 26 }), 450);
+  }
+  if (vasos > vasosAntes) setTimeout(() => confeti(c.querySelector('.vaso--nuevo'), { cantidad: 10, alcance: 0.5 }), 150);
   if (poseMomento) setTimeout(() => {
     const lugar = c.querySelector('.escena-pj__personaje .pj');
     if (!lugar?.isConnected) return;

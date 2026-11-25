@@ -1,0 +1,228 @@
+/* ==========================================================================
+   Nuevo look de Nathor Fit: "historieta arcade".
+   Mezcla de las tres propuestas del lienzo de diseño:
+   - Historieta: trazo oscuro grueso, sombras duras, globos de diálogo y fondo de puntitos.
+   - Arcade: botones gordos que se hunden al tocarlos, racha que late, misiones con tilde y confeti.
+   - Cuarto vivo: el cuarto de borde a borde con el personaje, anillos que se dibujan y hojas que suben.
+   Va DESPUÉS de estilos.css: cambia el aspecto sin tocar la estructura de cada pantalla.
+   ========================================================================== */
+:root {
+  --linea: #1E1B2E;              /* el trazo de historieta */
+  --bg-app: #EAF6EF;
+  --surface: #F2F7F4;
+  --surface-2: #E3ECE7;
+  --border: #D6DED9;
+  --amarillo: #FFC93C;
+  --naranja: #FF7A1A;
+  --cielo: #3B8FE0;
+  --violeta: #6B5BE6;
+  --sh-dura: 0 4px 0 var(--linea);
+  --sh-dura-chica: 0 3px 0 var(--linea);
+  --trazo: 2px solid var(--linea);
+  --r-md: 18px; --r-lg: 24px;
+}
+
+/* Fondo de puntitos (como trama de historieta), muy suave */
+body { background: var(--bg-app) radial-gradient(rgb(15 143 106 / .10) 1.4px, transparent 1.6px) 0 0 / 14px 14px fixed; }
+body.modo-registrar, body.modo-onboarding { background: #FFFFFF radial-gradient(rgb(30 27 46 / .045) 1.4px, transparent 1.6px) 0 0 / 14px 14px fixed; }
+body.modo-resultado { background: #CFF0DF radial-gradient(rgb(15 143 106 / .16) 1.6px, transparent 1.8px) 0 0 / 14px 14px fixed; }
+
+/* Títulos con un subrayado de marcador */
+main h1:not(.burbuja):not(.hoja__titulo) { letter-spacing: -.01em; }
+.titulo-marcador, .reg__top h1, .prog__top h1, .retos__cabecera h1 { background: linear-gradient(transparent 62%, var(--amarillo) 62%, var(--amarillo) 90%, transparent 90%);
+  display: inline; justify-self: start; padding: 0 2px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+
+/* ---------- Tarjetas: figuritas con trazo y sombra dura ---------- */
+.tarjeta, .ficha, .semana, .plan .tarjeta, .tarjeta--plana {
+  border: var(--trazo); box-shadow: var(--sh-dura); border-radius: var(--r-lg); background: #FFFFFF; }
+.tarjeta--ajuste, .tarjeta--logro { border-color: var(--linea); background: #FFF6D9; }
+.tarjeta h2.metrica__titulo, .metrica__titulo { color: var(--text); font: 700 var(--fs-lg)/var(--lh-lg) var(--font-display); }
+.metrica__numero { letter-spacing: -.02em; }
+.ayuno .ficha { background: #FFFFFF; }
+
+/* ---------- Botones arcade: se hunden al tocarlos ---------- */
+.btn { border: var(--trazo); box-shadow: var(--sh-dura); font-family: var(--font-display); font-weight: 600; letter-spacing: .01em;
+  border-radius: 18px; transition: transform 80ms ease-out, box-shadow 80ms ease-out; }
+.btn:active:not([disabled]) { transform: translateY(3px); box-shadow: 0 1px 0 var(--linea); }
+.btn--secundario { background: #FFFFFF; color: var(--text); }
+.btn--acento { background: var(--accent-text); }
+.btn--fantasma, .btn--peligro { border-color: transparent; box-shadow: none; }
+.btn--fantasma:active, .btn--peligro:active { transform: scale(.97); box-shadow: none; }
+.btn[disabled] { box-shadow: none; }
+.icono-btn { background: #FFFFFF; border: var(--trazo); box-shadow: var(--sh-dura-chica); transition: transform 80ms, box-shadow 80ms; }
+.icono-btn:active:not([disabled]) { transform: translateY(2px); box-shadow: 0 1px 0 var(--linea); }
+.icono-btn--acento { background: var(--accent-text); color: #FFFFFF; }
+.icono-btn--vacio { box-shadow: none; }
+.anillo a.icono-btn, .anillo .icono-btn { box-shadow: none; }
+.hoy__dias .icono-btn { background: #FFFFFF; color: var(--linea); }
+
+/* Chips y controles */
+.chip, .chips .chip { background: #FFFFFF; border: var(--trazo); box-shadow: 0 2px 0 var(--linea); }
+.chip--opcion { border: var(--trazo); }
+.chip--opcion[aria-checked="true"] { background: var(--amarillo); border-color: var(--linea); }
+.seg { background: #FFFFFF; border: var(--trazo); }
+.seg button[aria-pressed="true"], .seg a[aria-pressed="true"] { background: var(--ink); color: #FFFFFF; box-shadow: none; }
+.campo-texto, .contador, .reg__buscar { border: var(--trazo); }
+.reg__buscar { background: #FFFFFF; box-shadow: var(--sh-dura-chica); }
+.campo-texto:focus, .reg__buscar:focus-within { border-color: var(--accent-text); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+/* Opciones (onboarding, actividades): se marcan con sombra dura y un saltito */
+.opcion, .act { border: 2px solid var(--border); transition: transform 120ms var(--spring), box-shadow 120ms, border-color 120ms; }
+.opcion:active, .act:active { transform: scale(.98); }
+.opcion[aria-checked="true"], .opcion[aria-pressed="true"], .act[aria-checked="true"] {
+  border-color: var(--linea); background: var(--accent-soft); box-shadow: var(--sh-dura-chica); animation: marca-pop .3s var(--spring); }
+@keyframes marca-pop { 40% { transform: scale(1.03); } }
+.tramos span { background: #FFFFFF; border: 1.5px solid var(--linea); height: 10px; }
+
+/* Hojas y menús */
+.hoja { border: var(--trazo); border-bottom: 0; }
+.hoja-dialogo[open] .hoja, .dialogo-mas[open] .menu-mas { animation: hoja-sube .35s var(--spring); }
+@keyframes hoja-sube { from { transform: translateY(40px); } }
+.menu-mas { border: var(--trazo); box-shadow: var(--sh-dura); }
+.menu-mas a, .menu-mas button { transition: transform 80ms; }
+.menu-mas a:active, .menu-mas button:active { transform: scale(.94); }
+.menu-mas a.menu-mas__principal { border: 2px solid #0a2a22; box-shadow: 0 3px 0 #061a15; }
+.carrito { border: var(--trazo); border-bottom: 0; }
+.aviso-flotante { border: 2px solid #000; box-shadow: var(--sh-dura); animation: aviso-entra .4s var(--spring); }
+@keyframes aviso-entra { from { transform: translate(-50%, 20px) scale(.9); } }
+
+/* Barra inferior */
+.nav { background: #FFFFFF; border: var(--trazo); box-shadow: var(--sh-dura); }
+.nav a { transition: background 150ms; }
+.nav a[aria-current="page"] { background: var(--amarillo); box-shadow: inset 0 0 0 2px var(--linea); }
+.nav a[aria-current="page"] .nav__ico { opacity: 1; animation: nav-salta .45s var(--spring); }
+@keyframes nav-salta { 0% { transform: scale(.8); } 60% { transform: scale(1.25) translateY(-3px); } 100% { transform: scale(1.12); } }
+.fab { background: var(--accent-text); border: var(--trazo); box-shadow: var(--sh-dura); }
+.fab:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--linea); }
+.fab[aria-expanded="true"] { transform: rotate(45deg); }
+
+/* ---------- Globos de diálogo de historieta ---------- */
+.burbuja, .ayu__burbuja, .resultado__gato .burbuja { background: #FFFFFF; border: var(--trazo); box-shadow: var(--sh-dura-chica); }
+.burbuja::before, .ayu__burbuja::before { border: var(--trazo); border-top-color: transparent; border-right-color: transparent; left: -9px; }
+.ayu--derecha .ayu__burbuja::before { border: var(--trazo); border-bottom-color: transparent; border-left-color: transparent; left: auto; right: -9px; }
+.ayu__img { filter: drop-shadow(0 4px 0 rgb(30 27 46 / .18)); }
+.ayu__nombre { color: var(--accent-text); }
+a.ayu { transition: transform 120ms var(--spring); }
+a.ayu:active { transform: scale(.98); }
+.chat__msg--pj { background: #FFFFFF; border: var(--trazo); }
+.chat__msg--yo { background: var(--amarillo); border: var(--trazo); }
+
+/* ---------- Hoy: el cuarto vivo ---------- */
+.hoy .hoy__escena { border-bottom: var(--trazo); border-radius: 0 0 32px 32px; margin-bottom: calc(-1 * var(--s-6)); }
+.hoy .escena-pj__cuarto { animation: cuarto-zoom 24s ease-in-out infinite; transform-origin: 50% 40%; }
+@keyframes cuarto-zoom { 50% { transform: scale(1.06) translateX(-1.5%); } }
+.hoy .hoy__frase { background: #FFFFFF; border: var(--trazo); box-shadow: var(--sh-dura-chica); font-family: var(--font-display); font-weight: 600;
+  animation: globo-pop .5s .25s var(--spring) both; }
+.hoy .hoy__frase::after { content: ''; position: absolute; left: 50%; bottom: -9px; width: 14px; height: 14px; border: var(--trazo);
+  border-top-color: transparent; border-left-color: transparent; background: #FFFFFF; transform: translateX(-50%) rotate(45deg); }
+@keyframes globo-pop { from { transform: scale(.6); } }
+.chip--racha { background: #FFFFFF; color: #8A3A00; font: 700 var(--fs-lg)/1 var(--font-display); border: var(--trazo); box-shadow: var(--sh-dura-chica); }
+.chip--racha img, .chip--racha .llama { animation: llama 1.3s ease-in-out infinite; transform-origin: 50% 90%; display: inline-block; }
+@keyframes llama { 50% { transform: scale(1.18) rotate(5deg); } }
+.hoy .hoy__dia { font-size: var(--fs-xl); text-shadow: 0 2px 0 var(--linea), 0 0 8px rgb(0 0 0 / .4); }
+.cofre { filter: drop-shadow(0 3px 0 rgb(30 27 46 / .35)); }
+
+/* Resumen del día: anillos que se dibujan al entrar */
+.resumen { display: grid; grid-template-columns: auto 1fr; gap: var(--s-4); align-items: center; }
+.resumen__anillo { position: relative; width: 116px; height: 116px; }
+.resumen__anillo svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.resumen__anillo .anillo__progreso, .mini-anillo .anillo__progreso { animation: anillo-dibuja 1.2s .2s cubic-bezier(.3,.7,.2,1) both; }
+@keyframes anillo-dibuja { from { stroke-dashoffset: var(--desde); } }
+.resumen__centro { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.resumen__centro b { font: 700 26px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.resumen__centro small { font: 700 var(--fs-xs)/1.3 var(--font-sans); color: var(--text-muted); }
+.resumen__lado { display: grid; gap: var(--s-2); }
+.resumen__lado .metrica__titulo { margin-bottom: -4px; }
+.resumen__quedan { font: 700 var(--fs-base)/1.3 var(--font-sans); color: var(--text-muted); }
+.resumen__quedan b { color: var(--accent-text); font: 700 var(--fs-xl)/1 var(--font-display); }
+.resumen__quedan b.pasado { color: var(--danger); }
+.resumen__mas { justify-self: start; }
+
+/* Figuritas: agua, ayuno y puntaje, un poco torcidas */
+.figuritas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-3); }
+.figurita { display: grid; justify-items: center; gap: 2px; padding: var(--s-3) var(--s-1) var(--s-2); text-align: center; text-decoration: none; color: var(--text);
+  background: #FFFFFF; border: var(--trazo); border-radius: 18px; box-shadow: var(--sh-dura-chica); transition: transform 150ms var(--spring); }
+.figurita:nth-child(1) { transform: rotate(-2deg); }
+.figurita:nth-child(3) { transform: rotate(2deg); }
+.figurita:active { transform: scale(.95); }
+.figurita b { font: 700 var(--fs-xl)/1.1 var(--font-display); font-variant-numeric: tabular-nums; }
+.figurita small { font: 700 var(--fs-xs)/1.25 var(--font-sans); color: var(--text-muted); }
+.figurita .ico { width: 34px; height: 34px; }
+.mini-anillo { width: 46px; height: 46px; }
+.mini-anillo svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+
+/* Misiones del día */
+.misiones { list-style: none; padding: 0; margin: var(--s-3) 0 0; display: grid; gap: var(--s-2); }
+.mision { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-3); border-radius: 14px; background: var(--surface); }
+.mision__tilde { width: 30px; height: 30px; flex: none; border-radius: 10px; display: grid; place-items: center; background: #FFFFFF; border: 2px solid #9AA6A0; }
+.mision--hecha .mision__tilde { background: var(--accent-text); border-color: var(--linea); box-shadow: 0 2px 0 var(--linea); }
+.mision--hecha .mision__tilde svg { animation: tilde-pop .45s var(--spring) both; }
+@keyframes tilde-pop { from { transform: scale(0) rotate(-20deg); } }
+.mision__texto { flex: 1; min-width: 0; display: grid; gap: 4px; font-weight: 800; font-size: var(--fs-sm); line-height: 1.25; }
+.mision__pista { height: 7px; border-radius: 7px; background: var(--surface-2); overflow: hidden; }
+.mision__pista i { display: block; height: 100%; border-radius: inherit; background: var(--cielo); transform-origin: left; animation: barra-llena .9s .3s var(--ease) both; }
+@keyframes barra-llena { from { transform: scaleX(0); } }
+.mision--hecha .mision__texto > span { color: var(--text-muted); text-decoration: line-through; text-decoration-thickness: 2px; }
+.mision--hecha .mision__pista { display: none; }
+.mision__pts { font: 700 var(--fs-sm)/1 var(--font-display); color: var(--accent-text); white-space: nowrap; }
+
+/* Barras que se llenan al entrar (macros, retos, sesión) */
+.macro__pista i, .reto__texto .macro__pista i { transform-origin: left; animation: barra-llena .9s .25s var(--ease) both; }
+.macro__pista, .mision__pista { box-shadow: inset 0 0 0 1.5px rgb(30 27 46 / .12); }
+
+/* Vasos de agua con ola */
+.vaso { border: 2px solid var(--linea); border-top-width: 0; background: #FFFFFF; width: 24px; height: 30px; }
+.vaso--lleno { background: #7CC2FF; }
+.vaso--lleno::after { content: ''; position: absolute; left: -50%; top: -3px; width: 200%; height: 6px;
+  background: radial-gradient(circle at 50% 100%, #7CC2FF 3px, transparent 3.5px) 0 0 / 8px 6px repeat-x; animation: ola 1.6s linear infinite; }
+@keyframes ola { to { transform: translateX(8px); } }
+.vaso--nuevo { animation: vaso-llena .6s var(--spring); }
+@keyframes vaso-llena { 0% { transform: scale(.6); } 60% { transform: scale(1.2) rotate(-6deg); } }
+
+/* Comidas: cada una con su burbuja */
+.comida__emoji, .fila__emoji, .rutina__emoji { background: #FFF6D9; border: 2px solid var(--linea); }
+.comida { transition: transform 120ms; }
+.comida:active { transform: translateX(4px); }
+
+/* Retos e insignias */
+.reto__icono { background: #FFF6D9; }
+.reto--hecho .reto__icono { background: var(--accent-text); animation: tilde-pop .45s var(--spring) both; }
+.insignias li.ganada img { animation: insignia-brilla 3s ease-in-out infinite; }
+.insignias li.ganada:nth-child(2n) img { animation-delay: 1.5s; }
+@keyframes insignia-brilla { 50% { transform: translateY(-3px) rotate(-3deg); } }
+
+/* Racha: el número grande con trazo */
+.racha__num { color: #FFFFFF; -webkit-text-stroke: 3px var(--linea); paint-order: stroke fill; text-shadow: 0 6px 0 var(--linea); animation: globo-pop .6s var(--spring) both; }
+.semana .hecho .semana__marca { background: var(--accent-text); border: 2px solid var(--linea); animation: tilde-pop .4s var(--spring) both; }
+.semana li:nth-child(2) .semana__marca { animation-delay: .05s; } .semana li:nth-child(3) .semana__marca { animation-delay: .1s; }
+.semana li:nth-child(4) .semana__marca { animation-delay: .15s; } .semana li:nth-child(5) .semana__marca { animation-delay: .2s; }
+.semana li:nth-child(6) .semana__marca { animation-delay: .25s; } .semana li:nth-child(7) .semana__marca { animation-delay: .3s; }
+
+/* Ayuno: el reloj con trazo */
+.ayuno__reloj { filter: drop-shadow(0 4px 0 rgb(30 27 46 / .2)); }
+
+/* ---------- Entrada: las tarjetas suben una atrás de otra ----------
+   Solo movimiento (sin transparencia): el texto se lee y se mide desde el primer instante. */
+.pantalla.entra > * > :not(.hoy__escena):not(.aviso-flotante):not(.carrito) { animation: sube-entra .5s var(--spring) both; }
+.pantalla.entra > * > :nth-child(2) { animation-delay: .05s; }
+.pantalla.entra > * > :nth-child(3) { animation-delay: .1s; }
+.pantalla.entra > * > :nth-child(4) { animation-delay: .15s; }
+.pantalla.entra > * > :nth-child(5) { animation-delay: .2s; }
+.pantalla.entra > * > :nth-child(6) { animation-delay: .25s; }
+.pantalla.entra > * > :nth-child(n+7) { animation-delay: .3s; }
+@keyframes sube-entra { from { transform: translateY(26px) scale(.97); } }
+
+/* Rebote al tocar (festejo.js → rebote) */
+.rebota { animation: rebota .45s var(--spring); }
+@keyframes rebota { 30% { transform: scale(.9); } 65% { transform: scale(1.12); } }
+
+/* Confeti (festejo.js → confeti) */
+.confeti { position: fixed; z-index: 50; width: 0; height: 0; pointer-events: none; }
+.confeti i { position: absolute; left: -4px; top: -6px; width: 9px; height: 13px; border-radius: 2px; border: 1.5px solid var(--linea);
+  animation: confeti-vuela 1.2s cubic-bezier(.1,.7,.3,1) both; }
+@keyframes confeti-vuela { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 75% { opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hoy .escena-pj__cuarto, .chip--racha img, .chip--racha .llama, .insignias li.ganada img, .vaso--lleno::after { animation: none !important; }
+}
