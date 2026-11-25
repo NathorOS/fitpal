@@ -97,11 +97,13 @@ export async function montar(contenedor, params = new URLSearchParams()) {
       const d = new Date();
       await guardarActividad({ fecha, hora: `${z(d.getHours())}:${z(d.getMinutes())}`, actividad: s.actividad, minutos, kg });
       aviso('¡Bien ahí! Actividad anotada.');
+      verMovimiento();
       location.hash = volver;
     }
     if (t.id === 'guardar-pasos') {
       await guardarPasos(fecha, leer('#pasos'));
       aviso('Pasos guardados.');
+      verMovimiento();
       location.hash = volver;
     }
   });
@@ -112,4 +114,9 @@ export async function montar(contenedor, params = new URLSearchParams()) {
   function leer(sel) { return Math.round(Number(String(c.querySelector(sel)?.value ?? '').replace(/\./g, '').replace(',', '.')) || 0); }
 
   await pintar();
+}
+
+// Al volver a Hoy, queda abierta la figurita de Movimiento (para ver al personaje correr)
+function verMovimiento() {
+  try { sessionStorage.setItem('nathorfit-trio', 'act'); } catch { /* nada */ }
 }

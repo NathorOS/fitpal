@@ -89,14 +89,14 @@ export async function guardarMetaAyuno(h) {
  * propone pasar de la meta: al cumplirla, la etapa es "cortalo con una buena comida".
  */
 export const FASES_AYUNO = [
-  { desde: 0, nombre: 'Digiriendo', emoji: '🍽️', texto: 'Tu cuerpo usa la energía de lo último que comiste.' },
-  { desde: 4, nombre: 'Usando reservas', emoji: '🔋', texto: 'Ya digeriste: empieza a usar la energía que tenía guardada.' },
-  { desde: 12, nombre: 'Más grasa', emoji: '🔥', texto: 'Con más horas sin comer, usa más grasa como energía.' },
+  { desde: 0, nombre: 'Digiriendo', icono: 'almuerzo', texto: 'Tu cuerpo usa la energía de lo último que comiste.' },
+  { desde: 4, nombre: 'Usando reservas', icono: 'ayuno-en-curso', texto: 'Ya digeriste: empieza a usar la energía que tenía guardada.' },
+  { desde: 12, nombre: 'Más grasa', icono: 'calorias', texto: 'Con más horas sin comer, usa más grasa como energía.' },
 ];
 export function faseAyuno(horas, meta) {
   const fases = FASES_AYUNO.filter(f => f.desde < meta);
   if (horas >= meta) {
-    return { fases, actual: fases.length, fase: { nombre: '¡Meta cumplida!', emoji: '🏆', texto: 'Cortalo con una comida con proteína y verduras.' }, siguiente: null };
+    return { fases, actual: fases.length, fase: { nombre: '¡Meta cumplida!', icono: 'ayuno-completo', texto: 'Cortalo con una comida con proteína y verduras.' }, siguiente: null };
   }
   const actual = fases.reduce((a, f, i) => (horas >= f.desde ? i : a), 0);
   const prox = fases[actual + 1];

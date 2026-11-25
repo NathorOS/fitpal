@@ -1,3 +1,4 @@
+import { sonar } from './sonido.js';
 // Animaciones chicas que se usan en toda la app: confeti, números que cuentan y el salto al tocar.
 // Si el teléfono pide "reducir movimiento", no se anima nada y se ve el resultado final.
 
@@ -5,7 +6,8 @@ const quieto = () => typeof matchMedia === 'function' && matchMedia('(prefers-re
 const COLORES = ['#22B07D', '#FFC93C', '#FF7A1A', '#3B8FE0', '#7B6CF6', '#FF4D8A'];
 
 /** Una lluvia de papelitos que sale desde un elemento (o desde arriba al medio de la pantalla). */
-export function confeti(desde = null, { cantidad = 22, alcance = 1 } = {}) {
+export function confeti(desde = null, { cantidad = 22, alcance = 1, sonido = 'festejo' } = {}) {
+  if (sonido) sonar(sonido);
   if (quieto()) return;
   const r = desde?.getBoundingClientRect?.();
   const x = r ? r.left + r.width / 2 : innerWidth / 2;

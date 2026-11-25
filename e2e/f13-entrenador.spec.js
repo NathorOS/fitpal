@@ -29,7 +29,7 @@ const conClave = page => page.evaluate(async () => (await import('/js/ia.js')).g
 
 test('E-N1 sin clave, el entrenador explica cómo activarlo', async ({ page }) => {
   await conPerfil(page);
-  await expect(page.getByRole('link', { name: /Tu entrenador/ })).toContainText(/Tocá para activarlo/);
+  await expect(page.getByRole('link', { name: /Tu entrenador/ })).toContainText(/Activame/);
   await page.getByRole('link', { name: 'Entrenador', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Entrenador' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Cargar mi clave en Perfil' })).toBeVisible();

@@ -123,7 +123,7 @@ export function liquido(canvas, opts) {
     const p = lim((x - g.x0) / (g.x1 - g.x0), 0, 1) * (N - 1);
     const i = Math.floor(p), f = p - i;
     const base = ola[i] * (1 - f) + ola[Math.min(N - 1, i + 1)] * f;
-    return calmo ? 0 : base + Math.sin(t * 0.0021 + x * 0.045) * 1.4 + Math.sin(t * 0.0013 - x * 0.03) * 1.1;
+    return calmo ? 0 : base + Math.sin(t * 0.0018 + x * 0.045) * 0.7 + Math.sin(t * 0.0011 - x * 0.03) * 0.5;
   }
   const alturaLlena = () => (g.fondo - g.lleno) / (opts.forma === 'tanque' ? 1 : 1);
   const ySup = (base, x, t, fac) => base + Math.tan(ang) * (x - (g.x0 + g.x1) / 2) + olaEn(x, t) * fac;
@@ -161,7 +161,7 @@ export function liquido(canvas, opts) {
     }
     for (let i = 0; i < N; i++) ola[i] = lim(ola[i], -16, 16);
     // Burbujas
-    if (nivel > 0.04 && burbujas.length < 14 && Math.random() < 0.08) {
+    if (nivel > 0.04 && burbujas.length < 6 && Math.random() < 0.025) {
       burbujas.push({ x: g.x0 + 8 + Math.random() * (g.x1 - g.x0 - 16), y: g.fondo - 4, r: 1.5 + Math.random() * 3, v: 0.35 + Math.random() * 0.7, f: Math.random() * 6 });
     }
     const base = g.fondo - alturaLlena() * nivel;
@@ -177,7 +177,7 @@ export function liquido(canvas, opts) {
       const sup = ySup(base, d.x, t, 1);
       if (d.vy > 0 && d.y > sup) {
         gotas.splice(k, 1);
-        if (d.cae) salpicar(d.x, 9);
+        if (d.cae) { salpicar(d.x, 9); opts.alCaer?.(); }
       } else if (d.y > H + 20) gotas.splice(k, 1);
     }
   }
@@ -247,7 +247,7 @@ export function liquido(canvas, opts) {
     if (opts.meta) {
       ctx.setLineDash([7, 6]); ctx.strokeStyle = LINEA; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(g.x0, g.lleno); ctx.lineTo(g.x1, g.lleno); ctx.stroke(); ctx.setLineDash([]);
-      ctx.font = '800 10px system-ui, sans-serif'; ctx.fillStyle = LINEA; ctx.textAlign = 'left';
+      ctx.font = "600 11px Fredoka, ui-rounded, system-ui, sans-serif"; ctx.fillStyle = LINEA; ctx.textAlign = 'left';
       ctx.fillText('META', g.x0 + 6, g.lleno - 5);
     }
     // Reflejo del vidrio
