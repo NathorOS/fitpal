@@ -42,8 +42,14 @@ export async function montar(contenedor, params = new URLSearchParams()) {
     </div>`;
   };
 
+  const arcade = `<a class="arcade-banner" href="#/salida">
+      <span class="arcade-banner__icono" aria-hidden="true">🕹️</span>
+      <span><b>MODO ARCADE</b><small>Salí a caminar, correr o en bici con GPS: monedas, niveles y tu fantasma</small></span>
+      <span class="arcade-banner__start" aria-hidden="true">START ▶</span></a>`;
+
   if (!hayClave) {
     c.innerHTML = `<div class="pila">${cabecera('')}
+      ${arcade}
       <section class="tarjeta">
         <p>Para que te entrene, te cocine y te diga cómo venís necesito tu clave de Gemini. Es gratis y se carga una sola vez.</p>
         <a class="btn" href="#/perfil" style="margin-top:12px">Cargar mi clave en Perfil</a>
@@ -59,6 +65,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
     const cuerpo = await ({ rutina: htmlRutina, cocinar: htmlCocinar, progreso: htmlProgreso, charla: htmlCharla })[st.tab]();
     c.innerHTML = `<div class="pila">
       ${cabecera(consejo)}
+      ${arcade}
       <div class="seg coach__tabs" role="group" aria-label="Qué querés">
         ${TABS.map(([t, n]) => `<button data-tab="${t}" aria-pressed="${t === st.tab}">${n}</button>`).join('')}
       </div>

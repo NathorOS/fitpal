@@ -34,6 +34,19 @@
   --imc-sobre: #E0A21B;
   --imc-alto: #D14B57;
 
+  /* modo arcade (salidas con GPS): fondo oscuro con neón */
+  --arc-bg: #0E0B1F;
+  --arc-panel: #1B1640;
+  --arc-borde: #4B3FA0;
+  --arc-texto: #F4F1FF;
+  --arc-suave: #B9B2E6;
+  --arc-neon: #3DFFB5;
+  --arc-rosa: #FF6AD5;
+  --arc-oro: #FFD23F;
+  --arc-cian: #4DE3FF;
+  --arc-rojo: #FF5A5F;
+  --arc-sobre-oro: #1B1640;
+
   /* tipografía */
   --font-display: 'Fredoka', ui-rounded, system-ui, sans-serif;
   --font-sans: 'Nunito Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;

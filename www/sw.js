@@ -1,11 +1,11 @@
 // Subí este número cada vez que cambies archivos (nathorfit-v5, v6, ...)
-const CACHE = 'nathorfit-v24';
+const CACHE = 'nathorfit-v25';
 
 // "Cascarón" de la app. Las vistas de js/ui/ se cargan con import() dinámico,
 // así que TIENEN que estar acá o la app no abre en modo avión.
 const ARCHIVOS = [
   './', './index.html', './manifest.webmanifest',
-  './css/tokens.css', './css/componentes.css', './css/estilos.css', './css/tema.css',
+  './css/tokens.css', './css/componentes.css', './css/estilos.css', './css/tema.css', './css/arcade.css',
   './fonts/fredoka-latin.woff2', './fonts/nunito-sans-latin.woff2',
   './js/app.js', './js/db.js', './js/calculos.js', './js/objetivo.js',
   './js/registro.js', './js/datos/alimentos.js', './js/datos/alimentos-extra.js', './js/actividad.js', './js/estadisticas.js',
@@ -17,7 +17,7 @@ const ARCHIVOS = [
   './js/ia.js', './js/codigo.js', './js/ui/ia.js', './js/ui/codigo.js',
   './js/adaptativo.js', './js/sugerencias.js',
   './js/ui/hoy.js', './js/ui/registrar.js', './js/ui/entrenar.js',
-  './js/ui/entrenador.js',
+  './js/ui/entrenador.js', './js/salida.js', './js/mapa.js', './js/sonido.js', './js/ui/salida.js',
   './js/ui/progreso.js', './js/ui/perfil.js', './js/ui/onboarding.js',
   './js/escena.js', './js/marca.js', './js/personaje.js', './js/ui/rueda.js', './js/ui/imc.js', './js/ui/datos.js',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-192.png', './icons/icon-maskable-512.png',

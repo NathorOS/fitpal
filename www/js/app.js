@@ -14,6 +14,7 @@ const vistas = {
   '/retos':      () => import('./ui/retos.js'),
   '/entrenar':   () => import('./ui/entrenar.js'),
   '/entrenador': () => import('./ui/entrenador.js'),
+  '/salida':     () => import('./ui/salida.js'),
   '/progreso':   () => import('./ui/progreso.js'),
   '/perfil':     () => import('./ui/perfil.js'),
   '/datos':      () => import('./ui/datos.js'),
@@ -22,7 +23,7 @@ const vistas = {
 };
 // Pantallas de pantalla completa: sin barra inferior y con fondo blanco.
 const COMPLETAS = { '/onboarding': 'modo-onboarding', '/registrar': 'modo-registrar', '/peso': 'modo-registrar', '/actividad': 'modo-registrar',
-  '/ayuno': 'modo-registrar', '/sesion': 'modo-registrar', '/ia': 'modo-registrar', '/codigo': 'modo-registrar', '/datos': 'modo-registrar', '/resultado': 'modo-resultado', '/racha': 'modo-resultado', '/logro': 'modo-resultado' };
+  '/ayuno': 'modo-registrar', '/sesion': 'modo-registrar', '/ia': 'modo-registrar', '/codigo': 'modo-registrar', '/datos': 'modo-registrar', '/resultado': 'modo-resultado', '/racha': 'modo-resultado', '/logro': 'modo-resultado', '/salida': 'modo-arcade' };
 
 const cont = document.getElementById('vista');
 const tabs = document.getElementById('tabs');

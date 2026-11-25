@@ -129,6 +129,24 @@ npm run e2e                                   # 39 pruebas de punta a punta (Pla
 - **Charla:** historial de hasta 20 idas y vueltas en `coach_chat`.
 - **Consejo del día** en Hoy y en el Entrenador: uno por día (`coach_consejo`), sin clave no se pide.
 
+**Modo arcade: salidas con GPS** (`salida.js`, `mapa.js`, `sonido.js`, `ui/salida.js`, ruta `#/salida`,
+botón "MODO ARCADE" arriba del Entrenador; funciona **sin** clave de Gemini):
+- Caminata, carrera o bici, con meta de km opcional. GPS del navegador (`watchPosition`), sin Google.
+- **Filtro del GPS:** descarta precisión peor que 35 m, el temblor (menos de 3–10 m) y los saltos imposibles
+  según el modo. Pausa automática a los 12 s quieto; pausa a mano no cuenta lo que te moviste.
+- **Calorías:** (MET−1) × kg × h por tramo, con el MET según la velocidad real (Compendium). Se guarda en
+  `sesiones` como `tipo: 'actividad', fuente: 'gps'` y suma a Hoy como cualquier actividad.
+- **Pasos:** estimados con la distancia y la altura (zancada 0,415 × altura caminando, 0,65 corriendo).
+  Se muestran en la partida; **no** se suman a los pasos del día para no contar las calorías dos veces.
+- **Juego:** moneda cada 100 m (250 m en bici) con combo hasta x5 (se corta quieto más de 30 s), nivel cada
+  1 km (2 km en bici), desafíos relámpago (turbo, sin frenar, lluvia de monedas) desde los 2 min, y
+  **fantasma**: tu salida más rápida del mismo modo (de 500 m o más). Estrellas, récords y voz cada km.
+- **Mapa propio:** baldosas de OpenStreetMap (con crédito) + ruta en SVG; sin internet queda el fondo liso.
+- La partida en curso se guarda cada 10 s en config `salida_en_curso` y se puede seguir o terminar después.
+  Pantalla prendida con Wake Lock y modo bolsillo. **Límite:** como PWA, con la pantalla bloqueada el
+  teléfono pausa el GPS (lo resuelve la APK).
+- A la IA solo le llegan km, minutos, ritmo y kcal de las últimas salidas (`salidas_gps`), nunca coordenadas.
+
 **Código de barras** (`codigo.js`, `ui/codigo.js`): Open Food Facts (sin clave), con la cámara
 (`BarcodeDetector`) o el número escrito a mano.
 

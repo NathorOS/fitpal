@@ -76,6 +76,10 @@ export function resumir(d, { ahora = new Date(), nivel = null } = {}) {
     entrenos: d.sesiones.filter(s => s.tipo === 'entrenamiento')
       .sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 6)
       .map(s => ({ fecha: s.fecha, nombre: s.nombre, minutos: s.minutos })),
+    // Salidas con GPS del modo arcade: solo distancia y tiempo, nunca coordenadas
+    salidas_gps: d.sesiones.filter(s => s.fuente === 'gps')
+      .sort((a, b) => `${b.fecha} ${b.hora}`.localeCompare(`${a.fecha} ${a.hora}`)).slice(0, 6)
+      .map(s => ({ fecha: s.fecha, tipo: s.modo, km: s.km, minutos: s.minutos, ...(s.modo === 'bici' ? { kmh: s.kmh } : { ritmo_min_km: s.ritmo ? r0(s.ritmo / 6) / 10 : null }), kcal: s.kcal })),
     racha: racha([...new Set(d.comidas.map(c => c.fecha))], ahora),
   };
 }
