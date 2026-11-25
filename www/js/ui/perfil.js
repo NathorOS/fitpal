@@ -4,6 +4,7 @@ import { pjHTML } from './pj.js';
 import { metaVigente, pesoActual } from '../objetivo.js';
 import { obtenerClave, guardarClave, borrarClave, probarClave, medirIA } from '../ia.js';
 import { revisarMeta } from '../adaptativo.js';
+import { sonidoActivo, fijarSonido, sonar } from './sonido.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const num = (n, d = 0) => Number(n).toLocaleString('es-AR', { maximumFractionDigits: d });
@@ -40,16 +41,16 @@ export async function montar(contenedor) {
             <li><span>Macros</span><b>${meta ? `P ${meta.prot} · C ${meta.carb} · G ${meta.grasa} g` : '–'}</b></li>
             <li><span>Actividad</span><b>${esc(NIVEL[perfil?.actividad] ?? '–')}</b></li>
           </ul>
-          <p class="hoja__nota" style="text-align:left;margin-top:8px">📊 Meta adaptativa: ${ajuste.listo
+          <p class="hoja__nota" style="text-align:left;margin-top:8px">Meta adaptativa: ${ajuste.listo
             ? `hay un ajuste para revisar en Hoy (${num(ajuste.antes)} → ${num(ajuste.despues)} kcal).`
             : esc(ajuste.motivo)}${meta?.adaptativa ? ' Tu meta actual ya fue ajustada con tus datos reales.' : ''}</p>
-          <a class="btn btn--secundario" href="#/datos" style="margin-top:12px">✏️ Editar mis datos y mi plan</a>
+          <a class="btn btn--secundario" href="#/datos" style="margin-top:12px"><img class="ico ico--chico" src="img/iconos/editar.webp" alt=""> Editar mis datos y mi plan</a>
         </section>
 
         <section class="tarjeta" aria-labelledby="t-ia">
-          <h2 class="metrica__titulo" id="t-ia">✨ IA para fotos y descripciones</h2>
+          <h2 class="metrica__titulo" id="t-ia"><img class="ico" src="img/iconos/foto-ia.webp" alt=""> IA para fotos y descripciones</h2>
           ${clave ? `
-            <p class="perfil__estado">✅ Clave de Gemini cargada <span class="suave">(${esc(oculta)})</span></p>
+            <p class="perfil__estado">Clave de Gemini cargada <span class="suave">(${esc(oculta)})</span></p>
             <div class="campos-2">
               <button class="btn btn--secundario" data-a="probar">Probar</button>
               <button class="btn btn--fantasma btn--peligro" data-a="borrar">Borrar clave</button>
@@ -70,23 +71,29 @@ export async function montar(contenedor) {
         </section>
 
         <section class="tarjeta" aria-labelledby="t-resp">
-          <h2 class="metrica__titulo" id="t-resp">💾 Tus datos</h2>
+          <h2 class="metrica__titulo" id="t-resp"><img class="ico" src="img/iconos/respaldo-guardar.webp" alt=""> Tus datos</h2>
           <p class="ayuda">Todo lo que anotás vive solo en este teléfono. Si lo cambiás o borrás la app, se pierde:
             guardá un respaldo cada tanto (por ejemplo, en tu Drive o mandándotelo por mail).</p>
           <p class="perfil__estado">${ultimo ? `Último respaldo: ${esc(new Date(ultimo + 'T12:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }))}` : 'Todavía no guardaste ningún respaldo.'}</p>
           <div class="campos-2">
-            <button class="btn btn--secundario" data-a="exportar">⬇️ Guardar</button>
-            <label class="btn btn--secundario">⬆️ Restaurar<input type="file" accept=".json,application/json" data-restaurar hidden></label>
+            <button class="btn btn--secundario" data-a="exportar"><img class="ico ico--chico" src="img/iconos/respaldo-guardar.webp" alt=""> Guardar</button>
+            <label class="btn btn--secundario"><img class="ico ico--chico" src="img/iconos/respaldo-restaurar.webp" alt=""> Restaurar<input type="file" accept=".json,application/json" data-restaurar hidden></label>
           </div>
           <p class="perfil__msg perfil__msg--resp" role="status"></p>
           <button class="btn btn--fantasma btn--peligro" data-a="borrar-todo">Borrar todos mis datos</button>
         </section>
 
+        <section class="tarjeta" aria-labelledby="t-sonido">
+          <h2 class="metrica__titulo" id="t-sonido">Sonido y vibración</h2>
+          <label class="casilla"><input type="checkbox" data-sonido ${sonidoActivo() ? 'checked' : ''}>
+            <span>Sonidos cortos al tomar agua, anotar comidas y cumplir misiones. En Android, también vibra.</span></label>
+        </section>
+
         <section class="tarjeta">
           <ul class="lista-simple lista-enlaces">
-            <li><a href="#/entrenar">🏋️ Entrenar</a></li>
-            <li><a href="#/ayuno">⏳ Ayuno</a></li>
-            <li><a href="#/peso">⚖️ Anotar peso</a></li>
+            <li><a href="#/entrenar"><img class="ico ico--chico" src="img/iconos/entrenar.webp" alt=""> Entrenar</a></li>
+            <li><a href="#/ayuno"><img class="ico ico--chico" src="img/iconos/ayuno.webp" alt=""> Ayuno</a></li>
+            <li><a href="#/peso"><img class="ico ico--chico" src="img/iconos/peso.webp" alt=""> Anotar peso</a></li>
           </ul>
         </section>
 
@@ -108,6 +115,11 @@ export async function montar(contenedor) {
   const msgResp = t => { c.querySelector('.perfil__msg--resp').textContent = t; };
 
   // Restaurar: se lee y se revisa el archivo, se muestra de cuándo es y se pide confirmación.
+  c.addEventListener('change', e => {
+    if (!e.target.matches('[data-sonido]')) return;
+    fijarSonido(e.target.checked);
+    if (e.target.checked) sonar('moneda');
+  });
   c.addEventListener('change', async e => {
     if (!e.target.matches('[data-restaurar]') || !e.target.files?.[0]) return;
     const archivo = e.target.files[0];

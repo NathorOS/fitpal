@@ -13,6 +13,7 @@ import { MOMENTOS, comidasDelDia, sumar } from '../registro.js';
 import { ayunoEnCurso, progresoAyuno, reloj, metaAyunoPreferida, faseAyuno } from '../ayuno.js';
 import { puntajeDelDia, etiquetaPuntaje, misionesDelDia } from '../puntaje.js';
 import { confeti, contar } from './festejo.js';
+import { sonar } from './sonido.js';
 import { liquido, necesitaPermiso, pedirPermiso, inclinacion } from './liquido.js';
 import { racha } from '../estadisticas.js';
 import { revisarMeta, aplicarAjuste, posponerAjuste } from '../adaptativo.js';
@@ -105,7 +106,7 @@ export async function montar(c, params = new URLSearchParams()) {
   const nivelAgua = Math.min(1, agua / aguaMeta);
   const nivelAguaAntes = recordar(`nathorfit-botella-${fecha}`, nivelAgua);
   // El plato: todo lo que comiste en el día, en el orden en que lo anotaste
-  const bocados = comidas.flatMap(com => com.items.map(i => ({ emoji: i.emoji || '🍽️', nombre: i.nombre })));
+  const bocados = comidas.flatMap(com => com.items.map(i => ({ emoji: i.emoji || '', nombre: i.nombre })));
   const bocadosAntes = recordar(`nathorfit-plato-${fecha}`, bocados.length);
   // La pista de actividad: misión de moverse (30 min u 8000 pasos)
   const mov = misiones.find(m => m.id === 'mov');
@@ -115,7 +116,16 @@ export async function montar(c, params = new URLSearchParams()) {
   const horasAyuno = curso ? progresoAyuno(curso).horas : 0;
   const metaH = curso?.meta_h ?? metaAyuno;
   const etapa = faseAyuno(horasAyuno, metaH);
-  const metaPasos = perfil?.meta_pasos || 8000;
+  // Agua, movimiento y ayuno: tres figuritas; la elegida se abre abajo (queda elegida mientras uses la app)
+  let trio = 'agua';
+  try { trio = sessionStorage.getItem('nathorfit-trio') || 'agua'; } catch { /* nada */ }
+  const figu = (id, icono, nombre, valor, unidad, avance) => `
+    <button class="figu" type="button" role="tab" id="tab-${id}" aria-controls="panel-${id}" aria-selected="${trio === id}" tabindex="${trio === id ? 0 : -1}" data-tab="${id}">
+      <img class="figu__ico" src="img/iconos/${icono}.webp" alt="" width="40" height="40">
+      <span class="figu__nombre">${nombre}</span>
+      <b class="figu__valor">${valor} <small>${unidad}</small></b>
+      <span class="figu__barra" aria-hidden="true"><i style="width:${Math.round(Math.min(1, avance) * 100)}%"></i></span>
+    </button>`;
   const macro = (nombre, g, obj, color) => `
     <div><div class="macro__nombre"><i class="macro__color" style="background:var(${color})"></i>${nombre}</div>
       <div class="macro__pista"><i style="width:${obj ? Math.min(100, (g / obj) * 100) : 0}%;background:var(${color})"></i></div>
@@ -147,7 +157,7 @@ export async function montar(c, params = new URLSearchParams()) {
         <nav class="hoy__dias" aria-label="Cambiar de día">
           <a class="icono-btn" href="${hrefDia(dia(-1))}" aria-label="Día anterior">‹</a>
           <span class="hoy__dia">${esc(etiquetaDia(fecha, hoyStr))}</span>
-          ${esHoy ? `<a class="chip chip--racha" href="#/racha" aria-label="Racha: ${laRacha} ${laRacha === 1 ? 'día' : 'días'}">${llama ? `<img src="img/insignias/racha-${llama}.webp" alt="" width="22" height="22">` : '<span class="llama">🔥</span>'} ${laRacha}</a>`
+          ${esHoy ? `<a class="chip chip--racha" href="#/racha" aria-label="Racha: ${laRacha} ${laRacha === 1 ? 'día' : 'días'}">${llama ? `<img src="img/insignias/racha-${llama}.webp" alt="" width="22" height="22">` : '<img class="llama" src="img/iconos/calorias.webp" alt="" width="22" height="22">'} ${laRacha}</a>`
             : `<a class="icono-btn" href="${hrefDia(dia(1))}" aria-label="Día siguiente">›</a>`}
         </nav>
       </div>
@@ -158,37 +168,86 @@ export async function montar(c, params = new URLSearchParams()) {
         <span class="tarjeta--logro__ver" aria-hidden="true">Ver ›</span>
       </a>` : ''}
 
-      <section class="tarjeta" aria-labelledby="t-kcal">
+      ${ajuste.listo ? `<section class="tarjeta tarjeta--ajuste" aria-labelledby="t-ajuste">
+        <h2 class="metrica__titulo" id="t-ajuste"><img class="ico" src="img/iconos/meta.webp" alt=""> Podemos ajustar tu meta</h2>
+        <p class="ajuste__cifras"><s>${num(ajuste.antes)}</s> → <b>${num(ajuste.despues)} kcal</b> por día</p>
+        <p class="hoy__nota">${esc(ajuste.motivo)}${ajuste.limitadoPorPiso ? ' Nunca bajamos del mínimo seguro.' : ''}</p>
+        <div class="campos-2">
+          <button class="btn" data-ajuste="aplicar">Aplicar</button>
+          <button class="btn btn--secundario" data-ajuste="despues">Ahora no</button>
+        </div>
+      </section>` : ''}
+
+      <section class="tarjeta tarjeta--tanque" aria-labelledby="t-kcal">
         <div class="metrica__fila">
           <h2 class="metrica__titulo" id="t-kcal">Calorías ${esHoy ? 'de hoy' : 'del día'}</h2>
-          <button class="chip chip--sensor" data-sensor hidden>📱 Mover con el teléfono</button>
+          <button class="chip chip--sensor" data-sensor hidden>Mover con el teléfono</button>
         </div>
         <div class="tanque${quedan < 0 ? ' tanque--pasado' : ''}">
           <canvas class="tanque__lienzo" data-tanque aria-hidden="true"></canvas>
           <div class="tanque__dato"><b data-contar="${Math.round(total.kcal)}">${num(total.kcal)}</b><small>${objetivo ? `de ${num(objetivo)} kcal` : 'kcal'}</small></div>
-          ${!total.kcal ? '<p class="tanque__vacio">Vacío. Cada comida que anotes lo va llenando.</p>' : ''}
+          ${!total.kcal ? '<p class="tanque__vacio">Tanque vacío</p>' : ''}
         </div>
         <div class="tanque__pie">
-          <p class="resumen__quedan">${!objetivo ? 'Anotá lo que comés y te muestro cómo venís.'
+          <p class="resumen__quedan">${!objetivo ? 'Sin meta todavía'
             : quedan >= 0 ? `Te quedan <b>${num(quedan)}</b>`
             : `<b class="pasado">${num(-quedan)}</b> por encima`}</p>
-          <a class="btn btn--acento btn--chico" href="${sumarHref}">+ Anotar comida</a>
+          <a class="btn btn--acento btn--chico" href="${sumarHref}">+ Comida</a>
         </div>
-        ${extra.suma ? `<p class="hoy__extra">🏃 Meta ${num(metaBase)} + ${num(extra.suma)} por actividad</p>` : ''}
+        ${extra.suma ? `<p class="hoy__extra"><img class="ico ico--chico" src="img/iconos/actividad.webp" alt=""> +${num(extra.suma)} kcal por moverte</p>` : ''}
         ${meta ? `<div class="macros">
           ${macro('Carbos', total.carb, meta.carb, '--macro-carb')}
           ${macro('Grasas', total.grasa, meta.grasa, '--macro-grasa')}
           ${macro('Proteínas', total.prot, meta.prot, '--macro-prot')}
         </div>` : ''}
-        ${quedan < 0 ? '<p class="hoy__nota">Un día por encima no cambia nada: lo que cuenta es el promedio de la semana.</p>' : ''}
+        ${quedan < 0 ? '<p class="hoy__nota">Un día por encima no cambia nada: cuenta el promedio de la semana.</p>' : ''}
+      </section>
+
+      <section class="tarjeta trio" aria-label="Agua, actividad y ayuno">
+        <div class="trio__tabs" role="tablist" aria-label="Agua, actividad y ayuno">
+          ${figu('agua', 'agua', 'Agua', num(agua), 'ml', nivelAgua)}
+          ${figu('act', 'actividad', 'Movimiento', minutosAct || !pasos ? String(minutosAct) : num(pasos), minutosAct || !pasos ? 'min' : 'pasos', mov.avance)}
+          ${figu('ayuno', curso ? 'ayuno-en-curso' : 'ayuno', 'Ayuno', curso ? String(Math.floor(horasAyuno)) : '–', curso ? `de ${metaH} h` : 'sin empezar', curso ? horasAyuno / metaH : 0)}
+        </div>
+
+        <div class="trio__panel" role="tabpanel" id="panel-agua" aria-labelledby="tab-agua"${trio !== 'agua' ? ' hidden' : ''}>
+          <div class="agua">
+            <div class="agua__botella"><canvas data-botella aria-hidden="true"></canvas></div>
+            <div class="agua__lado">
+              <p class="agua__ml"><b data-contar="${Math.round(agua)}">${num(agua)}</b> / ${num(aguaMeta)} ml</p>
+              <p class="hoy__agua">${agua >= aguaMeta ? '¡Botella llena!' : `${vasos} de ${aguaMeta / 250} vasos`}</p>
+              <div class="agua__botones">
+                <button class="icono-btn" data-agua="-" aria-label="Sacar un vaso" ${agua ? '' : 'disabled'}>–</button>
+                <button class="btn btn--chico agua__sumar" data-agua="+" aria-label="Sumar un vaso de 250 ml">+ Vaso</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="trio__panel" role="tabpanel" id="panel-act" aria-labelledby="tab-act"${trio !== 'act' ? ' hidden' : ''}>
+          ${pistaHTML(mov.avance, { minutos: minutosAct, pasos, est })}
+          ${actividades.length || pasos ? `<ul class="lista-simple">
+            ${actividades.map(a => `<li><span>${esc(a.nombre)} · ${a.minutos} min</span><b>${num(a.kcal)} kcal</b></li>`).join('')}
+            ${pasos ? `<li><span><img class="ico ico--chico" src="img/iconos/pasos.webp" alt=""> ${num(pasos)}${perfil?.meta_pasos ? ` de ${num(perfil.meta_pasos)}` : ''} pasos</span><b>${num(kcalPasos(pasos, kg))} kcal</b></li>` : ''}
+          </ul>` : ''}
+          ${extra.quemadas ? `<p class="hoy__extra"><b>${num(extra.quemadas)}</b> kcal quemadas</p>` : ''}
+          <div class="campos-2 trio__acciones">
+            <a class="btn btn--secundario btn--chico" href="#/actividad${esHoy ? '' : `?fecha=${fecha}`}">+ Actividad</a>
+            ${esHoy ? '<a class="btn btn--secundario btn--chico" href="#/entrenar"><img class="ico ico--chico" src="img/iconos/entrenar.webp" alt=""> Entrenar</a>' : ''}
+          </div>
+        </div>
+
+        <div class="trio__panel" role="tabpanel" id="panel-ayuno" aria-labelledby="tab-ayuno"${trio !== 'ayuno' ? ' hidden' : ''}>
+          ${ayunoHTML(etapa, horasAyuno, metaH, Boolean(curso))}
+        </div>
       </section>
 
       ${meta ? `<section class="tarjeta tarjeta--misiones" aria-labelledby="t-puntaje">
         <details class="plegable" data-plegable="misiones"${abiertas ? ' open' : ''}>
         <summary class="metrica__fila plegable__cabeza">
           <div>
-            <h2 class="metrica__titulo" id="t-puntaje">Misiones de hoy</h2>
-            <p class="hoy__agua">${hechas} de ${misiones.length} cumplidas${puntajeDia != null ? ` · ${esc(etiquetaPuntaje(puntajeDia))}` : ''}</p>
+            <h2 class="metrica__titulo" id="t-puntaje">Misiones</h2>
+            <p class="hoy__agua">${hechas} de ${misiones.length}${puntajeDia != null ? ` · ${esc(etiquetaPuntaje(puntajeDia))}` : ''}</p>
             <span class="plegable__pista" aria-hidden="true">${misiones.map(m => `<i class="${m.hecha ? 'si' : ''}"></i>`).join('')}</span>
           </div>
           <div class="puntaje-anillo" role="img" aria-label="${puntajeDia != null ? `Puntaje ${puntajeDia} de 100` : 'Sin puntaje todavía'}">
@@ -210,27 +269,15 @@ export async function montar(c, params = new URLSearchParams()) {
         </details>
       </section>` : ''}
 
-      ${esHoy ? `<section class="ayudantes" aria-label="Tu equipo">
-        ${ayudanteHTML('entrenador', situacionEntrenador({ minutosActividad: minutosAct, hora: new Date().getHours() }), {
-          href: '#/entrenador', id: 'consejo-coach',
-          texto: conClave ? (consejo ?? 'Pensando qué decirte hoy…') : 'Te armo la rutina, te digo qué cocinar y cómo venís. Tocá para activarlo.',
-        })}
-        ${ayudanteHTML('chef', situacionChef({ kcal: total.kcal, kcalMeta: objetivo, comidasHoy: comidas.length, hora: new Date().getHours() }), {
-          href: '#/entrenador?tab=cocinar', clase: 'ayu--derecha',
-        })}
-      </section>` : ''}
-
-      ${ajuste.listo ? `<section class="tarjeta tarjeta--ajuste" aria-labelledby="t-ajuste">
-        <h2 class="metrica__titulo" id="t-ajuste">📊 Podemos ajustar tu meta</h2>
-        <p class="ajuste__cifras"><s>${num(ajuste.antes)}</s> → <b>${num(ajuste.despues)} kcal</b> por día</p>
-        <p class="hoy__nota">${esc(ajuste.motivo)} Lo calculé con tus pesos y tus días anotados completos del último mes${ajuste.limitadoPorPiso ? '. Nunca bajamos del mínimo seguro' : ''}.</p>
-        <div class="campos-2">
-          <button class="btn" data-ajuste="aplicar">Aplicar</button>
-          <button class="btn btn--secundario" data-ajuste="despues">Ahora no</button>
+      <section class="tarjeta" aria-labelledby="t-comidas">
+        <div class="metrica__fila">
+          <h2 class="metrica__titulo" id="t-comidas"><img class="ico" src="img/iconos/anotar-comida.webp" alt=""> Comidas</h2>
+          <a class="icono-btn" href="${sumarHref}" aria-label="Anotar comida">+</a>
         </div>
-      </section>` : ''}
-
-
+        ${platoHTML(bocados, bocadosAntes, total.kcal)}
+        ${comidas.length ? `<ul class="comidas">${comidas.map(htmlComida).join('')}</ul>`
+          : `<p class="hoy__vacio plato__vacio">${esHoy ? 'Plato vacío' : 'Ese día no anotaste nada.'}</p>`}
+      </section>
 
       ${ideas.length ? `<section class="tarjeta" aria-labelledby="t-ideas">
         <h2 class="metrica__titulo" id="t-ideas">Ideas para cerrar el día</h2>
@@ -238,57 +285,15 @@ export async function montar(c, params = new URLSearchParams()) {
           <p>${esc(i.texto)}${i.accion ? ` <a class="enlace" href="${i.accion.href}">${esc(i.accion.texto)}</a>` : ''}</p></li>`).join('')}</ul>
       </section>` : ''}
 
-      <section class="tarjeta" aria-labelledby="t-comidas">
-        <h2 class="metrica__titulo" id="t-comidas"><img class="ico" src="img/iconos/anotar-comida.webp" alt=""> Comidas</h2>
-        ${platoHTML(bocados, bocadosAntes, total.kcal)}
-        ${comidas.length ? `<ul class="comidas">${comidas.map(htmlComida).join('')}</ul>`
-          : `<p class="hoy__vacio plato__vacio">${esHoy ? 'El plato está vacío: anotá lo que comas y va cayendo acá.' : 'Ese día no anotaste nada. Todavía podés hacerlo.'}</p>`}
-        <a class="btn btn--secundario" href="${sumarHref}">+ Anotar comida</a>
-      </section>
-
-      <section class="tarjeta" aria-labelledby="t-act">
-        <div class="metrica__fila">
-          <div>
-            <h2 class="metrica__titulo" id="t-act"><img class="ico" src="img/iconos/actividad.webp" alt=""> Actividad</h2>
-            <p class="hoy__agua">${extra.quemadas ? `<b>${num(extra.quemadas)}</b> kcal quemadas` : 'Todavía nada'}</p>
-          </div>
-          <a class="icono-btn" href="#/actividad${esHoy ? '' : `?fecha=${fecha}`}" aria-label="Anotar actividad">+</a>
-        </div>
-        ${pistaHTML(mov.avance, { minutos: minutosAct, pasos, metaPasos, quemadas: extra.quemadas })}
-        ${actividades.length || pasos ? `<ul class="lista-simple">
-          ${actividades.map(a => `<li><span>${a.emoji} ${esc(a.nombre)} · ${a.minutos} min</span><b>${num(a.kcal)} kcal</b></li>`).join('')}
-          ${pasos ? `<li><span>👣 ${num(pasos)}${perfil?.meta_pasos ? ` de ${num(perfil.meta_pasos)}` : ''} pasos${perfil?.meta_pasos && pasos >= perfil.meta_pasos ? ' ✅' : ''}</span><b>${num(kcalPasos(pasos, kg))} kcal</b></li>` : ''}
-        </ul>` : ''}
-        ${esHoy ? '<a class="btn btn--secundario" href="#/entrenar" style="margin-top:8px">🏋️ Entrenar con una rutina</a>' : ''}
-      </section>
-
-      <section class="tarjeta" aria-labelledby="t-agua">
-        <div class="agua">
-          <div class="agua__botella"><canvas data-botella aria-hidden="true"></canvas></div>
-          <div class="agua__lado">
-            <h2 class="metrica__titulo" id="t-agua"><img class="ico" src="img/iconos/agua.webp" alt=""> Agua</h2>
-            <p class="agua__ml"><b data-contar="${Math.round(agua)}">${num(agua)}</b> / ${num(aguaMeta)} ml</p>
-            <p class="hoy__agua">${agua >= aguaMeta ? '¡Botella llena! 💧' : `${vasos} de ${aguaMeta / 250} vasos · faltan ${num(aguaMeta - agua)} ml`}</p>
-            <div class="agua__botones">
-              <button class="icono-btn" data-agua="-" aria-label="Sacar un vaso" ${agua ? '' : 'disabled'}>–</button>
-              <button class="btn btn--chico agua__sumar" data-agua="+" aria-label="Sumar un vaso de 250 ml">+ Vaso</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-
-      <section class="tarjeta" aria-labelledby="t-ayuno">
-        <div class="metrica__fila">
-          <div>
-            <h2 class="metrica__titulo" id="t-ayuno"><img class="ico" src="img/iconos/ayuno.webp" alt=""> Ayuno</h2>
-            <p class="hoy__agua">${curso ? `Meta: ${curso.meta_h} h` : 'Opcional · desde tu última comida'}</p>
-          </div>
-          <a class="${curso ? 'chip' : 'btn btn--chico'}" href="#/ayuno">${curso ? 'Ver' : 'Empezar'}</a>
-        </div>
-        ${ayunoHTML(etapa, horasAyuno, metaH, Boolean(curso))}
-      </section>
+      ${esHoy ? `<section class="ayudantes" aria-label="Tu equipo">
+        ${ayudanteHTML('entrenador', situacionEntrenador({ minutosActividad: minutosAct, hora: new Date().getHours() }), {
+          href: '#/entrenador', id: 'consejo-coach',
+          texto: conClave ? (consejo ?? 'Pensando qué decirte hoy…') : 'Activame y te armo la rutina.',
+        })}
+        ${ayudanteHTML('chef', situacionChef({ kcal: total.kcal, kcalMeta: objetivo, comidasHoy: comidas.length, hora: new Date().getHours() }), {
+          href: '#/entrenador?tab=cocinar', clase: 'ayu--derecha',
+        })}
+      </section>` : ''}
     </div>
     <p class="aviso-flotante" role="status" hidden></p>`;
 
@@ -298,7 +303,7 @@ export async function montar(c, params = new URLSearchParams()) {
   if (esHoy && meta) {
     let antes = hechas;
     try { antes = Number(localStorage.getItem(`nathorfit-misiones-${fecha}`) ?? hechas); localStorage.setItem(`nathorfit-misiones-${fecha}`, hechas); } catch { /* nada */ }
-    if (hechas > antes) setTimeout(() => confeti(c.querySelector('.plegable[open] .mision--hecha .mision__tilde') ?? c.querySelector('.puntaje-anillo'), { cantidad: 26 }), 450);
+    if (hechas > antes) setTimeout(() => confeti(c.querySelector('.plegable[open] .mision--hecha .mision__tilde') ?? c.querySelector('.puntaje-anillo'), { cantidad: 26, sonido: 'moneda' }), 450);
   }
   // Los líquidos: el tanque de calorías (capas por macro: la grasa flota arriba) y la botella de agua
   const capasKcal = [
@@ -308,13 +313,13 @@ export async function montar(c, params = new URLSearchParams()) {
   ];
   const tanque = c.querySelector('[data-tanque]');
   if (tanque) liquido(tanque, {
-    forma: 'tanque', meta: Boolean(objetivo), marcas: 4,
+    forma: 'tanque', meta: Boolean(objetivo), marcas: 4, alCaer: () => sonar('plop'),
     nivel: objetivo ? nivelKcal : (total.kcal ? 0.5 : 0), desde: objetivo ? nivelKcalAntes : 0, gota: nivelKcal > nivelKcalAntes,
     capas: capasKcal.some(x => x.valor > 0) ? capasKcal : [{ color: '--accent', valor: 1 }],
   });
   const botella = c.querySelector('[data-botella]');
   if (botella) liquido(botella, {
-    forma: 'botella', nivel: nivelAgua, desde: nivelAguaAntes, gota: nivelAgua > nivelAguaAntes,
+    forma: 'botella', alCaer: () => sonar('plop'), nivel: nivelAgua, desde: nivelAguaAntes, gota: nivelAgua > nivelAguaAntes,
     marcas: Math.max(2, Math.round(aguaMeta / 500)), capas: [{ color: '#4FA8F5', valor: 1 }], colorTapa: '#3B8FE0',
   });
   if (nivelAgua >= 1 && nivelAguaAntes < 1) setTimeout(() => confeti(botella, { cantidad: 18, alcance: 0.7 }), 1300);
@@ -327,6 +332,31 @@ export async function montar(c, params = new URLSearchParams()) {
   // Misiones: se abren y se cierran tocando; queda como la dejaste
   c.querySelector('[data-plegable]')?.addEventListener('toggle', e => {
     try { sessionStorage.setItem('nathorfit-misiones-abiertas', e.target.open ? 'si' : 'no'); } catch { /* nada */ }
+  });
+  // Cada cosa nueva que cae al plato hace "toc"
+  c.querySelectorAll('.plato__bocado--cae').forEach((b, i) => {
+    if (i < 4) setTimeout(() => sonar('golpe'), parseInt(b.style.getPropertyValue('--d'), 10) + 520);
+  });
+  // Agua, movimiento y ayuno: tocar una figurita abre su panel (flechas del teclado también)
+  const tabs = [...c.querySelectorAll('[role="tab"]')];
+  const elegir = (tab, foco = false) => {
+    tabs.forEach(t => {
+      const si = t === tab;
+      t.setAttribute('aria-selected', String(si));
+      t.tabIndex = si ? 0 : -1;
+      const panel = c.querySelector(`#${t.getAttribute('aria-controls')}`);
+      panel.hidden = !si;
+      if (si) { panel.classList.remove('trio__panel--abre'); void panel.offsetWidth; panel.classList.add('trio__panel--abre'); }
+    });
+    if (foco) tab.focus();
+    try { sessionStorage.setItem('nathorfit-trio', tab.dataset.tab); } catch { /* nada */ }
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => elegir(t));
+    t.addEventListener('keydown', e => {
+      const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (d) { e.preventDefault(); elegir(tabs[(i + d + tabs.length) % tabs.length], true); }
+    });
   });
   // El plato: lo que está arriba se desliza un poco para el lado al que inclinás el teléfono
   const plato = c.querySelector('.plato');
@@ -433,11 +463,10 @@ const esFoto = f => typeof f === 'string' && /^data:image\/(jpeg|png|webp);base6
 
 function htmlComida(com) {
   const m = MOMENTOS.find(x => x.id === com.momento) ?? MOMENTOS[0];
-  const emojis = [...new Set(com.items.map(i => i.emoji))].slice(0, 3).join('');
   const nombres = com.items.map(i => i.nombre).join(', ');
   return `<li><a class="comida" href="#/registrar?editar=${com.id}" aria-label="${esc(m.nombre)} ${esc(com.hora)}, ${num(com.kcal)} kcal. Editar">
     ${esFoto(com.foto) ? `<img class="comida__foto" src="${esc(com.foto)}" alt="" width="52" height="52">`
-      : `<span class="comida__emoji" aria-hidden="true">${emojis}</span>`}
+      : `<span class="comida__emoji" aria-hidden="true"><img src="img/iconos/${m.icono}.webp" alt="" width="40" height="40"></span>`}
     <span class="comida__texto"><b>${esc(m.nombre)} <small>${esc(com.hora)}</small></b><small>${esc(nombres)}</small></span>
     <span class="comida__kcal">${num(com.kcal)}<small> kcal</small></span>
   </a></li>`;
@@ -452,9 +481,31 @@ function etiquetaDia(fecha, hoyStr) {
   return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
+// Lo que cae al plato: se dibuja con los íconos de la app según el tipo de comida (si no hay uno, el emoji del alimento).
+// Primero los dibujos justos (pizza, papas, choripán…); si no, el de su grupo; si tampoco, el emoji.
+const JUSTO = {
+  '🍕': 'escena/vicio-pizza', '🍟': 'escena/vicio-papas', '🌭': 'escena/vicio-choripan', '🍺': 'escena/vicio-cerveza', '🍷': 'escena/vicio-vino',
+  '🥤': 'escena/vicio-gaseosa', '🍌': 'escena/sano-banana', '🍎': 'escena/sano-manzana', '🍏': 'escena/sano-manzana', '🥗': 'escena/sano-ensalada',
+  '🧉': 'escena/sano-mate', '💧': 'escena/sano-agua', '🍔': 'iconos/alim-rapidas',
+};
+const CATEGORIA = [
+  ['iconos/alim-carnes', '🥩🍖🥓🍗'],
+  ['iconos/alim-panes', '🍞🥖🥐🥯🫓'],
+  ['iconos/alim-frutas', '🍊🍐🍇🍓🍉🍑🍍🥝🍒🥭🍋🫐🍈'],
+  ['iconos/alim-verduras', '🥦🥕🍅🥬🥒🫑🍆'],
+  ['iconos/alim-lacteos', '🥛🧀'],
+  ['iconos/alim-dulces', '🥞🧇'],
+  ['iconos/alim-bebidas', '🧃'],
+  ['iconos/alim-legumbres', '🫘'],
+];
+const iconoDe = emoji => {
+  const e = (emoji || '').replace(/\uFE0F/g, '');
+  return JUSTO[e] ?? CATEGORIA.find(([, lista]) => e && lista.includes(e))?.[0] ?? null;
+};
+
 /** El plato del día: cada cosa que comiste cae encima (las nuevas desde la última vez, con un golpecito). */
 function platoHTML(bocados, antes, kcal) {
-  const MAX = 14;
+  const MAX = 12;
   const vis = bocados.slice(-MAX), corrido = bocados.length - vis.length, n = vis.length;
   let ultimo = 0;
   const items = vis.map((b, j) => {
@@ -463,28 +514,28 @@ function platoHTML(bocados, antes, kcal) {
     const nuevo = corrido + j >= antes;
     const d = nuevo ? (corrido + j - antes) * 160 : 0;
     if (nuevo) ultimo = d;
-    return `<span class="plato__bocado${nuevo ? ' plato__bocado--cae' : ''}" style="left:${(50 + r * Math.cos(ang)).toFixed(1)}%;top:${(50 + r * Math.sin(ang)).toFixed(1)}%;--k:${(0.5 + ((j * 37) % 10) / 12).toFixed(2)};--d:${d}ms"><i>${esc(b.emoji)}</i></span>`;
+    const ico = iconoDe(b.emoji);
+    return `<span class="plato__bocado${nuevo ? ' plato__bocado--cae' : ''}" style="left:${(50 + r * Math.cos(ang)).toFixed(1)}%;top:${(50 + r * Math.sin(ang)).toFixed(1)}%;--k:${(0.5 + ((j * 37) % 10) / 12).toFixed(2)};--d:${d}ms">${ico
+      ? `<img src="img/${ico}.webp" alt="">` : `<i>${esc(b.emoji || '•')}</i>`}</span>`;
   }).join('');
   const hayNuevo = bocados.length > antes;
-  return `<div class="plato${hayNuevo ? ' plato--golpe' : ''}${n ? '' : ' plato--vacio'}" style="--golpe:${ultimo + 480}ms;--tam:${n <= 3 ? 58 : n <= 6 ? 46 : 36}px" aria-hidden="true">
+  return `<div class="plato${hayNuevo ? ' plato--golpe' : ''}${n ? '' : ' plato--vacio'}" style="--golpe:${ultimo + 480}ms;--tam:${n <= 3 ? 76 : n <= 6 ? 60 : 46}px" aria-hidden="true">
     <div class="plato__loza">${items}</div>
     ${bocados.length > MAX ? `<span class="plato__mas">+${bocados.length - MAX}</span>` : ''}
     ${kcal ? `<span class="plato__total">${num(kcal)} kcal</span>` : ''}
   </div>`;
 }
 
-/** La pista de actividad: el corredor avanza hasta la bandera (misión: 30 min u 8000 pasos). */
-function pistaHTML(avance, { minutos, pasos }) {
+/** La pista de movimiento: tu personaje corre hasta la bandera (misión: 30 min u 8000 pasos). */
+function pistaHTML(avance, { minutos, pasos, est }) {
   const hecho = avance >= 1, parado = avance <= 0;
-  const faltaMin = Math.max(0, 30 - minutos), faltaPasos = Math.max(0, 8000 - pasos);
-  const texto = hecho ? '¡Misión cumplida! Hoy te moviste lo que había que moverse.'
-    : parado ? '¡Dale, movete! 30 minutos u 8.000 pasos cumplen la misión.'
-    : `Vas ${Math.round(avance * 100)} %: te faltan ${faltaMin} min${pasos ? ` o ${num(faltaPasos)} pasos` : ''}.`;
+  const texto = hecho ? '¡Misión cumplida!'
+    : `${minutos} de 30 min${pasos ? ` · ${num(pasos)} de 8.000 pasos` : ''}`;
+  const pose = hecho ? 'festejando' : parado ? 'fiaca' : 'entrenando';
   return `<div class="pista pista--${hecho ? 'meta' : parado ? 'parada' : 'corre'}" style="--p:${Math.min(1, avance).toFixed(3)}" aria-hidden="true">
-    <span class="pista__nube"></span><span class="pista__nube pista__nube--2"></span>
     <span class="pista__suelo"><i></i></span>
-    <span class="pista__llegada">🏁</span>
-    <span class="pista__corredor"><i>${hecho ? '🏆' : parado ? '🧍' : '🏃'}</i></span>
+    <span class="pista__llegada"><i></i></span>
+    <span class="pista__corredor">${pjHTML(pose, { etapa: est.etapa, limpieza: est.limpieza, clase: 'pj--pista' })}</span>
     ${parado ? '<span class="pista__globo">¿Salimos?</span>' : ''}
   </div>
   <p class="hoy__agua pista__texto">${texto}</p>`;
@@ -501,17 +552,18 @@ function ayunoHTML(etapa, horas, meta, enCurso) {
     <div class="dial${enCurso ? ' dial--activo' : ''}" style="--p:${p.toFixed(4)}">
       <div class="dial__aro" style="background:conic-gradient(${stops})"></div>
       <div class="dial__falta"></div>
-      ${enCurso ? `<div class="dial__marca"><i>${etapa.fase.emoji}</i></div>` : ''}
+      ${enCurso ? `<div class="dial__marca"><i><img src="img/iconos/${etapa.fase.icono}.webp" alt=""></i></div>` : ''}
       <div class="dial__centro"><b ${enCurso ? 'id="reloj-ayuno"' : ''}>${enCurso ? reloj(horas) : `${meta} h`}</b><small>${enCurso ? `de ${meta} h` : 'tu meta'}</small></div>
     </div>
     <div class="ayuno-vivo__lado">
-      ${enCurso ? `<p class="ayuno-vivo__fase">${etapa.fase.emoji} ${esc(etapa.fase.nombre)}</p>
+      ${enCurso ? `<p class="ayuno-vivo__fase">${esc(etapa.fase.nombre)}</p>
         <p class="hoy__agua">${esc(etapa.fase.texto)}</p>
-        ${etapa.siguiente ? `<p class="ayuno-vivo__prox">Después: ${esc(etapa.siguiente.nombre)} en ${dur(etapa.siguiente.enH)}</p>` : ''}`
-        : '<p class="hoy__agua">Así es un ayuno con tu meta. Arranca cuando terminás de comer.</p>'}
+        ${etapa.siguiente ? `<p class="ayuno-vivo__prox">${esc(etapa.siguiente.nombre)} en ${dur(etapa.siguiente.enH)}</p>` : ''}
+        <a class="chip" href="#/ayuno">Ver ayuno</a>`
+        : '<p class="ayuno-vivo__fase">Opcional</p><a class="btn btn--chico" href="#/ayuno">Empezar</a>'}
     </div>
   </div>
   <ol class="etapas">${fases.map((f, i) => `<li class="${enCurso && i < actual ? 'etapas--pasada' : ''}${enCurso && i === actual ? 'etapas--ahora' : ''}" style="--c:${COLORES[i]}">
-    <span aria-hidden="true">${f.emoji}</span><b>${esc(f.nombre)}</b><small>desde ${f.desde} h</small></li>`).join('')}</ol>
+    <img src="img/iconos/${f.icono}.webp" alt="" width="30" height="30"><b>${esc(f.nombre)}</b><small>desde ${f.desde} h</small></li>`).join('')}</ol>
   <p class="nota-chica">Orientativo: cada cuerpo es distinto.</p>`;
 }

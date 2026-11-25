@@ -24,6 +24,7 @@ const ARCHIVOS = [
   './js/personaje-estado.js', './js/juego.js', './js/frases.js', './js/frases-banco.js', './js/ui/pj.js', './js/ui/logro.js',
   './js/ayudantes.js', './js/ui/ayudante.js', './js/ui/festejo.js',
   './js/ui/liquido.js',
+  './js/ui/sonido.js',
   // El personaje y el cuarto que se ven al abrir (el resto de las imágenes se guarda la primera vez que se usa)
   './img/cuarto/cuarto-desastre.webp', './img/cuarto/cuarto-normal.webp', './img/cuarto/cuarto-ordenado.webp',
   './img/cuarto/cuarto-desastre-noche.webp', './img/cuarto/cuarto-ordenado-noche.webp',

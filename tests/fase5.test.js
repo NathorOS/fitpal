@@ -87,3 +87,14 @@ test('misiones del día: suman el puntaje y "cerca de la meta" no premia comer d
   assert.equal(poco.find(m => m.id === 'meta').hecha, false);
   assert.equal(misionesDelDia({ kcalMeta: 1800 }).find(m => m.id === 'meta').avance, 0);
 });
+
+test('etapas del ayuno: orientativas y nunca proponen pasar de la meta', async () => {
+  const { faseAyuno } = await import('../www/js/ayuno.js');
+  assert.equal(faseAyuno(1, 14).fase.nombre, 'Digiriendo');
+  assert.equal(faseAyuno(5, 14).fase.nombre, 'Usando reservas');
+  assert.equal(faseAyuno(13, 14).siguiente.nombre, 'Meta');
+  const lista = faseAyuno(14, 14);
+  assert.equal(lista.fase.nombre, '¡Meta cumplida!');
+  assert.equal(lista.siguiente, null);
+  assert.equal(faseAyuno(3, 12).fases.length, 2);   // con meta de 12 h no aparece "Más grasa"
+});
