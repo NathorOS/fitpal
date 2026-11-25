@@ -107,6 +107,7 @@ export async function montar(c, params = new URLSearchParams()) {
         <div class="escena-pj__personaje">
           ${pjHTML(poseMomento ?? est.pose, { titulo: `${nombrePj}, ${TEXTO_POSE[est.pose] ?? 'contento'}` })}
           ${est.pose === 'entrenando' ? '<img class="efecto efecto--sudor" src="img/efectos/gotas-sudor.webp" alt="">' : ''}
+          ${est.pose === 'durmiendo' ? '<span class="efecto efecto--zzz" aria-hidden="true"><i>Z</i><i>z</i><i>z</i></span>' : ''}
           ${nivel === 'desastre' && !['fiaca', 'durmiendo'].includes(est.pose) ? `
             <img class="mancha" src="img/escena/mugre-salsa.webp" alt="" style="left:36%;top:50%">
             <img class="mancha" src="img/escena/mugre-grasa.webp" alt="" style="left:52%;top:40%">

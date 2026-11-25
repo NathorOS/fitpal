@@ -23,7 +23,7 @@ export function situacionAlAbrir(d) {
   if (d.kcalMeta > 0 && d.kcal > d.kcalMeta) return 'pasado';
   if (d.hora >= 14 && !d.comidasHoy) return 'fiaca';
   if (d.hora >= 19 && !d.actividadHoy) return 'quieto';
-  if (d.hora >= 21) return 'noche';
+  if (d.hora >= 21 || d.hora < 6) return 'noche';   // de madrugada también es de noche
   if (d.hora >= 16 && d.aguaMeta > 0 && d.aguaMl < d.aguaMeta / 2) return 'agua';
   if (d.kcalMeta > 0 && d.kcal >= d.kcalMeta * 0.85) return 'cerca';
   if (d.limpieza != null && d.limpieza < 34) return 'sucio';
