@@ -1,7 +1,8 @@
 // Entrenador con IA: rutina del día, qué cocino, cómo vengo y charla libre.
 // Parámetro: tab=rutina|cocinar|progreso|charla
 import { obtener, hoy as fechaHoy } from '../db.js';
-import { pjHTML } from './pj.js';
+import { ayudanteHTML, imgAyudante } from './ayudante.js';
+import { decir } from '../ayudantes.js';
 import { obtenerClave, prepararFoto } from '../ia.js';
 import { ejercicio, minutosEstimados } from '../entrenamiento.js';
 import {
@@ -18,7 +19,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
   const c = document.createElement('div');
   contenedor.replaceChildren(c);
   const perfil = await obtener('perfil', 'main');
-  const nombre = perfil?.gato?.nombre || 'Tu entrenador';
+  const nombre = 'del Giudice';
   const hayClave = Boolean(await obtenerClave());
   const st = {
     tab: TABS.some(([t]) => t === params.get('tab')) ? params.get('tab') : 'rutina',
@@ -27,11 +28,19 @@ export async function montar(contenedor, params = new URLSearchParams()) {
     ocupado: false, error: '', pendiente: '',
   };
 
-  const cabecera = consejo => `<div class="retos__cabecera">
-      <div class="retos__gato">${pjHTML(st.tab === 'rutina' ? 'entrenando' : 'saluda', { titulo: nombre })}</div>
-      <div><h1 tabindex="-1">Entrenador</h1>
-        <p>${consejo ? esc(consejo) : `${esc(nombre)} mira tus datos y te dice qué hacer.`}</p></div>
+  // Arriba de todo: del Giudice (rutina, cómo vengo, charla) o el Chef (cocinar), bien grandes.
+  // La frase se elige una vez por pestaña y situación, así no cambia cada vez que se toca un botón.
+  const dichos = {};
+  const dicho = (quien, sit) => (dichos[`${quien}|${sit}`] ??= decir(quien, sit));
+  const cabecera = consejo => {
+    const chef = st.tab === 'cocinar';
+    const quien = chef ? 'chef' : 'entrenador';
+    const d = dicho(quien, st.ocupado ? 'pensando' : 'saludo');
+    return `<div class="pila-chica">
+      <h1 tabindex="-1">${chef ? 'Cocina con el Chef' : 'Entrenador'}</h1>
+      ${ayudanteHTML(quien, d, { tam: 'grande', id: 'consejo-pantalla', texto: !chef && consejo && !st.ocupado ? consejo : undefined })}
     </div>`;
+  };
 
   if (!hayClave) {
     c.innerHTML = `<div class="pila">${cabecera('')}
@@ -107,9 +116,9 @@ export async function montar(contenedor, params = new URLSearchParams()) {
       </div>
       <p class="hoja__nota">Las recetas entran en lo que te queda hoy. Si anotás una, la revisás antes de guardarla.</p>
     </section>`;
-    if (st.ocupado) return ocupado(`${nombre} está revolviendo la heladera…`) + form;
+    if (st.ocupado) return ocupado('El Chef está revolviendo la heladera…') + form;
     if (!st.recetas) return form;
-    return `${st.recetas.comentario ? `<div class="pregunta"><div>${pjHTML('feliz', { titulo: nombre })}</div><p class="burbuja">${esc(st.recetas.comentario)}</p></div>` : ''}
+    return `${ayudanteHTML('chef', dicho('chef', 'receta'), { texto: st.recetas.comentario || undefined })}
       ${st.recetas.recetas.map((x, k) => `<section class="tarjeta pila-chica coach__receta">
         <h2>${esc(x.nombre)}</h2>
         <p class="suave">${num(x.kcal)} kcal · P ${num(x.prot)} · C ${num(x.carb)} · G ${num(x.grasa)} g${x.minutos ? ` · ${x.minutos} min` : ''}</p>
@@ -146,7 +155,9 @@ export async function montar(contenedor, params = new URLSearchParams()) {
   async function htmlCharla() {
     const msgs = await chat();
     return `<section class="tarjeta pila-chica">
-      <ul class="chat" aria-live="polite">${msgs.length || st.pendiente ? msgs.map(m => `<li class="chat__msg chat__msg--${m.rol}">${esc(m.texto).replace(/\n/g, '<br>')}</li>`).join('')
+      <ul class="chat" aria-live="polite">${msgs.length || st.pendiente ? msgs.map(m => m.rol === 'pj'
+          ? `<li class="chat__msg chat__msg--pj chat__msg--ayu">${imgAyudante('entrenador', 'saludando', 'chat__ayu')}<span>${esc(m.texto).replace(/\n/g, '<br>')}</span></li>`
+          : `<li class="chat__msg chat__msg--${m.rol}">${esc(m.texto).replace(/\n/g, '<br>')}</li>`).join('')
         : `<li class="chat__msg chat__msg--pj">Preguntame lo que quieras: qué comer, cómo entrenar, por qué no bajás… Conozco tus números.</li>`}
         ${st.pendiente ? `<li class="chat__msg chat__msg--yo">${esc(st.pendiente)}</li>` : ''}
         ${st.ocupado ? '<li class="chat__msg chat__msg--pj"><span class="coach__puntos" aria-label="Escribiendo"></span></li>' : ''}</ul>
@@ -221,5 +232,5 @@ export async function montar(contenedor, params = new URLSearchParams()) {
 
   await pintar();
   // El consejo del día se pide una vez por día, sin frenar la pantalla
-  if (!consejo) consejoDelDia().then(t => { if (t) { consejo = t; const p = c.querySelector('.retos__cabecera p'); if (p) p.textContent = t; } }).catch(err => console.warn(err));
+  if (!consejo) consejoDelDia().then(t => { if (t) { consejo = t; if (st.tab !== 'cocinar' && !st.ocupado) { const p = c.querySelector('#consejo-pantalla'); if (p) p.textContent = t; } } }).catch(err => console.warn(err));
 }

@@ -1,5 +1,5 @@
 // Subí este número cada vez que cambies archivos (nathorfit-v5, v6, ...)
-const CACHE = 'nathorfit-v18';
+const CACHE = 'nathorfit-v19';
 
 // "Cascarón" de la app. Las vistas de js/ui/ se cargan con import() dinámico,
 // así que TIENEN que estar acá o la app no abre en modo avión.
@@ -22,11 +22,15 @@ const ARCHIVOS = [
   './js/escena.js', './js/marca.js', './js/personaje.js', './js/ui/rueda.js', './js/ui/imc.js', './js/ui/datos.js',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-192.png', './icons/icon-maskable-512.png',
   './js/personaje-estado.js', './js/juego.js', './js/frases.js', './js/frases-banco.js', './js/ui/pj.js', './js/ui/logro.js',
+  './js/ayudantes.js', './js/ui/ayudante.js',
   // El personaje y el cuarto que se ven al abrir (el resto de las imágenes se guarda la primera vez que se usa)
   './img/cuarto/cuarto-desastre.webp', './img/cuarto/cuarto-normal.webp', './img/cuarto/cuarto-ordenado.webp',
   './img/cuarto/cuarto-desastre-noche.webp', './img/cuarto/cuarto-ordenado-noche.webp',
   ...['e1', 'e3', 'e5'].flatMap(e => ['contento', 'fiaca', 'empachado', 'entrenando', 'festejando'].map(p => `./img/personaje/${e}-${p}.webp`)),
   './img/marca/icon-192.png',
+  // Ayudantes: las poses que se ven al abrir Hoy, Entrenar y Registrar
+  './img/ayudantes/entrenador-saludando.webp', './img/ayudantes/entrenador-aplaudiendo.webp', './img/ayudantes/entrenador-reloj.webp',
+  './img/ayudantes/chef-saludando.webp', './img/ayudantes/chef-explicando.webp',
   './icons/favicon-32.png', './icons/apple-touch-icon.png',
 ];
 

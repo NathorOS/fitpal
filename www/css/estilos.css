@@ -633,3 +633,33 @@ img.rutina__emoji { width: 48px; height: 48px; object-fit: contain; }
 .tarjeta--coach { display: grid; grid-template-columns: 56px 1fr; gap: var(--s-3); align-items: center; text-decoration: none; color: inherit; }
 .tarjeta--coach .pj { width: 56px; }
 .tarjeta--coach small { color: var(--text-muted); font-weight: 700; }
+
+/* Ayudantes: del Giudice (entrenador) y el Chef, con globo de diálogo (ui/ayudante.js) */
+.ayu { display: grid; grid-template-columns: auto 1fr; align-items: end; gap: var(--s-2); text-decoration: none; color: inherit; }
+.ayu__img { display: block; height: 150px; width: auto; max-width: 46vw; object-fit: contain; object-position: bottom;
+  filter: drop-shadow(0 4px 6px rgb(0 0 0 / .18)); animation: ayu-entra .45s var(--spring) both; }
+.ayu--chico .ayu__img { height: 104px; }
+.ayu--grande .ayu__img { height: 210px; }
+.ayu__burbuja { position: relative; align-self: center; margin-left: 8px; padding: var(--s-3) var(--s-4);
+  background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--sh-card); animation: ayu-habla .35s .15s var(--ease) both; }
+.ayu__burbuja::before { content: ''; position: absolute; left: -7px; top: 55%; width: 14px; height: 14px;
+  background: inherit; transform: translateY(-50%) rotate(45deg); border-radius: 3px; }
+.ayu__nombre { display: block; font: 800 var(--fs-xs)/1.2 var(--font-sans); letter-spacing: .04em; text-transform: uppercase; color: var(--accent-text); }
+.ayu--chef .ayu__nombre { color: #b3412a; }
+.ayu__texto { margin-top: 2px; font: 700 var(--fs-lg)/1.3 var(--font-display); color: var(--text); }
+.ayu--chico .ayu__texto { font-size: var(--fs-base); }
+a.ayu .ayu__burbuja { padding-right: var(--s-8); }
+.ayu__ir { position: absolute; right: var(--s-3); top: 50%; transform: translateY(-50%); font: 700 28px/1 var(--font-display); color: var(--text-muted); }
+a.ayu:active .ayu__burbuja { transform: scale(.98); }
+.ayudantes { display: grid; gap: var(--s-2); }
+.ayudantes__titulo { padding: 0 var(--s-2); }
+.sesion .ayu { margin: 0 auto; max-width: 420px; text-align: left; }
+.chat__msg--pj.chat__msg--ayu { display: grid; grid-template-columns: 40px 1fr; gap: var(--s-2); align-items: start; }
+.chat__ayu { width: 40px; height: 40px; object-fit: cover; object-position: top; border-radius: 50%; background: var(--accent-soft); }
+@keyframes ayu-entra { from { opacity: 0; transform: translateY(14px) scale(.94); } }
+@keyframes ayu-habla { from { opacity: 0; transform: scale(.9); transform-origin: left center; } }
+@media (prefers-reduced-motion: reduce) { .ayu__img, .ayu__burbuja { animation: none; } }
+.ayu--derecha { grid-template-columns: 1fr auto; }
+.ayu--derecha .ayu__img { order: 2; }
+.ayu--derecha .ayu__burbuja { margin: 0 8px 0 0; }
+.ayu--derecha .ayu__burbuja::before { left: auto; right: -7px; }

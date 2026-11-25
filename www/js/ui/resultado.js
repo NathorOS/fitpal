@@ -3,6 +3,7 @@
 import { obtener, hoy as fechaHoy } from '../db.js';
 import { metaVigente, pesoActual } from '../objetivo.js';
 import { pjHTML } from './pj.js';
+import { ayudanteHTML } from './ayudante.js';
 import { elegirFrase, esPesado } from '../frases.js';
 import { obtenerComida, comidasDelDia, sumar, textoCantidad, MOMENTOS } from '../registro.js';
 import { actividadesDelDia, pasosDelDia, kcalExtraDelDia } from '../actividad.js';
@@ -66,6 +67,8 @@ export async function montar(c, params = new URLSearchParams()) {
         <div>${pjHTML(chicana ? 'empachado' : nivel === 'alto' ? 'festejando' : 'contento', { titulo: perfil?.gato?.nombre || 'Tu personaje' })}</div>
         <h1 class="burbuja" tabindex="-1">${esc(chicana?.texto ?? textos[nivel])}</h1>
       </div>
+
+      ${ayudanteHTML('chef', chicana ? 'pesado' : nivel === 'alto' ? 'sano' : 'consejo', { clase: 'ayu--derecha' })}
 
       <div class="tarjeta">
         <h2 class="metrica__titulo">${esHoy ? 'Tu día' : 'Ese día'}</h2>

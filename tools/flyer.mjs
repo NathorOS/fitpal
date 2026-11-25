@@ -1,0 +1,10 @@
+import { chromium } from '@playwright/test';
+const [, , salida, equipo = 'seleccion'] = process.argv;
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 1080, height: 1350 }, deviceScaleFactor: 1 });
+p.on('pageerror', e => console.error('ERROR', e.message));
+await p.goto(`http://127.0.0.1:8091/dev/flyer.html?equipo=${equipo}`);
+await p.waitForSelector('body[data-listo]', { timeout: 20000 });
+await p.locator('#flyer').screenshot({ path: salida });
+await b.close();
+console.log('ok', salida);

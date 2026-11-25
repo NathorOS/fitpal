@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Flyer · Nathor Fit en desarrollo</title>
+<style>
+  @font-face { font-family: Fredoka; src: url(/fonts/fredoka-latin.woff2) format('woff2'); font-weight: 300 700; }
+  @font-face { font-family: Nunito Sans; src: url(/fonts/nunito-sans-latin.woff2) format('woff2'); font-weight: 200 1000; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #0b1f1a; }
+  .flyer { width: 1080px; height: 1350px; position: relative; overflow: hidden; color: #fff;
+    background: radial-gradient(120% 80% at 50% 0%, #1d4a40 0%, #12302A 55%, #0d2520 100%);
+    font-family: 'Nunito Sans', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 56px 64px 48px; }
+  .marca { display: flex; align-items: center; gap: 18px; }
+  .marca img { width: 84px; height: 84px; border-radius: 22px; box-shadow: 0 6px 18px rgb(0 0 0 / .35); }
+  .marca span { font: 700 64px/1 Fredoka; letter-spacing: -.5px; }
+  .marca b { color: #FFD23F; }
+  .cinta { margin-top: 26px; background: #FFD23F; color: #12302A; font: 700 30px/1 Fredoka; letter-spacing: 6px;
+    padding: 12px 28px; border-radius: 999px; transform: rotate(-2deg); box-shadow: 0 6px 0 #c99a00; }
+  h1 { margin-top: 26px; font: 700 54px/1.08 Fredoka; text-align: center; }
+  h1 em { font-style: normal; color: #FFD23F; }
+
+  .antes-despues { margin-top: 30px; display: grid; grid-template-columns: 1fr 70px 1fr; align-items: center; width: 100%; }
+  .cuadro { position: relative; height: 500px; border-radius: 28px; overflow: hidden; border: 5px solid rgb(255 255 255 / .9);
+    box-shadow: 0 14px 30px rgb(0 0 0 / .4); }
+  .cuadro > img.fondo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .cuadro canvas, .cuadro img.pj { position: absolute; left: 50%; bottom: -6px; height: 92%; width: auto; transform: translateX(-50%); }
+  .cuadro .etiqueta { position: absolute; top: 14px; left: 14px; font: 700 26px/1 Fredoka; padding: 8px 16px; border-radius: 999px; }
+  .antes .etiqueta { background: #fff; color: #8a2b1a; }
+  .despues .etiqueta { background: #FFD23F; color: #12302A; }
+  .flecha { font: 700 96px/1 Fredoka; color: #FFD23F; text-align: center; }
+
+  .funciones { margin-top: 34px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
+  .funcion { display: flex; align-items: center; gap: 16px; background: rgb(255 255 255 / .08); border: 2px solid rgb(255 255 255 / .14);
+    border-radius: 22px; padding: 20px 20px; }
+  .funcion img { width: 80px; height: 80px; flex: none; }
+  .funcion b { display: block; font: 700 30px/1.1 Fredoka; }
+  .funcion small { display: block; margin-top: 5px; font-size: 21px; line-height: 1.25; color: #c9ddd6; }
+  .pie { margin-top: auto; font: 700 50px/1 Fredoka; color: #FFD23F; }
+  .pie span { color: #fff; }
+</style>
+</head>
+<body>
+<div class="flyer" id="flyer">
+  <div class="marca"><img src="/img/marca/icon-192.png" alt=""><span>Nathor <b>Fit</b></span></div>
+  <div class="cinta">EN DESARROLLO</div>
+  <h1>Bajá de peso con un compañero<br><em>que no te deja aflojar</em></h1>
+
+  <div class="antes-despues">
+    <div class="cuadro antes" data-pj="e1-fiaca" data-fondo="cuarto-desastre"><span class="etiqueta">Si aflojás</span></div>
+    <div class="flecha"><svg viewBox="0 0 60 60" width="64" height="64"><path d="M6 30h40M32 14l16 16-16 16" fill="none" stroke="#FFD23F" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="cuadro despues" data-pj="e5-festejando-limpio" data-fondo="cuarto-ordenado"><span class="etiqueta">Si le metés</span></div>
+  </div>
+
+  <div class="funciones">
+    <div class="funcion"><img src="/img/iconos/calorias.webp" alt=""><div><b>Contá tus calorías</b><small>Buscá, sacale foto o escaneá</small></div></div>
+    <div class="funcion"><img src="/img/iconos/foto-ia.webp" alt=""><div><b>IA para tus comidas</b><small>Te dice qué podés comer hoy</small></div></div>
+    <div class="funcion"><img src="/img/iconos/entrenar.webp" alt=""><div><b>Personal trainer</b><small>Rutinas para casa o gimnasio</small></div></div>
+    <div class="funcion"><img src="/img/iconos/puntaje-excelente.webp" alt=""><div><b>Un personaje vivo</b><small>Cambia según lo que hacés</small></div></div>
+  </div>
+
+  <p class="pie">Muy pronto</p>
+</div>
+<script type="module">
+import { prepararImagen, prepararFondo } from '/js/personaje.js';
+const EQUIPO = new URLSearchParams(location.search).get('equipo') || 'seleccion';
+await document.fonts.ready;
+await Promise.all([...document.querySelectorAll('.cuadro')].map(async el => {
+  const fondo = await prepararFondo(`/img/cuarto/${el.dataset.fondo}.webp`, { equipo: EQUIPO });
+  const f = new Image(); f.className = 'fondo'; f.src = fondo.toDataURL('image/jpeg', 0.9); await f.decode();
+  const pj = await prepararImagen(`/img/personaje/${el.dataset.pj}.webp`, { equipo: EQUIPO });
+  el.prepend(pj); el.prepend(f);
+}));
+document.body.dataset.listo = '1';
+</script>
+</body>
+</html>
