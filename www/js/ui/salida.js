@@ -1,7 +1,7 @@
 // Modo arcade: salís a caminar, correr o andar en bici y el GPS lo convierte en juego.
 // Vistas: lobby (elegir juego) → cuenta regresiva → partida → fin (guardar). Parámetro: ver=<id> para ver una partida.
 import { obtener } from '../db.js';
-import { pjHTML } from './pj.js';
+import { imgAyudante } from './ayudante.js';
 import { pesoActual } from '../objetivo.js';
 import { factorActividad } from '../actividad.js';
 import { crearMapa, puntoEnRuta } from '../mapa.js';
@@ -27,7 +27,6 @@ export async function montar(contenedor, params = new URLSearchParams()) {
   const perfil = await obtener('perfil', 'main');
   const kg = (await pesoActual()) ?? perfil?.peso_kg ?? 70;
   const personalidad = perfil?.gato?.personalidad ?? 'directo';
-  const nombrePj = perfil?.gato?.nombre || 'Tu entrenador';
   let aj = await ajustes();
   let lista = await salidas();
   let pendiente = await enCurso();
@@ -67,7 +66,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
         <span class="arc__creditos" aria-hidden="true">P1</span>
       </header>
       <div class="arc__titulo">
-        <div class="arc__pj">${pjHTML('entrenando', { titulo: nombrePj })}</div>
+        <div class="arc__pj">${imgAyudante('entrenador', 'silbato')}</div>
         <div><h1 tabindex="-1">¡A JUGAR AFUERA!</h1>
           <p class="arc__parpadeo">CADA PASO SUMA PUNTOS</p></div>
       </div>
@@ -409,6 +408,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
         <span class="arc__creditos" aria-hidden="true">${m.emoji}</span>
       </header>
       <div class="arc__fin pila-chica">
+        ${soloVer ? '' : `<div class="arc__pj arc__pj--fin">${imgAyudante('entrenador', corto || !r.estrellas ? 'decepcionado' : r.estrellas >= 2 ? 'festejando' : 'aplaudiendo')}</div>`}
         <h1 tabindex="-1">${soloVer ? `${m.nombre.toUpperCase()} · ${num(r.km, 2)} KM` : corto ? 'CASI NI TE MOVISTE' : '¡FIN DE LA PARTIDA!'}</h1>
         ${estrellasHTML(r.estrellas)}
         <p class="arc__puntaje-final"><small>PUNTAJE</small><b>${pad6(r.puntaje)}</b></p>

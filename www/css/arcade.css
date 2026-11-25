@@ -35,8 +35,9 @@ body.modo-arcade main { padding: calc(var(--s-3) + env(safe-area-inset-top)) var
 .arc__creditos { min-width: var(--tap-min); text-align: center; color: var(--arc-rosa); font-weight: 700; }
 
 .arc__titulo { display: flex; align-items: center; gap: var(--s-3); }
-.arc__pj { width: 92px; flex: none; filter: drop-shadow(0 0 14px rgba(61,255,181,.35)); }
-.arc__pj .pj { width: 92px; height: 92px; }
+.arc__pj { flex: none; width: 100px; filter: drop-shadow(0 0 14px rgba(61,255,181,.35)); }
+.arc__pj img.ayu__img { display: block; width: 100%; height: auto; max-height: none; position: static; margin: 0; }
+.arc__pj--fin { width: 110px; }
 .arc__parpadeo { color: var(--arc-neon); letter-spacing: .1em; font-weight: 600; animation: arc-parpadeo 1.2s steps(2) infinite; }
 @keyframes arc-parpadeo { 50% { opacity: .35; } }
 
