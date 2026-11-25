@@ -1,3 +1,4 @@
+import { EXTRA } from './alimentos-extra.js';   // variantes y comidas que faltaban (mate dulce, minutas, postres…)
 // Base de alimentos de Nathor Fit: comida argentina casera y de todos los días.
 // Valores APROXIMADOS por 100 g (kcal, proteínas, carbohidratos, grasas, fibra), redondeados a partir de
 // tablas públicas de composición (USDA FoodData Central y referencias argentinas). Revisados uno por uno
@@ -163,7 +164,7 @@ const F = [
   ['fernet', 'Fernet con cola', '🥃', 105, 0, 13, 0, 0, [['vaso', 300]], 'fernet', 7.5],
 ];
 
-export const ALIMENTOS_BASE = F.map(([id, nombre, emoji, kcal, prot, carb, grasa, fibra, porciones, sinonimos, alcohol = 0]) => ({
+export const ALIMENTOS_BASE = [...F, ...EXTRA].map(([id, nombre, emoji, kcal, prot, carb, grasa, fibra, porciones, sinonimos, alcohol = 0]) => ({
   id: `b:${id}`, nombre, emoji, base: true,
   por100: { kcal, prot, carb, grasa, fibra, alcohol },
   porciones: porciones.map(([n, g]) => ({ nombre: n, g })),

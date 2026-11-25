@@ -94,7 +94,12 @@ npm run e2e                                   # 39 pruebas de punta a punta (Pla
 - Flechas para ver días pasados.
 
 **Registrar comida** (`ui/registrar.js`, `registro.js`):
-- Búsqueda sin tildes en 135 alimentos, que son valores aproximados por 100 g.
+- Búsqueda sin tildes en **456 alimentos** (`datos/alimentos.js` + `datos/alimentos-extra.js`, ampliada el
+  2026-11-24 con mate dulce, café con azúcar, minutas, delivery, postres, fiambres y bebidas). Ignora "de",
+  "con", etc., acepta plurales ("tostadas" encuentra "Tostada") y "sin" sí cuenta.
+- **Si no lo encuentra (o no es lo que buscabas): botón "Calcular … con la IA"**, que abre Describir con lo
+  buscado ya escrito. Lo que calcula la IA y no estaba en la base **queda guardado como alimento propio**
+  (`aprenderDeIA`, con origen `ia`) y aparece en la próxima búsqueda.
 - Hoja con porciones o gramos y favoritos.
 - Registro rápido (solo kcal) y alimentos propios.
 - Editar y borrar comidas; anotar en días pasados.

@@ -94,3 +94,34 @@ test('F03-N1 código que no existe', async ({ page }) => {
   await page.getByRole('button', { name: 'Buscar producto' }).click();
   await expect(page.locator('.error')).not.toBeEmpty();
 });
+
+test('F04-H2 no está en la base → "Calcular con la IA" → se anota y la próxima vez aparece', async ({ page }) => {
+  const errores = vigilar(page);
+  await page.route('https://generativelanguage.googleapis.com/**', r => r.fulfill({ json: respuestaGemini([
+    { nombre: 'Guiso de la abuela', gramos: 300, kcal: 450, proteinas: 20, carbohidratos: 50, grasas: 18, fibra: 4, confianza: 0.7 },
+  ]) }));
+  await conPerfil(page);
+  await page.evaluate(async () => (await import('/js/ia.js')).guardarClave('clave-de-prueba-local-0000000000'));
+  await page.goto('/index.html#/registrar');
+  await page.getByLabel('Buscar un alimento').fill('guiso de la abuela');
+  await page.getByRole('link', { name: /Calcular “guiso de la abuela” con la IA/ }).click();
+  await expect(page.getByLabel('Qué comiste')).toHaveValue('guiso de la abuela');
+  await page.getByRole('button', { name: /Analizar/ }).click();
+  await page.getByRole('button', { name: 'Revisar y anotar' }).click();
+  await page.getByRole('button', { name: /^Anotar \d+ kcal/ }).click();
+  await expect(page).toHaveURL(/#\/resultado/);
+  // Quedó guardado como alimento propio
+  await page.goto('/index.html#/registrar');
+  await page.getByLabel('Buscar un alimento').fill('guiso abuela');
+  await expect(page.getByRole('button', { name: /^Guiso de la abuela/ })).toBeVisible();
+  expect(errores).toEqual([]);
+});
+
+test('F02-E4 búsqueda de cosas cotidianas que antes faltaban', async ({ page }) => {
+  await conPerfil(page);
+  await page.goto('/index.html#/registrar');
+  for (const [q, nombre] of [['mate dulce', /^Mate dulce/], ['tostadas con manteca', /^Tostada con manteca/], ['chipa', /^Chipá/]]) {
+    await page.getByLabel('Buscar un alimento').fill(q);
+    await expect(page.getByRole('button', { name: nombre }).first()).toBeVisible();
+  }
+});

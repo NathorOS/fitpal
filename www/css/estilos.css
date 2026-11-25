@@ -596,3 +596,10 @@ img.rutina__emoji { width: 48px; height: 48px; object-fit: contain; }
 @media (prefers-reduced-motion: reduce) { .tarjeta--logro { animation: none; } }
 /* Manchas sobre el personaje cuando la semana viene mal (se multiplican con la ropa, como mugre de verdad) */
 .mancha { position: absolute; width: 15%; mix-blend-mode: multiply; opacity: .85; pointer-events: none; }
+
+/* Buscar: si no está, calcularlo con la IA */
+.reg__mas-ia { color: var(--text-muted); font-size: var(--fs-sm); text-align: center; margin: var(--s-4) 0 var(--s-2); }
+.reg__ia { text-decoration: none; overflow-wrap: anywhere; text-align: center; justify-content: center; height: auto; min-height: 48px; line-height: 1.25; padding-block: var(--s-3); }
+
+/* Contenedor de cada pantalla (ver navegar() en app.js): no agrega cajas al diseño */
+.pantalla { display: contents; }

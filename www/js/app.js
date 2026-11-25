@@ -47,15 +47,21 @@ async function navegar() {
   const modulo = await vistas[ruta]();
   if (mio !== turno) return;
 
-  cont.innerHTML = '';
+  // Cada pantalla se dibuja en su propio contenedor: si el usuario cambia de pantalla mientras esta
+  // todavía carga, lo que termine de dibujar tarde queda en un contenedor que ya no está a la vista
+  // y no puede tapar a la pantalla nueva.
+  const lugar = document.createElement('div');
+  lugar.className = 'pantalla';
+  cont.replaceChildren(lugar);
   for (const clase of new Set(Object.values(COMPLETAS))) document.body.classList.toggle(clase, COMPLETAS[ruta] === clase);
   tabs.hidden = Boolean(COMPLETAS[ruta]);
   try {
-    await modulo.montar(cont, params);
+    await modulo.montar(lugar, params);
   } catch (err) {
     console.error(err);
-    cont.innerHTML = '<div class="tarjeta"><h2>Algo no salió bien</h2><p class="suave">Probá recargar la app. Tus datos están guardados en el teléfono.</p></div>';
+    lugar.innerHTML = '<div class="tarjeta"><h2>Algo no salió bien</h2><p class="suave">Probá recargar la app. Tus datos están guardados en el teléfono.</p></div>';
   }
+  if (mio !== turno) return;
   tabs.querySelectorAll('.nav a').forEach(a => {
     if (a.getAttribute('href') === '#' + ruta) a.setAttribute('aria-current', 'page');
     else a.removeAttribute('aria-current');

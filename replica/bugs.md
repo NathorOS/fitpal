@@ -57,3 +57,14 @@ usa la prueba OFF-H1).
 - Ruedas con el dedo en celulares reales: el deslizado con inercia y el "frenado" en un número solo se
   probaron con rueda del mouse y teclado.
 - Compartir el respaldo (`navigator.share` con archivos) solo se puede probar en el celular.
+
+### BUG-007: si cambiabas de pantalla mientras otra cargaba, la vieja tapaba a la nueva
+- Severity: S3
+- Flow / case: F04-H2 · Screen: cualquiera (se vio en Resultado → Agregar comida)
+- Build: 2026-11-24 · Browser: Chromium (Pixel 7)
+Steps
+1. Anotar una comida (va a Resultado).
+2. Antes de que Resultado termine de cargar, ir a Agregar comida.
+Expected: queda Agregar comida. Actual: Resultado terminaba de dibujarse encima y el buscador desaparecía.
+Evidence: prueba e2e F04-H2 (el buscador se "despegaba" del documento una y otra vez).
+Status: fixed el 2026-11-24 — cada pantalla se dibuja en su propio contenedor (`.pantalla` en app.js).

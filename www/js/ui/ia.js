@@ -17,7 +17,8 @@ export async function montar(contenedor, params = new URLSearchParams()) {
   const perfil = await obtener('perfil', 'main');
   const gato = perfil?.gato?.nombre || 'Tu personaje';
   const volver = fecha ? `#/hoy?fecha=${fecha}` : '#/hoy';
-  const st = { foto: null, texto: '' };
+  // Si viene de la búsqueda ("no lo encontré"), el texto ya llega escrito.
+  const st = { foto: null, texto: params.get('q') ?? '' };
 
   const cabecera = titulo => `<header class="reg__top">
     <a class="icono-btn" href="${volver}" aria-label="Cerrar">✕</a><h1 tabindex="-1">${titulo}</h1></header>`;

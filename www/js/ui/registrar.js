@@ -5,7 +5,7 @@ import { metaVigente } from '../objetivo.js';
 import {
   MOMENTOS, momentoPorHora, buscar, calcularItem, itemRapido, sumar, textoCantidad,
   todosLosAlimentos, alimentosPropios, obtenerAlimento, guardarAlimentoPropio,
-  favoritos, alternarFavorito, recientes, guardarComida, obtenerComida, borrarComida, comidasDelDia,
+  favoritos, alternarFavorito, recientes, guardarComida, obtenerComida, borrarComida, comidasDelDia, aprenderDeIA,
 } from '../registro.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -116,7 +116,7 @@ export async function montar(c, params = new URLSearchParams()) {
     let filas, vacio;
     if (estado.q) {
       filas = buscar(estado.q, catalogo);
-      vacio = `No encontré "${esc(estado.q)}". Podés <button class="enlace" data-abrir="nuevo">crearlo</button> o usar el <button class="enlace" data-abrir="rapido">registro rápido</button>.`;
+      vacio = `No encontré "${esc(estado.q)}".</p>${botonIA(estado.q)}<p class="reg__vacio">También podés <button class="enlace" data-abrir="nuevo">crearlo</button> o usar el <button class="enlace" data-abrir="rapido">registro rápido</button>.`;
     } else if (estado.tab === 'mias') {
       const propios = await alimentosPropios();
       const guardados = (await Promise.all([...favs].map(obtenerAlimento))).filter(Boolean);
@@ -128,8 +128,14 @@ export async function montar(c, params = new URLSearchParams()) {
       vacio = 'Lo que anotes va a aparecer acá para repetirlo en un toque. Empezá buscando arriba.';
     }
     lista.innerHTML = filas.length
-      ? `<ul class="filas">${filas.map(htmlFila).join('')}</ul>`
+      ? `<ul class="filas">${filas.map(htmlFila).join('')}</ul>${estado.q ? `<p class="reg__mas-ia">¿No es lo que buscás?</p>${botonIA(estado.q)}` : ''}`
       : `<p class="reg__vacio">${vacio}</p>`;
+  }
+  // Si algo no está en la base, la IA lo calcula a partir de lo que escribiste (con tu clave de Gemini).
+  function botonIA(q) {
+    const p = new URLSearchParams({ modo: 'texto', q });
+    if (estado.fecha !== fechaHoy()) p.set('fecha', estado.fecha);
+    return `<a class="btn btn--secundario reg__ia" href="#/ia?${p}">✨ Calcular “${esc(q)}” con la IA</a>`;
   }
   function htmlFila(a) {
     const it = calcularItem(a, { cantidad: 1 });
@@ -213,6 +219,8 @@ export async function montar(c, params = new URLSearchParams()) {
     boton.disabled = true; boton.setAttribute('aria-busy', 'true');
     try {
       const id = await guardarComida(estado);
+      // Lo que calculó la IA queda guardado en "Mis comidas" para la próxima (si falla, no frena el guardado).
+      try { await aprenderDeIA(estado.items); } catch (err) { console.warn('No se pudo guardar lo aprendido de la IA', err); }
       // Comida nueva: pantalla de resultado (puntaje, comentario del personaje y racha).
       if (!estado.id) {
         document.body.classList.remove('con-carrito');

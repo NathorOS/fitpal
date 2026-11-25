@@ -28,8 +28,15 @@ export function normalizar(s) {
  * Busca en una lista de alimentos. Todas las palabras tienen que aparecer (en el nombre o en
  * los sinónimos). Ordena: empieza igual > alguna palabra empieza igual > contiene.
  */
+// Palabras que no ayudan a buscar ("tostada CON manteca", "milanesa DE pollo"). "sin" no va: cambia el sentido.
+const VACIAS = new Set(['de', 'del', 'con', 'la', 'el', 'los', 'las', 'y', 'a', 'al', 'en', 'un', 'una', 'unos', 'unas']);
+// Singular aproximado: "tostadas" → "tostada", "flanes" → "flan" (solo palabras largas, para no romper "mate", "te").
+const singular = p => (p.length > 4 ? p.replace(/(es|s)$/, '') : p);
+
 export function buscar(texto, lista, limite = 40) {
-  const palabras = normalizar(texto).split(/\s+/).filter(Boolean);
+  const todas = normalizar(texto).split(/\s+/).filter(Boolean);
+  const utiles = todas.filter(p => !VACIAS.has(p));
+  const palabras = (utiles.length ? utiles : todas).map(singular);
   if (!palabras.length) return [];
   const res = [];
   for (const a of lista) {
@@ -115,6 +122,26 @@ export function armarAlimentoPropio({ nombre, porcion = 'porción', g = 100, kca
   };
 }
 
+/**
+ * Lo que calculó la IA y no estaba en la base queda como alimento propio, para encontrarlo la próxima
+ * vez. Devuelve los alimentos a crear (sin repetir nombres que ya existan, propios o de la base).
+ */
+export function alimentosAprendidos(items, existentes = []) {
+  const nombres = new Set(existentes.map(a => normalizar(a.nombre)));
+  const nuevos = [];
+  for (const it of items ?? []) {
+    if (it?.fuente !== 'ia' || !(Number(it.g) > 0) || !String(it.nombre ?? '').trim()) continue;
+    const n = normalizar(it.nombre);
+    if (nombres.has(n)) continue;
+    nombres.add(n);
+    nuevos.push({
+      ...armarAlimentoPropio({ nombre: it.nombre, porcion: 'porción', g: it.g, kcal: it.kcal, prot: it.prot, carb: it.carb, grasa: it.grasa }),
+      emoji: '✨', origen: 'ia',
+    });
+  }
+  return nuevos;
+}
+
 // ---------------------------------------------------------------------------
 // Con base de datos (navegador)
 // ---------------------------------------------------------------------------
@@ -142,6 +169,14 @@ export async function guardarAlimentoPropio(datos) {
   const { guardar } = await db();
   const id = await guardar('alimentos', armarAlimentoPropio(datos));
   return `p:${id}`;
+}
+
+/** Guarda como alimentos propios lo que la IA calculó y no estaba en la base. Devuelve cuántos guardó. */
+export async function aprenderDeIA(items) {
+  const { guardar } = await db();
+  const nuevos = alimentosAprendidos(items, [...ALIMENTOS_BASE, ...(await alimentosPropios())]);
+  for (const a of nuevos) await guardar('alimentos', a);
+  return nuevos.length;
 }
 
 export async function favoritos() {
