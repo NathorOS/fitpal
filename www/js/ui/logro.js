@@ -1,5 +1,6 @@
 // Festejo de un logro nuevo (hito de peso, racha, insignia) o del cofre de la semana. Parámetro: id
 import { obtener, todos } from '../db.js';
+import { confeti } from './festejo.js';
 import { pjHTML, hidratar } from './pj.js';
 import { marcarVistos } from '../juego.js';
 import { premiosGanados } from '../personaje-estado.js';
@@ -50,6 +51,7 @@ export async function montar(c, params = new URLSearchParams()) {
     </section>`;
   hidratar(c);
   c.querySelector('h1').focus({ preventScroll: true });
+  setTimeout(() => confeti(c.querySelector('.logro__insignia'), { cantidad: 36, alcance: 1.4 }), 300);
   // Los demás logros nuevos de hoy quedan vistos: se festeja uno por vez para no cansar
   c.querySelector('[data-seguir]').addEventListener('click', () => marcarVistos(logros.filter(l => !l.visto).map(l => l.id)));
   await marcarVistos([id]);

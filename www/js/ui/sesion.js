@@ -1,6 +1,7 @@
 // Fase 4 — Sesión guiada: serie por serie, con descanso en cuenta regresiva y resumen al final.
 // Parámetros: rutina=<id> · equipo · nivel (rutina=ia: la que armó el entrenador con IA, guardada en config)
 import { obtener, hoy as fechaHoy } from '../db.js';
+import { confeti } from './festejo.js';
 import { ayudanteHTML } from './ayudante.js';
 import { decir } from '../ayudantes.js';
 import { GRUPOS } from '../datos/ejercicios.js';
@@ -205,6 +206,7 @@ export async function montar(contenedor, params = new URLSearchParams()) {
         <a class="btn" href="#/hoy" data-a="listo">Listo</a>
       </section>`;
     c.querySelector('h1').focus({ preventScroll: true });
+    if (hechos.length) setTimeout(() => confeti(c.querySelector('.ayu__img'), { cantidad: 32, alcance: 1.3 }), 300);
     if (hechos.length) aviso(`💪 ${rutina.nombre}: ${minutos} min, +${suma} kcal a tu día.`);
   }
 

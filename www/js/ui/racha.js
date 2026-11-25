@@ -1,6 +1,7 @@
 // Fase 5 — Festejo de racha: aparece con la primera comida del día.
 // Cuenta de 0 al número de días seguidos y muestra la semana.
 import { todos, obtener } from '../db.js';
+import { confeti } from './festejo.js';
 import { pjHTML } from './pj.js';
 import { racha } from '../estadisticas.js';
 import { semanaDe } from '../retos.js';
@@ -41,6 +42,7 @@ export async function montar(c) {
       <a class="btn" href="#/hoy">Seguir</a>
     </section>`;
   c.querySelector('h1').focus({ preventScroll: true });
+  if (n > 1) setTimeout(() => confeti(c.querySelector('.racha__num'), { cantidad: 24 }), Math.min(1200, 250 * n));
 
   // Cuenta animada 0 → n
   const el = c.querySelector('#cuenta');

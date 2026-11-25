@@ -45,12 +45,22 @@ export function consejosComida({ kcal, prot = 0, grasa = 0, fibra = 0 }, metaDia
  * Puntaje del día (0–100): cerca de la meta 40 · proteína 25 · agua 15 · movimiento 15 · fibra 5.
  * (Misma idea que calculos.puntajeDia, con la meta de agua y de movimiento personalizadas.)
  */
-export function puntajeDelDia({ kcal, kcalMeta, prot, protMeta, aguaMl, aguaMeta = 2000, minutosActividad = 0, pasos = 0, fibra = 0 }) {
-  if (!(kcal > 0)) return null;
-  const rango = kcalMeta ? lim(1 - Math.abs(kcal - kcalMeta) / kcalMeta) : 0;
-  const pr = protMeta ? lim(prot / protMeta) : 0;
-  const ag = lim(aguaMl / aguaMeta);
-  const mov = Math.max(lim(minutosActividad / 30), lim(pasos / 8000));
-  const fb = lim(fibra / 25);
-  return Math.round(40 * rango + 25 * pr + 15 * ag + 15 * mov + 5 * fb);
+export function puntajeDelDia(d) {
+  if (!(d.kcal > 0)) return null;
+  return Math.round(misionesDelDia(d).reduce((a, m) => a + m.peso * m.avance, 0));
+}
+
+/**
+ * Las partes del puntaje del día como misiones (avance 0–1). Se ven en Hoy con su tilde.
+ * "Cerca de tu meta" se cumple tanto por arriba como por abajo: nunca premia comer de menos.
+ */
+export function misionesDelDia({ kcal = 0, kcalMeta, prot = 0, protMeta, aguaMl = 0, aguaMeta = 2000, minutosActividad = 0, pasos = 0, fibra = 0 }) {
+  const m = (id, nombre, peso, avance, umbral = 1) => ({ id, nombre, peso, avance, hecha: avance >= umbral });
+  return [
+    m('meta', 'Quedar cerca de tu meta', 40, kcalMeta && kcal > 0 ? lim(1 - Math.abs(kcal - kcalMeta) / kcalMeta) : 0, 0.9),
+    m('prot', 'Llegar a tu proteína', 25, protMeta ? lim(prot / protMeta) : 0, 0.9),
+    m('agua', 'Tomar tu agua', 15, lim(aguaMl / aguaMeta)),
+    m('mov', 'Moverte 30 min u 8000 pasos', 15, Math.max(lim(minutosActividad / 30), lim(pasos / 8000))),
+    m('fibra', 'Comer 25 g de fibra', 5, lim(fibra / 25)),
+  ];
 }

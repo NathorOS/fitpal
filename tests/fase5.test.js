@@ -74,3 +74,16 @@ test('retos se calculan con lo anotado', () => {
   assert.equal(por(semanales, 'peso2').valor, 1);
   assert.equal(por(semanales, 'racha7').valor, 1);
 });
+
+test('misiones del día: suman el puntaje y "cerca de la meta" no premia comer de menos', async () => {
+  const { misionesDelDia } = await import('../www/js/puntaje.js');
+  const d = { kcal: 1800, kcalMeta: 1800, prot: 140, protMeta: 140, aguaMl: 2500, aguaMeta: 2500, minutosActividad: 30, fibra: 25 };
+  const ms = misionesDelDia(d);
+  assert.equal(ms.length, 5);
+  assert.ok(ms.every(m => m.hecha));
+  assert.equal(ms.reduce((a, m) => a + m.peso, 0), 100);
+  assert.equal(puntajeDelDia(d), 100);
+  const poco = misionesDelDia({ ...d, kcal: 700 });
+  assert.equal(poco.find(m => m.id === 'meta').hecha, false);
+  assert.equal(misionesDelDia({ kcalMeta: 1800 }).find(m => m.id === 'meta').avance, 0);
+});
