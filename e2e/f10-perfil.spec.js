@@ -85,3 +85,35 @@ test('P-N2 un respaldo con una "foto" maliciosa no inyecta HTML', async ({ page 
   expect(await page.evaluate(() => window.__pwned)).toBeUndefined();
   expect(await page.locator('img.comida__foto').count()).toBe(0);
 });
+
+test('P-H5 guardar la clave: se prueba al instante con la lista de modelos', async ({ page }) => {
+  const errores = vigilar(page);
+  await conPerfil(page);
+  let generar = 0;
+  await page.route('https://generativelanguage.googleapis.com/**', r => {
+    if (r.request().url().includes(':generateContent')) { generar++; return r.fulfill({ status: 500, json: {} }); }
+    return r.fulfill({ json: { models: [
+      { name: 'models/gemini-2.5-pro', supportedGenerationMethods: ['generateContent'] },
+      { name: 'models/gemini-2.5-flash', supportedGenerationMethods: ['generateContent'] },
+    ] } });
+  });
+  await page.goto('/index.html#/perfil');
+  await page.getByLabel('Clave de Gemini').fill('clave-de-prueba-local-0000000000');
+  await page.getByRole('button', { name: 'Guardar y probar' }).click();
+  await expect(page.getByText('¡Listo! La IA ya funciona.')).toBeVisible({ timeout: 5000 });
+  expect(generar).toBe(0);                                         // la prueba no gasta cuota
+  expect(await db(page, 'obtener', 'config', 'gemini_modelo')).toMatchObject({ valor: 'gemini-2.5-flash' });
+  expect(errores).toEqual([]);
+});
+
+test('P-E5 si Gemini no contesta, la prueba de la clave corta con un mensaje (no queda cargando)', async ({ page }) => {
+  test.setTimeout(40000);
+  await conPerfil(page);
+  await page.route('https://generativelanguage.googleapis.com/**', () => { /* nunca contesta */ });
+  await page.goto('/index.html#/perfil');
+  await page.getByLabel('Clave de Gemini').fill('clave-de-prueba-local-0000000000');
+  const boton = page.getByRole('button', { name: 'Guardar y probar' });
+  await boton.click();
+  await expect(page.getByText(/tardó demasiado/)).toBeVisible({ timeout: 20000 });
+  await expect(boton).toBeEnabled();
+});

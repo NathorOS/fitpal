@@ -68,3 +68,16 @@ Steps
 Expected: queda Agregar comida. Actual: Resultado terminaba de dibujarse encima y el buscador desaparecía.
 Evidence: prueba e2e F04-H2 (el buscador se "despegaba" del documento una y otra vez).
 Status: fixed el 2026-11-24 — cada pantalla se dibuja en su propio contenedor (`.pantalla` en app.js).
+
+### BUG-008: al guardar la clave de Gemini quedaba "Probando la clave…" para siempre
+- Severity: S2 (la IA no se podía activar)
+- Flow / case: P-H5, P-E5 · Screen: Perfil → IA
+- Build: 2026-11-24 · Reportado por el usuario en su celular con una clave real
+Steps
+1. Perfil → pegar una clave real de Gemini → Guardar y probar.
+Expected: "¡Listo! La IA ya funciona." en pocos segundos. Actual: queda cargando y nunca confirma.
+Causa: la prueba pedía un análisis completo a `gemini-flash-latest` (un modelo que "piensa" antes de contestar)
+y el pedido no tenía tiempo límite.
+Status: fixed el 2026-11-24 — la prueba pide la lista de modelos (instantáneo, no gasta cuota) y guarda el mejor
+modelo flash disponible; todos los pedidos cortan con un mensaje si tardan (15 s la prueba, 45 s el análisis);
+el pensamiento se apaga o se pone al mínimo para estimar comida.

@@ -76,3 +76,22 @@ test('Open Food Facts: producto a alimento propio por 100 g', () => {
   const b = productoOFF({ product: { product_name: 'Jugo', nutriments: { 'energy_100g': 200 } } });
   assert.equal(b.por100.kcal, 48);
 });
+
+// --- Clave que quedaba cargando (2026-11-24) ---
+import { elegirModelo, configPensar } from '../www/js/ia.js';
+
+test('modelo: elige el preferido que esté en la lista de la clave', () => {
+  assert.equal(elegirModelo(['models/gemini-2.0-flash', 'models/gemini-2.5-flash', 'models/gemini-2.5-pro']), 'gemini-2.5-flash');
+  assert.equal(elegirModelo(['models/gemini-flash-latest', 'models/gemini-2.0-flash']), 'gemini-flash-latest');
+});
+
+test('modelo: si no hay ninguno conocido, el flash estable más nuevo', () => {
+  assert.equal(elegirModelo(['models/gemini-3.0-flash', 'models/gemini-3.5-flash', 'models/gemini-3.5-flash-preview-09', 'models/gemini-3.5-pro']), 'gemini-3.5-flash');
+  assert.equal(elegirModelo(['models/text-embedding-004']), null);
+});
+
+test('pensar: apagado en 2.5 flash, mínimo en 3.x, nada en el resto', () => {
+  assert.deepEqual(configPensar('gemini-2.5-flash'), { thinkingBudget: 0 });
+  assert.deepEqual(configPensar('gemini-3.5-flash'), { thinkingLevel: 'low' });
+  assert.equal(configPensar('gemini-2.0-flash'), null);
+});

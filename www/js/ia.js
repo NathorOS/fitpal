@@ -5,8 +5,46 @@
 import { ALIMENTOS_BASE } from './datos/alimentos.js';
 import { buscar, normalizar, calcularItem } from './registro.js';
 
-export const MODELOS = ['gemini-flash-latest', 'gemini-2.5-flash'];
-const URL_API = m => `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`;
+export const MODELOS = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash'];
+const API = 'https://generativelanguage.googleapis.com/v1beta';
+const URL_API = m => `${API}/models/${m}:generateContent`;
+export const ESPERA_MS = 45000;      // tiempo máximo por pedido de análisis
+export const ESPERA_PRUEBA_MS = 15000;
+
+/**
+ * Configuración de "pensamiento": los modelos nuevos piensan antes de contestar y eso los hace lentos.
+ * Para estimar comida no hace falta: se apaga (2.5) o se pone al mínimo (3.x).
+ */
+export function configPensar(modelo) {
+  if (/2\.5-flash/.test(modelo)) return { thinkingBudget: 0 };
+  if (/gemini-3/.test(modelo)) return { thinkingLevel: 'low' };
+  return null;
+}
+
+/**
+ * Elige el mejor modelo "flash" de la lista que devuelve Gemini para esa clave.
+ * Prefiere los de MODELOS (en orden); si no hay ninguno, el flash estable más nuevo.
+ */
+export function elegirModelo(nombres) {
+  const lista = nombres.map(n => String(n).replace(/^models\//, ''));
+  for (const m of MODELOS) if (lista.includes(m)) return m;
+  const flash = lista.filter(n => /^gemini-[\d.]+-flash$/.test(n)).sort((a, b) => parseFloat(b.slice(7)) - parseFloat(a.slice(7)));
+  return flash[0] ?? null;
+}
+
+/** fetch con tiempo límite: si Gemini no contesta, se corta con un mensaje claro (antes quedaba cargando). */
+async function pedir(url, opciones, espera) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), espera);
+  try {
+    return await fetch(url, { ...opciones, signal: ctrl.signal });
+  } catch (err) {
+    if (err?.name === 'AbortError') throw Object.assign(new Error('Gemini tardó demasiado en contestar. Probá de nuevo en un rato.'), { tiempo: true });
+    throw new Error('No pude conectarme con Gemini. Revisá tu conexión.');
+  } finally {
+    clearTimeout(t);
+  }
+}
 
 const ESQUEMA = {
   type: 'OBJECT',
@@ -128,28 +166,49 @@ export async function guardarClave(clave) {
 }
 export async function borrarClave() {
   const { borrar } = await db();
+  await borrar('config', 'gemini_modelo');
   return borrar('config', 'gemini_clave');
 }
 
-/** Llama a Gemini probando los modelos en orden (si uno no existe, pasa al siguiente). */
-export async function llamarGemini(pedido, clave) {
+async function modeloGuardado() {
+  const { obtener } = await db();
+  return (await obtener('config', 'gemini_modelo'))?.valor ?? null;
+}
+
+/**
+ * Llama a Gemini: primero con el modelo que se eligió al probar la clave, después con los de MODELOS
+ * (si uno no existe, pasa al siguiente). Corta si tarda más de `espera` ms.
+ */
+export async function llamarGemini(pedido, clave, { espera = ESPERA_MS } = {}) {
   if (!navigator.onLine) throw new Error('Sin conexión. La IA necesita internet; podés anotar a mano.');
+  const elegido = await modeloGuardado().catch(() => null);
+  const modelos = [...new Set([elegido, ...MODELOS].filter(Boolean))];
   let ultimo = null;
-  for (const m of MODELOS) {
-    let r;
-    try {
-      r = await fetch(URL_API(m), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': clave },
-        body: JSON.stringify(pedido),
-      });
-    } catch {
-      throw new Error('No pude conectarme con Gemini. Revisá tu conexión.');
+  for (const m of modelos) {
+    const pensar = configPensar(m);
+    let cuerpo = pensar ? { ...pedido, generationConfig: { ...pedido.generationConfig, thinkingConfig: pensar } } : pedido;
+    let r = await pedir(URL_API(m), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': clave },
+      body: JSON.stringify(cuerpo),
+    }, espera);
+    // Si el modelo no acepta esa configuración de pensamiento, se reintenta sin ella
+    if (r.status === 400 && pensar) {
+      const txt = await r.text();
+      if (/thinking/i.test(txt)) {
+        r = await pedir(URL_API(m), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': clave },
+          body: JSON.stringify(pedido),
+        }, espera);
+      } else {
+        throw new Error(mensajeError(400, txt));
+      }
     }
     if (r.ok) return r.json();
-    const cuerpo = await r.text();
-    if (r.status === 404) { ultimo = cuerpo; continue; }
-    throw new Error(mensajeError(r.status, cuerpo));
+    const txt = await r.text();
+    if (r.status === 404) { ultimo = txt; continue; }
+    throw new Error(mensajeError(r.status, txt));
   }
   console.warn('Ningún modelo disponible', ultimo);
   throw new Error('El modelo de Gemini no está disponible. Avisame y lo actualizo.');
@@ -164,10 +223,23 @@ export async function analizar({ texto, imagenBase64, mime }) {
   return { ...res, items: platosAItems(res.platos, base) };
 }
 
-/** Prueba la clave con un pedido mínimo de texto. */
+/**
+ * Prueba la clave pidiéndole a Gemini la lista de modelos: es instantáneo y no gasta cuota
+ * (antes se pedía un análisis entero y con los modelos que "piensan" quedaba cargando).
+ * Devuelve el modelo elegido y lo guarda para los próximos pedidos.
+ */
 export async function probarClave(clave) {
-  const r = await llamarGemini(armarPedido({ texto: 'un huevo duro' }), clave);
-  return leerRespuesta(r).platos.length > 0;
+  if (!navigator.onLine) throw new Error('Sin conexión. Conectate a internet para probar la clave.');
+  const r = await pedir(`${API}/models?pageSize=200`, { headers: { 'x-goog-api-key': clave } }, ESPERA_PRUEBA_MS);
+  if (!r.ok) throw new Error(mensajeError(r.status, await r.text()));
+  const datos = await r.json();
+  const modelo = elegirModelo((datos.models ?? [])
+    .filter(m => (m.supportedGenerationMethods ?? ['generateContent']).includes('generateContent'))
+    .map(m => m.name));
+  if (!modelo) throw new Error('Tu clave funciona, pero no encontré un modelo de Gemini disponible. Avisame y lo reviso.');
+  const { guardar } = await db();
+  await guardar('config', { clave: 'gemini_modelo', valor: modelo });
+  return modelo;
 }
 
 /** Achica una foto a ~800 px y la devuelve en base64 JPEG (sin el prefijo data:). */
