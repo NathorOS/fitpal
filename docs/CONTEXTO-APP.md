@@ -112,6 +112,22 @@ npm run e2e                                   # 39 pruebas de punta a punta (Pla
 - Primero busca cada plato en la base propia y, si no lo encuentra, usa la estimación de la IA.
 - Todo pasa por el carrito para revisarlo antes de guardar.
 - Guarda una miniatura de 160 px de la foto.
+- **Probar la clave** pide la lista de modelos (instantáneo, no gasta cuota) y guarda el mejor flash disponible
+  en config `gemini_modelo`. Todos los pedidos cortan si tardan (15 s la prueba, 45 s el resto) y al estimar
+  comida se apaga el "pensamiento" del modelo (BUG-008).
+
+**Entrenador con IA** (`entrenador.js`, `ui/entrenador.js`, pestaña con la diana; tarjeta en Hoy):
+- Le manda a Gemini un **resumen** de los datos (`resumir`): perfil sin fecha de nacimiento, meta, lo de hoy,
+  últimos 14 días, promedios de la semana, peso, entrenos y racha. Habla con la voz del personaje.
+- Las reglas van en las instrucciones (piso 1200/1500 kcal, máximo 1 %/semana, nada médico) y **no toca el plan**.
+- **Rutina:** ánimo, minutos y foco → la IA elige solo entre los ejercicios del equipo del usuario;
+  `validarRutina` descarta inventados y acota series, repeticiones y tiempos. Se guarda en config
+  `coach_rutina` y se reproduce con `#/sesion?rutina=ia`.
+- **Cocinar:** texto y/o foto de la heladera → 3 recetas que entran en lo que queda; "Anotar esta" la manda
+  al carrito para revisarla (y queda aprendida como alimento propio).
+- **Cómo vengo:** análisis de 2 semanas (bien, a mejorar, plan de 3 acciones), uno por día (`coach_analisis`).
+- **Charla:** historial de hasta 20 idas y vueltas en `coach_chat`.
+- **Consejo del día** en Hoy y en el Entrenador: uno por día (`coach_consejo`), sin clave no se pide.
 
 **Código de barras** (`codigo.js`, `ui/codigo.js`): Open Food Facts (sin clave), con la cámara
 (`BarcodeDetector`) o el número escrito a mano.

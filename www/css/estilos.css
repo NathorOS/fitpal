@@ -603,3 +603,33 @@ img.rutina__emoji { width: 48px; height: 48px; object-fit: contain; }
 
 /* Contenedor de cada pantalla (ver navegar() en app.js): no agrega cajas al diseño */
 .pantalla { display: contents; }
+
+/* Entrenador con IA */
+.pila-chica { display: grid; gap: var(--s-3); }
+.coach__tabs button { white-space: nowrap; font-size: var(--fs-sm); padding: 0 4px; }
+.seg--chico { grid-auto-flow: row; grid-template-columns: 1fr 1fr; border-radius: var(--r-lg); }
+.seg--chico.seg--4 { grid-template-columns: repeat(4, 1fr); }
+.seg--chico button { white-space: nowrap; font-size: var(--fs-sm); }
+.coach__pensando { display: flex; align-items: center; gap: var(--s-3); font-weight: 700; }
+.coach__puntos { display: inline-block; width: 36px; height: 10px;
+  background: radial-gradient(circle, var(--accent) 4px, transparent 5px) 0 50% / 12px 10px repeat-x;
+  animation: coach-puntos 1s steps(3) infinite; }
+@keyframes coach-puntos { from { width: 12px; } to { width: 48px; } }
+.coach__ejercicios, .coach__plan, .coach__pasos { padding-left: var(--s-5); display: grid; gap: var(--s-2); }
+.coach__ejercicios { list-style: none; padding: 0; }
+.coach__ejercicios li { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: var(--s-2); }
+.coach__ejercicios small, .coach__plan p { color: var(--text-muted); }
+.coach__ingredientes, .coach__lista { list-style: none; padding: 0; display: grid; gap: 4px; margin: var(--s-2) 0; }
+.coach__lista li { display: flex; gap: var(--s-2); }
+.coach__receta details summary { cursor: pointer; font-weight: 700; color: var(--accent-text); }
+.chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.chips .chip { cursor: pointer; font: 700 var(--fs-sm)/1.2 var(--font-sans); padding: var(--s-2) var(--s-3); border-radius: var(--r-pill); background: var(--surface); }
+.chat { list-style: none; padding: 0; display: flex; flex-direction: column; gap: var(--s-2); max-height: 55vh; overflow-y: auto; }
+.chat__msg { max-width: 85%; padding: var(--s-2) var(--s-3); border-radius: var(--r-lg); line-height: 1.45; overflow-wrap: anywhere; }
+.chat__msg--pj { align-self: flex-start; background: var(--surface); border-bottom-left-radius: 4px; }
+.chat__msg--yo { align-self: flex-end; background: var(--accent-soft); border-bottom-right-radius: 4px; }
+.chat__form { display: grid; grid-template-columns: 1fr auto; gap: var(--s-2); align-items: center; }
+.chat__form .campo-texto { min-height: 48px; }
+.tarjeta--coach { display: grid; grid-template-columns: 56px 1fr; gap: var(--s-3); align-items: center; text-decoration: none; color: inherit; }
+.tarjeta--coach .pj { width: 56px; }
+.tarjeta--coach small { color: var(--text-muted); font-weight: 700; }

@@ -13,6 +13,7 @@ const vistas = {
   '/racha':      () => import('./ui/racha.js'),
   '/retos':      () => import('./ui/retos.js'),
   '/entrenar':   () => import('./ui/entrenar.js'),
+  '/entrenador': () => import('./ui/entrenador.js'),
   '/progreso':   () => import('./ui/progreso.js'),
   '/perfil':     () => import('./ui/perfil.js'),
   '/datos':      () => import('./ui/datos.js'),

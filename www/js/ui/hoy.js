@@ -15,6 +15,8 @@ import { puntajeDelDia, etiquetaPuntaje } from '../puntaje.js';
 import { racha } from '../estadisticas.js';
 import { revisarMeta, aplicarAjuste, posponerAjuste } from '../adaptativo.js';
 import { sugerencias } from '../sugerencias.js';
+import { obtenerClave } from '../ia.js';
+import { consejoGuardado, consejoDelDia } from '../entrenador.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const num = (n, d = 0) => Number(n).toLocaleString('es-AR', { maximumFractionDigits: d });
@@ -48,6 +50,9 @@ export async function montar(c, params = new URLSearchParams()) {
     aguaMl: agua, aguaMeta, minutosActividad: minutosAct, pasos, fibra: total.fibra,
   }) : null;
   const pct = objetivo ? Math.min(1, total.kcal / objetivo) : 0;
+  // Entrenador con IA: el consejo del día (se pide una vez por día; mientras tanto, un texto fijo)
+  const conClave = esHoy && Boolean(await obtenerClave());
+  const consejo = conClave ? await consejoGuardado() : null;
 
   // El personaje: etapa, limpieza, pose y lo que dice (docs/personaje/ENCARGO-PERSONAJE.md y FRASES.md)
   const datos = await leerDatos();
@@ -158,6 +163,12 @@ export async function montar(c, params = new URLSearchParams()) {
         </div>
       </section>` : ''}
 
+      ${esHoy ? `<a class="tarjeta tarjeta--coach" href="#/entrenador">
+        ${pjHTML('saluda', { titulo: nombrePj })}
+        <span><small>Tu entrenador${conClave ? '' : ' · con IA'}</small>
+          <p id="consejo-coach">${conClave ? esc(consejo ?? 'Pensando qué decirte hoy…') : 'Te arma la rutina, te dice qué cocinar y cómo venís. Tocá para activarlo.'}</p></span>
+      </a>` : ''}
+
       ${ideas.length ? `<section class="tarjeta" aria-labelledby="t-ideas">
         <h2 class="metrica__titulo" id="t-ideas">Ideas para cerrar el día</h2>
         <ul class="ideas">${ideas.map(i => `<li><span aria-hidden="true">${i.emoji}</span>
@@ -251,6 +262,16 @@ export async function montar(c, params = new URLSearchParams()) {
     await abrirCofre();
     location.hash = '#/logro?id=cofre';
   });
+  if (conClave && !consejo) {
+    consejoDelDia().then(t => {
+      const el = c.querySelector('#consejo-coach');
+      if (el?.isConnected) el.textContent = t ?? 'Tocá para entrenar, cocinar o ver cómo venís.';
+    }).catch(err => {
+      console.warn('Consejo del día', err);
+      const el = c.querySelector('#consejo-coach');
+      if (el?.isConnected) el.textContent = 'Tocá para entrenar, cocinar o ver cómo venís.';
+    });
+  }
   // Reloj del ayuno en curso
   if (curso) {
     // Se guarda el elemento: si la pantalla se vuelve a pintar, este reloj se apaga solo.

@@ -108,7 +108,7 @@ button.chip { cursor: pointer; }
 .nav { display: flex; gap: 4px; padding: 6px; border-radius: var(--r-pill);
   background: color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter: blur(12px);
   box-shadow: var(--sh-float); }
-.nav a { display: grid; place-items: center; width: 52px; height: 48px; border-radius: var(--r-pill);
+.nav a { display: grid; place-items: center; width: 48px; height: 48px; border-radius: var(--r-pill);
   color: var(--text-muted); text-decoration: none; font-size: 22px; }
 .nav a[aria-current="page"] { background: var(--bg); color: var(--text); box-shadow: var(--sh-card); }
 .fab { width: var(--fab); height: var(--fab); border: 0; border-radius: 50%; background: var(--ink);

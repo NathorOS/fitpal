@@ -1,5 +1,5 @@
 // Fase 4 — Sesión guiada: serie por serie, con descanso en cuenta regresiva y resumen al final.
-// Parámetros: rutina=<id> · equipo · nivel
+// Parámetros: rutina=<id> · equipo · nivel (rutina=ia: la que armó el entrenador con IA, guardada en config)
 import { obtener, hoy as fechaHoy } from '../db.js';
 import { pjHTML } from './pj.js';
 import { GRUPOS } from '../datos/ejercicios.js';
@@ -17,8 +17,9 @@ const leerNum = v => Number(String(v ?? '').replace(',', '.'));
 export async function montar(contenedor, params = new URLSearchParams()) {
   const c = document.createElement('div');
   contenedor.replaceChildren(c);
-  const rutina = rutinasPara(params.get('equipo') || 'ninguno', params.get('nivel') || 'principiante')
-    .find(r => r.id === params.get('rutina'));
+  const rutina = params.get('rutina') === 'ia'
+    ? (await obtener('config', 'coach_rutina'))?.valor
+    : rutinasPara(params.get('equipo') || 'ninguno', params.get('nivel') || 'principiante').find(r => r.id === params.get('rutina'));
   if (!rutina) { location.hash = '#/entrenar'; return; }
   const perfil = await obtener('perfil', 'main');
   const kg = (await pesoActual()) ?? 70;
