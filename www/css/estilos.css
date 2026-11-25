@@ -657,7 +657,7 @@ a.ayu:active .ayu__burbuja { transform: scale(.98); }
 .chat__msg--pj.chat__msg--ayu { display: grid; grid-template-columns: 40px 1fr; gap: var(--s-2); align-items: start; }
 .chat__ayu { width: 40px; height: 40px; object-fit: cover; object-position: top; border-radius: 50%; background: var(--accent-soft); }
 @keyframes ayu-entra { from { opacity: 0; transform: translateY(14px) scale(.94); } }
-@keyframes ayu-habla { from { opacity: 0; transform: scale(.9); transform-origin: left center; } }
+@keyframes ayu-habla { from { transform: scale(.85); } }  /* sin opacidad: el texto se lee (y se mide) desde el primer instante */
 @media (prefers-reduced-motion: reduce) { .ayu__img, .ayu__burbuja { animation: none; } }
 .ayu--derecha { grid-template-columns: 1fr auto; }
 .ayu--derecha .ayu__img { order: 2; }
