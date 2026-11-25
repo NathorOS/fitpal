@@ -102,7 +102,7 @@ test('P-H5 guardar la clave: se prueba al instante con la lista de modelos', asy
   await page.getByRole('button', { name: 'Guardar y probar' }).click();
   await expect(page.getByText('¡Listo! La IA ya funciona.')).toBeVisible({ timeout: 5000 });
   expect(generar).toBe(0);                                         // la prueba no gasta cuota
-  expect(await db(page, 'obtener', 'config', 'gemini_modelo')).toMatchObject({ valor: 'gemini-2.5-flash' });
+  expect(await db(page, 'obtener', 'config', 'gemini_modelo')).toMatchObject({ valor: 'gemini-2.5-flash', version: 2 });
   expect(errores).toEqual([]);
 });
 
@@ -116,4 +116,36 @@ test('P-E5 si Gemini no contesta, la prueba de la clave corta con un mensaje (no
   await boton.click();
   await expect(page.getByText(/tardó demasiado/)).toBeVisible({ timeout: 20000 });
   await expect(boton).toBeEnabled();
+});
+
+test('P-H6 con un modelo viejo guardado, la app elige uno nuevo y "Probar" dice cuál y cuánto tardó', async ({ page }) => {
+  const errores = vigilar(page);
+  await conPerfil(page);
+  const usados = [];
+  await page.route('https://generativelanguage.googleapis.com/**', r => {
+    const url = r.request().url();
+    if (url.includes(':generateContent')) {
+      usados.push(url.match(/models\/([^:]+):/)[1]);
+      const cuerpo = r.request().postDataJSON();
+      expect(cuerpo.generationConfig.thinkingConfig).toEqual({ thinkingLevel: 'low' });
+      return r.fulfill({ json: { candidates: [{ content: { parts: [{ text: 'listo' }] } }] } });
+    }
+    return r.fulfill({ json: { models: [
+      { name: 'models/gemini-2.5-flash', supportedGenerationMethods: ['generateContent'] },
+      { name: 'models/gemini-3.6-flash', supportedGenerationMethods: ['generateContent'] },
+      { name: 'models/gemini-3.8-flash', supportedGenerationMethods: ['generateContent'] },
+    ] } });
+  });
+  await page.evaluate(async () => {
+    const { guardar } = await import('/js/db.js');
+    await (await import('/js/ia.js')).guardarClave('clave-de-prueba-local-0000000000');
+    await guardar('config', { clave: 'gemini_modelo', valor: 'gemini-2.5-flash' });   // elegido por la versión anterior
+  });
+  // Un pedido cualquiera ya usa el modelo nuevo
+  await page.evaluate(async () => (await import('/js/ia.js')).llamarGemini({ contents: [] }, 'clave-de-prueba-local-0000000000'));
+  expect(usados).toEqual(['gemini-3.8-flash']);
+  await page.goto('/index.html#/perfil');
+  await page.getByRole('button', { name: 'Probar' }).click();
+  await expect(page.getByText(/Funciona con gemini-3\.8-flash: contestó en [\d,]+ s/)).toBeVisible();
+  expect(errores).toEqual([]);
 });

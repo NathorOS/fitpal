@@ -5,31 +5,47 @@
 import { ALIMENTOS_BASE } from './datos/alimentos.js';
 import { buscar, normalizar, calcularItem } from './registro.js';
 
-export const MODELOS = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash'];
+// Si no se pudo leer la lista de modelos de la clave, se prueban estos en orden (si uno no existe, el siguiente).
+export const MODELOS = ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-3.5-flash-lite', 'gemini-2.5-flash-lite'];
+// Subir este número cuando cambie la forma de elegir el modelo: los teléfonos que ya tenían uno guardado vuelven a elegir.
+export const VERSION_ELECCION = 2;
 const API = 'https://generativelanguage.googleapis.com/v1beta';
 const URL_API = m => `${API}/models/${m}:generateContent`;
-export const ESPERA_MS = 45000;      // tiempo máximo por pedido de análisis
+export const ESPERA_MS = 60000;      // tiempo máximo por pedido de análisis
 export const ESPERA_PRUEBA_MS = 15000;
 
 /**
- * Configuración de "pensamiento": los modelos nuevos piensan antes de contestar y eso los hace lentos.
- * Para estimar comida no hace falta: se apaga (2.5) o se pone al mínimo (3.x).
+ * Configuración de "pensamiento": los modelos nuevos piensan antes de contestar y eso los hace lentos
+ * (con el pensamiento alto, una rutina tardaba más de 45 s). Para esto alcanza con lo mínimo:
+ * 2.5 Flash se apaga, 2.5 Flash-Lite ya viene apagado y los 3.x (y los alias "latest") van en "low",
+ * que todos los 3.x aceptan. Si un modelo no lo acepta, llamarGemini reintenta sin esta configuración.
  */
 export function configPensar(modelo) {
+  if (/2\.5-flash-lite/.test(modelo)) return null;
   if (/2\.5-flash/.test(modelo)) return { thinkingBudget: 0 };
-  if (/gemini-3/.test(modelo)) return { thinkingLevel: 'low' };
+  if (/gemini-([3-9]|\d\d)|latest/.test(modelo)) return { thinkingLevel: 'low' };
   return null;
 }
 
+/** "gemini-3.8-flash" → { version: 3.8, lite: false }; null si no es un flash estable (preview, exp, pro…). */
+export function leerFlash(nombre) {
+  const m = /^gemini-(\d+(?:\.\d+)?)-flash(-lite)?$/.exec(nombre);
+  return m ? { version: Number(m[1]), lite: Boolean(m[2]) } : null;
+}
+
 /**
- * Elige el mejor modelo "flash" de la lista que devuelve Gemini para esa clave.
- * Prefiere los de MODELOS (en orden); si no hay ninguno, el flash estable más nuevo.
+ * Elige el modelo de la lista que devuelve Gemini para esa clave: el Flash estable más nuevo de la
+ * versión 3 en adelante (2.5 Flash está deprecado); si no hay, el Flash-Lite más nuevo; si no, un alias
+ * o lo que esté en MODELOS.
  */
 export function elegirModelo(nombres) {
   const lista = nombres.map(n => String(n).replace(/^models\//, ''));
-  for (const m of MODELOS) if (lista.includes(m)) return m;
-  const flash = lista.filter(n => /^gemini-[\d.]+-flash$/.test(n)).sort((a, b) => parseFloat(b.slice(7)) - parseFloat(a.slice(7)));
-  return flash[0] ?? null;
+  const flash = lista.map(n => ({ n, ...leerFlash(n) })).filter(x => x.version);
+  const mejor = (xs) => xs.sort((a, b) => b.version - a.version)[0]?.n ?? null;
+  return mejor(flash.filter(x => !x.lite && x.version >= 3))
+    ?? mejor(flash.filter(x => x.lite))
+    ?? MODELOS.find(m => lista.includes(m))
+    ?? mejor(flash);
 }
 
 /** fetch con tiempo límite: si Gemini no contesta, se corta con un mensaje claro (antes quedaba cargando). */
@@ -39,7 +55,7 @@ async function pedir(url, opciones, espera) {
   try {
     return await fetch(url, { ...opciones, signal: ctrl.signal });
   } catch (err) {
-    if (err?.name === 'AbortError') throw Object.assign(new Error('Gemini tardó demasiado en contestar. Probá de nuevo en un rato.'), { tiempo: true });
+    if (err?.name === 'AbortError') throw Object.assign(new Error('Gemini tardó demasiado en contestar. Probá de nuevo; si sigue pasando, tocá "Probar" en Perfil y pasame lo que dice.'), { tiempo: true });
     throw new Error('No pude conectarme con Gemini. Revisá tu conexión.');
   } finally {
     clearTimeout(t);
@@ -170,9 +186,13 @@ export async function borrarClave() {
   return borrar('config', 'gemini_clave');
 }
 
-async function modeloGuardado() {
+/** Modelo elegido para esta clave. Si no hay o se eligió con una versión vieja de la app, se vuelve a elegir. */
+export async function modeloGuardado(clave) {
   const { obtener } = await db();
-  return (await obtener('config', 'gemini_modelo'))?.valor ?? null;
+  const g = await obtener('config', 'gemini_modelo');
+  if (g?.valor && g.version === VERSION_ELECCION) return g.valor;
+  if (!clave) return null;
+  try { return await elegirConClave(clave); } catch (err) { console.warn('No pude elegir el modelo', err); return null; }
 }
 
 /**
@@ -181,7 +201,7 @@ async function modeloGuardado() {
  */
 export async function llamarGemini(pedido, clave, { espera = ESPERA_MS } = {}) {
   if (!navigator.onLine) throw new Error('Sin conexión. La IA necesita internet; podés anotar a mano.');
-  const elegido = await modeloGuardado().catch(() => null);
+  const elegido = await modeloGuardado(clave).catch(() => null);
   const modelos = [...new Set([elegido, ...MODELOS].filter(Boolean))];
   let ultimo = null;
   for (const m of modelos) {
@@ -205,7 +225,7 @@ export async function llamarGemini(pedido, clave, { espera = ESPERA_MS } = {}) {
         throw new Error(mensajeError(400, txt));
       }
     }
-    if (r.ok) return r.json();
+    if (r.ok) return { ...(await r.json()), modelo: m };
     const txt = await r.text();
     if (r.status === 404) { ultimo = txt; continue; }
     throw new Error(mensajeError(r.status, txt));
@@ -228,8 +248,7 @@ export async function analizar({ texto, imagenBase64, mime }) {
  * (antes se pedía un análisis entero y con los modelos que "piensan" quedaba cargando).
  * Devuelve el modelo elegido y lo guarda para los próximos pedidos.
  */
-export async function probarClave(clave) {
-  if (!navigator.onLine) throw new Error('Sin conexión. Conectate a internet para probar la clave.');
+async function elegirConClave(clave) {
   const r = await pedir(`${API}/models?pageSize=200`, { headers: { 'x-goog-api-key': clave } }, ESPERA_PRUEBA_MS);
   if (!r.ok) throw new Error(mensajeError(r.status, await r.text()));
   const datos = await r.json();
@@ -238,8 +257,28 @@ export async function probarClave(clave) {
     .map(m => m.name));
   if (!modelo) throw new Error('Tu clave funciona, pero no encontré un modelo de Gemini disponible. Avisame y lo reviso.');
   const { guardar } = await db();
-  await guardar('config', { clave: 'gemini_modelo', valor: modelo });
+  await guardar('config', { clave: 'gemini_modelo', valor: modelo, version: VERSION_ELECCION });
   return modelo;
+}
+
+export async function probarClave(clave) {
+  if (!navigator.onLine) throw new Error('Sin conexión. Conectate a internet para probar la clave.');
+  return elegirConClave(clave);
+}
+
+/**
+ * Prueba de verdad (botón "Probar" de Perfil): vuelve a elegir el modelo y le pide una respuesta mínima,
+ * midiendo cuánto tarda. Devuelve { modelo, segundos }.
+ */
+export async function medirIA(clave) {
+  if (!navigator.onLine) throw new Error('Sin conexión. Conectate a internet para probar la clave.');
+  await elegirConClave(clave);
+  const t0 = performance.now();
+  const r = await llamarGemini({
+    contents: [{ role: 'user', parts: [{ text: 'Respondé solo con la palabra: listo' }] }],
+    generationConfig: { temperature: 0 },
+  }, clave, { espera: 30000 });
+  return { modelo: r.modelo, segundos: Math.round((performance.now() - t0) / 100) / 10 };
 }
 
 /** Achica una foto a ~800 px y la devuelve en base64 JPEG (sin el prefijo data:). */

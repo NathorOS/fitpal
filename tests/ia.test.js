@@ -80,18 +80,23 @@ test('Open Food Facts: producto a alimento propio por 100 g', () => {
 // --- Clave que quedaba cargando (2026-11-24) ---
 import { elegirModelo, configPensar } from '../www/js/ia.js';
 
-test('modelo: elige el preferido que esté en la lista de la clave', () => {
-  assert.equal(elegirModelo(['models/gemini-2.0-flash', 'models/gemini-2.5-flash', 'models/gemini-2.5-pro']), 'gemini-2.5-flash');
-  assert.equal(elegirModelo(['models/gemini-flash-latest', 'models/gemini-2.0-flash']), 'gemini-flash-latest');
+test('modelo: el Flash estable más nuevo de la 3 en adelante (no previews ni el 2.5 deprecado)', () => {
+  const lista = ['models/gemini-2.5-flash', 'models/gemini-3-flash-preview', 'models/gemini-3.6-flash', 'models/gemini-3.8-flash',
+    'models/gemini-3.5-flash-lite', 'models/gemini-3.8-pro', 'models/gemini-flash-latest'];
+  assert.equal(elegirModelo(lista), 'gemini-3.8-flash');
 });
 
-test('modelo: si no hay ninguno conocido, el flash estable más nuevo', () => {
-  assert.equal(elegirModelo(['models/gemini-3.0-flash', 'models/gemini-3.5-flash', 'models/gemini-3.5-flash-preview-09', 'models/gemini-3.5-pro']), 'gemini-3.5-flash');
+test('modelo: sin Flash 3.x, el Flash-Lite más nuevo; después alias o lo que haya', () => {
+  assert.equal(elegirModelo(['models/gemini-2.5-flash', 'models/gemini-2.5-flash-lite', 'models/gemini-3.5-flash-lite']), 'gemini-3.5-flash-lite');
+  assert.equal(elegirModelo(['models/gemini-flash-latest', 'models/gemini-2.5-pro']), 'gemini-flash-latest');
+  assert.equal(elegirModelo(['models/gemini-2.5-flash', 'models/gemini-2.5-pro']), 'gemini-2.5-flash');
   assert.equal(elegirModelo(['models/text-embedding-004']), null);
 });
 
-test('pensar: apagado en 2.5 flash, mínimo en 3.x, nada en el resto', () => {
+test('pensar: mínimo en 3.x y alias, apagado en 2.5 Flash, nada en 2.5 Flash-Lite', () => {
+  assert.deepEqual(configPensar('gemini-3.8-flash'), { thinkingLevel: 'low' });
+  assert.deepEqual(configPensar('gemini-3.5-flash-lite'), { thinkingLevel: 'low' });
+  assert.deepEqual(configPensar('gemini-flash-latest'), { thinkingLevel: 'low' });
   assert.deepEqual(configPensar('gemini-2.5-flash'), { thinkingBudget: 0 });
-  assert.deepEqual(configPensar('gemini-3.5-flash'), { thinkingLevel: 'low' });
-  assert.equal(configPensar('gemini-2.0-flash'), null);
+  assert.equal(configPensar('gemini-2.5-flash-lite'), null);
 });

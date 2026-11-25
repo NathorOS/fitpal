@@ -309,7 +309,7 @@ export function pedidoChat(r, historial, mensaje) {
   return {
     systemInstruction: { parts: [{ text: `${instrucciones(r)}\nEstás chateando: contestá corto (máximo 120 palabras), sin títulos ni markdown.` }] },
     contents: [...previos, { role: 'user', parts: [{ text: corto(mensaje, 1000) }] }],
-    generationConfig: { temperature: 0.8, maxOutputTokens: 700 },
+    generationConfig: { temperature: 0.8, maxOutputTokens: 2048 },
   };
 }
 
