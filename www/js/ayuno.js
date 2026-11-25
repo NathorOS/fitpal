@@ -83,3 +83,25 @@ export async function guardarMetaAyuno(h) {
   const { guardar } = await db();
   return guardar('config', { clave: 'ayuno_meta', valor: Number(h) });
 }
+
+/**
+ * Etapas de un ayuno, para explicarlo en Hoy. Es orientativo (cada cuerpo es distinto) y nunca
+ * propone pasar de la meta: al cumplirla, la etapa es "cortalo con una buena comida".
+ */
+export const FASES_AYUNO = [
+  { desde: 0, nombre: 'Digiriendo', emoji: '🍽️', texto: 'Tu cuerpo usa la energía de lo último que comiste.' },
+  { desde: 4, nombre: 'Usando reservas', emoji: '🔋', texto: 'Ya digeriste: empieza a usar la energía que tenía guardada.' },
+  { desde: 12, nombre: 'Más grasa', emoji: '🔥', texto: 'Con más horas sin comer, usa más grasa como energía.' },
+];
+export function faseAyuno(horas, meta) {
+  const fases = FASES_AYUNO.filter(f => f.desde < meta);
+  if (horas >= meta) {
+    return { fases, actual: fases.length, fase: { nombre: '¡Meta cumplida!', emoji: '🏆', texto: 'Cortalo con una comida con proteína y verduras.' }, siguiente: null };
+  }
+  const actual = fases.reduce((a, f, i) => (horas >= f.desde ? i : a), 0);
+  const prox = fases[actual + 1];
+  return {
+    fases, actual, fase: fases[actual],
+    siguiente: prox ? { nombre: prox.nombre, enH: prox.desde - horas } : { nombre: 'Meta', enH: meta - horas },
+  };
+}
