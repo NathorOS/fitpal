@@ -202,3 +202,16 @@ test('frases: arrancan con mayúscula aunque la comida venga en minúscula', () 
   const r = elegirFrase('pesado', { vars: { comida: 'pizza' }, azar: () => 0 });
   assert.match(r.texto, /^[¿¡]?[A-ZÁÉÍÓÚÑ]/);
 });
+
+test('durmiendo: en e1 y e5 no queda sentado con el celular; desde las 22 con ayuno en curso', () => {
+  assert.equal(archivoPersonaje({ etapa: 'e1', pose: 'durmiendo' }), 'e1-ojos-cerrados');
+  assert.equal(archivoPersonaje({ etapa: 'e5', pose: 'durmiendo', limpieza: 90 }), 'e5-contento');
+  assert.equal(archivoPersonaje({ etapa: 'e3', pose: 'durmiendo' }), 'e3-durmiendo');
+  assert.equal(poseDelDia({ hora: 22, ayunoEnCurso: true, comidasHoy: 3, kcal: 1500, kcalMeta: 2000 }), 'durmiendo');
+  assert.equal(poseDelDia({ hora: 22, ayunoEnCurso: false, comidasHoy: 3, kcal: 1500, kcalMeta: 2000 }), 'contento');
+});
+
+test('de madrugada la frase es de noche, no de arrancar el día', () => {
+  assert.equal(situacionAlAbrir({ hora: 0, comidasHoy: 0 }), 'noche');
+  assert.equal(situacionAlAbrir({ hora: 7, comidasHoy: 0 }), 'vacio');
+});

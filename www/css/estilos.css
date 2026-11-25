@@ -663,3 +663,16 @@ a.ayu:active .ayu__burbuja { transform: scale(.98); }
 .ayu--derecha .ayu__img { order: 2; }
 .ayu--derecha .ayu__burbuja { margin: 0 8px 0 0; }
 .ayu--derecha .ayu__burbuja::before { left: auto; right: -7px; }
+
+/* De noche: el cuarto "normal" no tiene dibujo nocturno, así que se oscurece (los otros dos tienen el suyo) */
+.hoy__escena--noche.hoy__escena--normal .escena-pj { filter: brightness(.55) saturate(.8); }
+.hoy__escena--noche.hoy__escena--normal .escena-pj::after { content: ''; position: absolute; inset: 0;
+  background: rgb(25 35 110 / .3); mix-blend-mode: multiply; pointer-events: none; }
+/* Durmiendo: las "Z" que suben */
+.efecto--zzz { position: absolute; right: 20%; top: 2%; display: flex; gap: 2px; pointer-events: none;
+  font: 800 30px/1 var(--font-display); color: #fff; text-shadow: 0 2px 0 #1D463D, 0 0 8px rgb(0 0 0 / .4); }
+.efecto--zzz i { font-style: normal; animation: zzz 2.4s ease-in-out infinite; opacity: 0; }
+.efecto--zzz i:nth-child(2) { font-size: .75em; animation-delay: .6s; }
+.efecto--zzz i:nth-child(3) { font-size: .55em; animation-delay: 1.2s; }
+@keyframes zzz { 0% { opacity: 0; transform: translate(0, 10px); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(14px, -34px); } }
+@media (prefers-reduced-motion: reduce) { .efecto--zzz i { animation: none; opacity: 1; } }

@@ -62,6 +62,8 @@ export const POSE_CERCANA = {
   durmiendo: 'fiaca', 'tomando-agua': 'contento', pesandose: 'contento', saludando: 'contento',
   'con-un-trofeo': 'festejando', triste: 'fiaca', bailando: 'festejando',
 };
+/** Hasta tener su dibujo durmiendo: en e1 con los ojos cerrados (no sentado con el celular). Hoy le suma las "Z". */
+const DURMIENDO_SIN_DIBUJO = { e1: 'ojos-cerrados', e5: 'contento' };
 
 /**
  * d: { hora, comidasHoy, kcal, kcalMeta, actividadHoy (bool), festejo (bool), ayunoEnCurso (bool), rachaCortada (bool) }
@@ -71,7 +73,7 @@ export function poseDelDia(d) {
   if (d.festejo) return 'festejando';
   if (d.kcalMeta > 0 && d.kcal > d.kcalMeta * 1.15) return 'empachado';
   if (d.actividadHoy) return 'entrenando';
-  if (d.ayunoEnCurso && (d.hora >= 23 || d.hora < 7)) return 'durmiendo';
+  if (d.ayunoEnCurso && (d.hora >= 22 || d.hora < 7)) return 'durmiendo';
   if (d.rachaCortada && !d.comidasHoy) return 'triste';
   if (d.hora >= 14 && !d.comidasHoy) return 'fiaca';
   return 'contento';
@@ -115,6 +117,7 @@ const CON_LIMPIO = ['contento', 'entrenando', 'festejando'];
 /** Nombre del archivo del personaje (sin carpeta ni extensión). */
 export function archivoPersonaje({ etapa = 'e3', pose = 'contento', limpieza: l = LIMPIEZA_INICIAL }) {
   let p = pose;
+  if (p === 'durmiendo' && DURMIENDO_SIN_DIBUJO[etapa]) return `${etapa}-${DURMIENDO_SIN_DIBUJO[etapa]}`;
   if (POSES_EXTRA.includes(p) && etapa !== 'e3') p = POSE_CERCANA[p];
   if (!POSES.includes(p) && !POSES_EXTRA.includes(p)) p = 'contento';
   const limpio = l >= 67 && etapa !== 'e1' && CON_LIMPIO.includes(p);
