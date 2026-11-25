@@ -93,3 +93,13 @@ Status: fixed el 2026-11-25 — se elige el Flash estable 3.x más nuevo de la l
 `thinkingLevel: low` (también en los alias), y los teléfonos con un modelo elegido por la versión anterior
 vuelven a elegir solos. "Probar" en Perfil hace un pedido real y muestra el modelo y los segundos.
 Tiempo límite de los pedidos: 60 s. Pendiente: confirmar con la clave real cuánto tarda.
+
+### BUG-010: con la clave real, "sin cuota" en Cocinar y "no responde" en Probar
+- Severity: S2 (la IA no funcionaba)
+- Flow / case: P-E6, P-E7 · Screen: Entrenador → Cocinar, Perfil → Probar
+- Build: 2026-11-25 · Reportado por el usuario (capturas)
+Causa probable: la app usaba un solo modelo (el Flash más nuevo), que tenía poca o ninguna cuota gratuita
+(HTTP 429) o estaba saturado (HTTP 5xx). El consejo del día además se volvía a pedir en cada pantalla.
+Status: fixed el 2026-11-25 — se guarda la lista de modelos de la clave en orden y, si uno da 429, 5xx o no
+existe, descansa un rato (sin cuota del día: hasta mañana) y se usa el siguiente. "Probar" muestra qué modelo
+contestó, cuáles salteó y, si fallan todos, el mensaje de Google. El consejo fallido no se repide por 30 min.

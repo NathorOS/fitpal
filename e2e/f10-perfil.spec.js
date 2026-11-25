@@ -102,7 +102,7 @@ test('P-H5 guardar la clave: se prueba al instante con la lista de modelos', asy
   await page.getByRole('button', { name: 'Guardar y probar' }).click();
   await expect(page.getByText('¡Listo! La IA ya funciona.')).toBeVisible({ timeout: 5000 });
   expect(generar).toBe(0);                                         // la prueba no gasta cuota
-  expect(await db(page, 'obtener', 'config', 'gemini_modelo')).toMatchObject({ valor: 'gemini-2.5-flash', version: 2 });
+  expect(await db(page, 'obtener', 'config', 'gemini_modelo')).toMatchObject({ valor: 'gemini-2.5-flash', version: 3 });
   expect(errores).toEqual([]);
 });
 
@@ -148,4 +148,42 @@ test('P-H6 con un modelo viejo guardado, la app elige uno nuevo y "Probar" dice 
   await page.getByRole('button', { name: 'Probar' }).click();
   await expect(page.getByText(/Funciona con gemini-3\.8-flash: contestó en [\d,]+ s/)).toBeVisible();
   expect(errores).toEqual([]);
+});
+
+test('P-E6 si el mejor modelo no tiene cuota o está saturado, la app usa el siguiente y lo cuenta', async ({ page }) => {
+  const errores = vigilar(page);
+  await conPerfil(page);
+  const usados = [];
+  await page.route('https://generativelanguage.googleapis.com/**', r => {
+    const url = r.request().url();
+    if (!url.includes(':generateContent')) return r.fulfill({ json: { models: ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite']
+      .map(n => ({ name: `models/${n}`, supportedGenerationMethods: ['generateContent'] })) } });
+    const m = url.match(/models\/([^:]+):/)[1];
+    usados.push(m);
+    if (m === 'gemini-3.8-flash') return r.fulfill({ status: 429, json: { error: { code: 429, message: 'Quota exceeded, limit: 0' } } });
+    if (m === 'gemini-3.6-flash') return r.fulfill({ status: 503, json: { error: { code: 503, message: 'The model is overloaded.' } } });
+    return r.fulfill({ json: { candidates: [{ content: { parts: [{ text: 'listo' }] } }] } });
+  });
+  await page.evaluate(async () => (await import('/js/ia.js')).guardarClave('clave-de-prueba-local-0000000000'));
+  await page.goto('/index.html#/perfil');
+  await page.getByRole('button', { name: 'Probar' }).click();
+  await expect(page.getByText(/Funciona con gemini-3\.5-flash-lite.*Salteé gemini-3\.8-flash \(sin cuota\), gemini-3\.6-flash \(saturado\)/)).toBeVisible();
+  expect(usados).toEqual(['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite']);
+  // El siguiente pedido ya no insiste con los que fallaron
+  usados.length = 0;
+  await page.evaluate(async () => (await import('/js/ia.js')).llamarGemini({ contents: [] }, 'clave-de-prueba-local-0000000000'));
+  expect(usados).toEqual(['gemini-3.5-flash-lite']);
+  expect(errores.filter(e => !/429|503/.test(e))).toEqual([]);
+});
+
+test('P-E7 si fallan todos, "Probar" muestra el detalle de Google', async ({ page }) => {
+  await conPerfil(page);
+  await page.route('https://generativelanguage.googleapis.com/**', r => {
+    if (!r.request().url().includes(':generateContent')) return r.fulfill({ json: { models: [{ name: 'models/gemini-3.8-flash', supportedGenerationMethods: ['generateContent'] }] } });
+    return r.fulfill({ status: 429, json: { error: { code: 429, message: 'Quota exceeded for metric FreeTier, limit: 0' } } });
+  });
+  await page.evaluate(async () => (await import('/js/ia.js')).guardarClave('clave-de-prueba-local-0000000000'));
+  await page.goto('/index.html#/perfil');
+  await page.getByRole('button', { name: 'Probar' }).click();
+  await expect(page.getByText(/límite gratuito.*Detalle: gemini-3\.8-flash \(429\) · Quota exceeded for metric FreeTier, limit: 0/)).toBeVisible();
 });

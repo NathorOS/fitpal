@@ -183,9 +183,10 @@ export async function montar(contenedor) {
     if (b.dataset.a === 'probar') {
       b.disabled = true; msg('Probando con una respuesta de verdad…');
       try {
-        const { modelo, segundos } = await medirIA(await obtenerClave());
-        msg(`✅ Funciona con ${modelo}: contestó en ${String(segundos).replace('.', ',')} s.`);
-      } catch (err) { msg(err.message); }
+        const { modelo, segundos, saltados } = await medirIA(await obtenerClave());
+        msg(`✅ Funciona con ${modelo}: contestó en ${String(segundos).replace('.', ',')} s.`
+          + (saltados.length ? ` Salteé ${saltados.map(x => `${x.modelo} (${x.status === 429 ? 'sin cuota' : x.status === 404 ? 'no existe' : 'saturado'})`).join(', ')}.` : ''));
+      } catch (err) { msg(err.detalle ? `${err.message} Detalle: ${err.detalle}` : err.message); }
       b.disabled = false;
     }
     if (b.dataset.a === 'borrar' && confirm('¿Borrar la clave de Gemini de este teléfono?')) {

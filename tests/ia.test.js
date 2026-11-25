@@ -57,7 +57,7 @@ test('platos a ítems: base escalada por gramos o estimación de la IA', () => {
 test('mensajes de error claros', () => {
   assert.match(mensajeError(400, 'API_KEY_INVALID'), /no es válida/);
   assert.match(mensajeError(429), /límite/);
-  assert.match(mensajeError(503), /no responde/);
+  assert.match(mensajeError(503), /saturado/);
 });
 
 test('Open Food Facts: producto a alimento propio por 100 g', () => {
@@ -99,4 +99,27 @@ test('pensar: mínimo en 3.x y alias, apagado en 2.5 Flash, nada en 2.5 Flash-Li
   assert.deepEqual(configPensar('gemini-flash-latest'), { thinkingLevel: 'low' });
   assert.deepEqual(configPensar('gemini-2.5-flash'), { thinkingBudget: 0 });
   assert.equal(configPensar('gemini-2.5-flash-lite'), null);
+});
+
+// --- Sin cuota o saturado: pasar al siguiente modelo (2026-11-25) ---
+import { ordenarModelos, descansoPorError, detalleGoogle } from '../www/js/ia.js';
+
+test('modelos: orden completo, del preferido al último recurso', () => {
+  assert.deepEqual(ordenarModelos(['models/gemini-2.5-flash', 'models/gemini-3.1-flash-lite', 'models/gemini-3.6-flash',
+    'models/gemini-flash-latest', 'models/gemini-3.8-flash', 'models/gemini-3.5-flash-lite', 'models/gemini-3-flash-preview', 'models/gemini-3.8-pro']),
+  ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-flash-latest', 'gemini-2.5-flash']);
+});
+
+test('descanso: sin cuota del día hasta mañana, por minuto 1 min, saturado 2 min; otros errores no', () => {
+  assert.ok(descansoPorError(429, '{"error":{"message":"Quota exceeded for metric: GenerateRequestsPerDayPerProjectPerModel-FreeTier, limit: 0"}}') > 12 * 3600e3);
+  assert.equal(descansoPorError(429, '{"error":{"message":"Resource exhausted, per minute"}}'), 60e3);
+  assert.equal(descansoPorError(503, 'overloaded'), 120e3);
+  assert.equal(descansoPorError('tiempo'), 600e3);
+  assert.equal(descansoPorError(400, 'bad'), null);
+  assert.equal(descansoPorError(403, ''), null);
+});
+
+test('detalle: el mensaje de Google, en una línea y corto', () => {
+  assert.equal(detalleGoogle('{"error":{"code":503,"message":"The model is overloaded.\\nTry later"}}'), 'The model is overloaded.');
+  assert.equal(detalleGoogle('no json'), 'no json');
 });
